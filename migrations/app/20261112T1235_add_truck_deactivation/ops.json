@@ -1,0 +1,62 @@
+[
+  {
+    "id": "column.public.Truck.deactivatedAt",
+    "label": "Add column \"deactivatedAt\" to \"Truck\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "deactivatedAt",
+        "table": "Truck"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"deactivatedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Truck",
+          "deactivatedAt"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"deactivatedAt\" on \"Truck\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"deactivatedAt\"",
+        "sql": "ALTER TABLE \"public\".\"Truck\" ADD COLUMN \"deactivatedAt\" timestamptz(3)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"deactivatedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Truck",
+          "deactivatedAt"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"deactivatedAt\" on \"Truck\""
+        }
+      },
+      {
+        "description": "verify column \"deactivatedAt\" has type \"timestamp(3) with time zone\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Truck",
+          "deactivatedAt",
+          "timestamp(3) with time zone"
+        ]
+      }
+    ]
+  }
+]

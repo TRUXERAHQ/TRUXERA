@@ -1,0 +1,220 @@
+// use prisma-8
+enum MembershipRole {
+  @@type("pg/text@1")
+
+  OWNER = "OWNER"
+  ADMIN = "ADMIN"
+  DISPATCHER = "DISPATCHER"
+  DRIVER = "DRIVER"
+  VIEWER = "VIEWER"
+}
+
+enum TruckStatus {
+  @@type("pg/text@1")
+
+  AVAILABLE = "AVAILABLE"
+  ON_ROUTE = "ON_ROUTE"
+  MAINTENANCE = "MAINTENANCE"
+  OUT_OF_SERVICE = "OUT_OF_SERVICE"
+}
+
+enum DriverStatus {
+  @@type("pg/text@1")
+
+  AVAILABLE = "AVAILABLE"
+  ON_DUTY = "ON_DUTY"
+  OFF_DUTY = "OFF_DUTY"
+  ON_LEAVE = "ON_LEAVE"
+  INACTIVE = "INACTIVE"
+}
+
+enum DeliveryStatus {
+  @@type("pg/text@1")
+
+  PLANNED = "PLANNED"
+  ASSIGNED = "ASSIGNED"
+  PICKED_UP = "PICKED_UP"
+  IN_TRANSIT = "IN_TRANSIT"
+  DELIVERED = "DELIVERED"
+  FAILED = "FAILED"
+  CANCELLED = "CANCELLED"
+}
+
+enum RiskLevel {
+  @@type("pg/text@1")
+
+  LOW = "LOW"
+  MEDIUM = "MEDIUM"
+  HIGH = "HIGH"
+}
+
+enum DeliveryEventType {
+  @@type("pg/text@1")
+
+  STATUS_CHANGED = "STATUS_CHANGED"
+  ASSIGNMENT_CHANGED = "ASSIGNMENT_CHANGED"
+  ETA_UPDATED = "ETA_UPDATED"
+  DELIVERY_ATTEMPTED = "DELIVERY_ATTEMPTED"
+  EXCEPTION_REPORTED = "EXCEPTION_REPORTED"
+  LOCATION_UPDATED = "LOCATION_UPDATED"
+}
+
+model Organization {
+  id        Uuid               @id @onCreate(uuid(7))
+  name      String
+  slug      String             @unique
+  timezone  String             @default("UTC")
+  createdAt temporal.CreatedAt
+  updatedAt temporal.UpdatedAt
+}
+
+model User {
+  id        Uuid               @id @onCreate(uuid(7))
+  email     String             @unique
+  name      String
+  createdAt temporal.CreatedAt
+  updatedAt temporal.UpdatedAt
+}
+
+model Membership {
+  id             Uuid               @id @onCreate(uuid(7))
+  organizationId Uuid
+  userId         Uuid
+  role           MembershipRole
+  createdAt      temporal.CreatedAt
+  updatedAt      temporal.UpdatedAt
+
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model Truck {
+  id                Uuid               @id @onCreate(uuid(7))
+  organizationId    Uuid
+  unitNumber        String
+  vin               String?
+  status            TruckStatus        @default(AVAILABLE)
+  capacityKg        Decimal?
+  currentLocation   String?
+  locationUpdatedAt DateTime?
+  deactivatedAt     DateTime?
+  createdAt         temporal.CreatedAt
+  updatedAt         temporal.UpdatedAt
+
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, unitNumber])
+  @@unique([organizationId, id])
+  @@index([organizationId, status])
+}
+
+model Driver {
+  id             Uuid               @id @onCreate(uuid(7))
+  organizationId Uuid
+  userId         Uuid?
+  name           String
+  phone          String?
+  licenseNumber  String?
+  status         DriverStatus       @default(AVAILABLE)
+  createdAt      temporal.CreatedAt
+  updatedAt      temporal.UpdatedAt
+
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user           User?              @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, licenseNumber])
+  @@unique([organizationId, userId])
+  @@unique([organizationId, id])
+  @@index([organizationId, status])
+}
+
+model Load {
+  id                Uuid               @id @onCreate(uuid(7))
+  organizationId    Uuid
+  reference         String
+  customerName      String
+  pickupAddress     String
+  pickupWindowStart DateTime?
+  pickupWindowEnd   DateTime?
+  cargoDescription  String?
+  weightKg          Decimal?
+  createdAt         temporal.CreatedAt
+  updatedAt         temporal.UpdatedAt
+
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, reference])
+  @@unique([organizationId, id])
+  @@index([organizationId, createdAt])
+}
+
+model Delivery {
+  id                  Uuid               @id @onCreate(uuid(7))
+  organizationId      Uuid
+  loadId              Uuid
+  stopNumber          Int
+  reference           String?
+  recipientName       String?
+  destinationAddress  String
+  deliveryWindowStart DateTime?
+  deliveryWindowEnd   DateTime?
+  eta                 DateTime?
+  status              DeliveryStatus     @default(PLANNED)
+  riskLevel           RiskLevel          @default(LOW)
+  deliveredAt         DateTime?
+  createdAt           temporal.CreatedAt
+  updatedAt           temporal.UpdatedAt
+
+  organization        Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  load                Load               @relation(fields: [organizationId, loadId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, loadId, stopNumber])
+  @@index([organizationId, status])
+  @@index([organizationId, eta])
+}
+
+model DispatchAssignment {
+  id               Uuid      @id @onCreate(uuid(7))
+  organizationId   Uuid
+  deliveryId       Uuid
+  truckId          Uuid
+  driverId         Uuid
+  assignedByUserId Uuid?
+  assignedAt       DateTime  @default(now()) @onCreate(now())
+  endedAt          DateTime?
+  endReason        String?
+
+  delivery         Delivery  @relation(fields: [organizationId, deliveryId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+  truck            Truck     @relation(fields: [organizationId, truckId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+  driver           Driver    @relation(fields: [organizationId, driverId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+  assignedByUser   User?     @relation(fields: [assignedByUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId, deliveryId, assignedAt], name: "dispatch_delivery_assigned_idx")
+  @@index([organizationId, deliveryId], unique: true, where: sql`"endedAt" IS NULL`, name: "dispatch_active_delivery_unique")
+  @@index([organizationId, truckId, endedAt])
+  @@index([organizationId, driverId, endedAt])
+  @@index([assignedByUserId])
+}
+
+model DeliveryEvent {
+  id             Uuid              @id @onCreate(uuid(7))
+  organizationId Uuid
+  deliveryId     Uuid
+  actorUserId    Uuid?
+  type           DeliveryEventType
+  fromStatus     DeliveryStatus?
+  toStatus       DeliveryStatus?
+  occurredAt     DateTime          @default(now()) @onCreate(now())
+  note           String?
+  location       String?
+
+  delivery       Delivery          @relation(fields: [organizationId, deliveryId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+  actor          User?             @relation(fields: [actorUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId, deliveryId, occurredAt])
+  @@index([actorUserId])
+}
