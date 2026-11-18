@@ -427,7 +427,7 @@ export function analyzeDeliveryRisk(
   }
 
   if (hasReassignmentHistory(input)) {
-    mediumSignals.push("The delivery has recorded reassignment history.");
+    evidence.push("The delivery has recorded reassignment history.");
   }
 
   const reassignment = getReassignmentAssessment(input);

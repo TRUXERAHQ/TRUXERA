@@ -937,7 +937,7 @@ test("delivery risk becomes medium for stored risk and verified reassignment his
     }),
   );
   assert.equal(result.riskLevel, "MEDIUM");
-  assert.ok(result.reasons.some((reason) => reason.includes("reassignment history")));
+  assert.ok(result.evidence.some((item) => item.includes("reassignment history")));
   assert.ok(result.reasons.some((reason) => reason.includes("multiple delivery attempts")));
 });
 
