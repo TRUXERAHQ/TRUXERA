@@ -50,6 +50,10 @@ import {
   buildDeliveryChain,
   buildRecoveryImpact,
 } from "../src/dashboard/delivery-chain.ts";
+import {
+  buildDownstreamImpact,
+  buildWhatHappened,
+} from "../src/dashboard/load-impact.ts";
 
 test("driver records can be created and updated through the validated workflow", async () => {
   const drivers = [];
@@ -2054,4 +2058,317 @@ test("recovery impact flags disruption and measures completion against recorded 
   assert.match(impact.stages[1].lines[0], /marked failed/);
   assert.equal(impact.stages[2].lines[0], "No recovery action recorded.");
   assert.match(impact.outcomeLabel, /1h 30m after the projected ETA/);
+});
+
+function impactDelivery(overrides = {}) {
+  return {
+    id: "d1",
+    reference: "DEL-101",
+    stopNumber: 1,
+    recipientName: null,
+    status: "ASSIGNED",
+    eta: null,
+    deliveryWindowEnd: null,
+    deliveredAt: null,
+    ...overrides,
+  };
+}
+
+function impactAssignment(overrides = {}) {
+  return {
+    truckId: "truck-1",
+    driverId: "driver-1",
+    truck: { unitNumber: "TRK-101" },
+    driver: { name: "James Carter" },
+    assignedAt: new Date("2026-11-17T16:32:00.000Z"),
+    endedAt: null,
+    endReason: null,
+    ...overrides,
+  };
+}
+
+function impactInput(overrides = {}) {
+  return {
+    deliveries: [],
+    loadCustomerName: "Acme Distribution",
+    riskByDeliveryId: new Map(),
+    assignmentsByDeliveryId: new Map(),
+    eventsByDeliveryId: new Map(),
+    timezone: "UTC",
+    ...overrides,
+  };
+}
+
+test("what happened reports recorded reassignment and honest empty state", () => {
+  const deliveries = [
+    impactDelivery({ id: "d1", reference: "DEL-101", stopNumber: 1 }),
+    impactDelivery({ id: "d2", reference: "DEL-102", stopNumber: 2, status: "PLANNED" }),
+  ];
+  const assignments = new Map([
+    [
+      "d1",
+      [
+        impactAssignment({
+          endedAt: new Date("2026-11-17T16:33:00.000Z"),
+          endReason:
+            "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: coverage",
+        }),
+        impactAssignment({
+          truckId: "truck-2",
+          driverId: "driver-2",
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:00.000Z"),
+        }),
+      ],
+    ],
+  ]);
+
+  const result = buildWhatHappened(
+    impactInput({ deliveries, assignmentsByDeliveryId: assignments }),
+  );
+
+  assert.equal(result.hasDisruption, true);
+  assert.equal(result.statements.length, 1);
+  assert.match(result.statements[0], /DEL-101 was reassigned from truck TRK-101/);
+  assert.match(result.statements[0], /to truck TRK-202 · driver Michael Brooks/);
+  assert.ok(!result.statements[0].includes("Reason:"));
+
+  const empty = buildWhatHappened(impactInput({ deliveries }));
+  assert.equal(empty.hasDisruption, false);
+  assert.deepEqual(empty.statements, []);
+});
+
+test("what happened ignores automatic assignment ends and clean deliveries", () => {
+  const deliveries = [
+    impactDelivery({
+      id: "d1",
+      status: "DELIVERED",
+      deliveredAt: new Date("2026-11-18T10:00:00.000Z"),
+    }),
+  ];
+  const assignments = new Map([
+    [
+      "d1",
+      [
+        impactAssignment({
+          endedAt: new Date("2026-11-18T10:00:00.000Z"),
+          endReason: "Delivery status changed to DELIVERED.",
+        }),
+      ],
+    ],
+  ]);
+
+  const result = buildWhatHappened(
+    impactInput({ deliveries, assignmentsByDeliveryId: assignments }),
+  );
+  assert.equal(result.hasDisruption, false);
+});
+
+test("downstream impact marks later stops as projected and shares as current", () => {
+  const deliveries = [
+    impactDelivery({ id: "d1", reference: "DEL-101", stopNumber: 1 }),
+    impactDelivery({
+      id: "d2",
+      reference: "DEL-102",
+      stopNumber: 2,
+      status: "ASSIGNED",
+    }),
+    impactDelivery({
+      id: "d3",
+      reference: "DEL-103",
+      stopNumber: 3,
+      status: "PLANNED",
+    }),
+  ];
+  const assignments = new Map([
+    [
+      "d1",
+      [
+        impactAssignment({
+          endedAt: new Date("2026-11-17T16:33:00.000Z"),
+          endReason: "Assignment ended",
+        }),
+        impactAssignment({
+          truckId: "truck-2",
+          driverId: "driver-2",
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:00.000Z"),
+        }),
+      ],
+    ],
+    [
+      "d2",
+      [
+        impactAssignment({
+          truckId: "truck-2",
+          driverId: "driver-2",
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+        }),
+      ],
+    ],
+  ]);
+  const risks = new Map([["d1", { riskLevel: "MEDIUM" }]]);
+
+  const { entries } = buildDownstreamImpact(
+    impactInput({
+      deliveries,
+      assignmentsByDeliveryId: assignments,
+      riskByDeliveryId: risks,
+    }),
+  );
+
+  assert.equal(entries.length, 2);
+  const d2 = entries.find((entry) => entry.deliveryId === "d2");
+  const d3 = entries.find((entry) => entry.deliveryId === "d3");
+  assert.equal(d2.state, "current");
+  assert.match(d2.reasons.join(" "), /Shares truck TRK-202/);
+  assert.equal(d3.state, "projected");
+  assert.match(d3.reasons[0], /Later stop on the same load route after DEL-101/);
+});
+
+test("downstream impact resolves terminal targets and ignores delivered sources", () => {
+  const deliveredSource = [
+    impactDelivery({
+      id: "d1",
+      reference: "DEL-101",
+      stopNumber: 1,
+      status: "DELIVERED",
+      deliveredAt: new Date("2026-11-18T10:00:00.000Z"),
+    }),
+    impactDelivery({ id: "d2", reference: "DEL-102", stopNumber: 2 }),
+  ];
+  const sourceAssignments = new Map([
+    [
+      "d1",
+      [
+        impactAssignment({
+          endedAt: new Date("2026-11-17T16:33:00.000Z"),
+          endReason:
+            "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: x",
+        }),
+      ],
+    ],
+  ]);
+  const delivered = buildDownstreamImpact(
+    impactInput({
+      deliveries: deliveredSource,
+      assignmentsByDeliveryId: sourceAssignments,
+    }),
+  );
+  assert.equal(delivered.entries.length, 0);
+
+  const failedSource = [
+    impactDelivery({
+      id: "d1",
+      reference: "DEL-101",
+      stopNumber: 1,
+      status: "FAILED",
+    }),
+    impactDelivery({
+      id: "d2",
+      reference: "DEL-102",
+      stopNumber: 2,
+      status: "DELIVERED",
+      deliveredAt: new Date("2026-11-18T10:00:00.000Z"),
+    }),
+    impactDelivery({ id: "d3", reference: "DEL-103", stopNumber: 3 }),
+  ];
+  const failedEvents = new Map([
+    [
+      "d1",
+      [
+        {
+          type: "STATUS_CHANGED",
+          toStatus: "FAILED",
+          note: "Delivery marked failed.",
+          occurredAt: new Date("2026-11-18T09:00:00.000Z"),
+        },
+      ],
+    ],
+  ]);
+  const impacted = buildDownstreamImpact(
+    impactInput({
+      deliveries: failedSource,
+      eventsByDeliveryId: failedEvents,
+    }),
+  );
+  assert.equal(impacted.entries.length, 2);
+  assert.equal(
+    impacted.entries.find((entry) => entry.deliveryId === "d2").state,
+    "resolved",
+  );
+  assert.equal(
+    impacted.entries.find((entry) => entry.deliveryId === "d3").state,
+    "projected",
+  );
+});
+
+test("downstream impact ignores resolved historical reassignment on a healthy source", () => {
+  const deliveries = [
+    impactDelivery({ id: "d1", reference: "DEL-101", stopNumber: 1 }),
+    impactDelivery({
+      id: "d2",
+      reference: "DEL-102",
+      stopNumber: 2,
+      status: "ASSIGNED",
+    }),
+  ];
+  const assignments = new Map([
+    [
+      "d1",
+      [
+        impactAssignment({
+          endedAt: new Date("2026-11-17T16:13:00.000Z"),
+          endReason: "Assignment ended",
+        }),
+        impactAssignment({
+          endedAt: new Date("2026-11-17T16:33:00.000Z"),
+          endReason:
+            "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment",
+        }),
+        impactAssignment({
+          truckId: "truck-2",
+          driverId: "driver-2",
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:00.000Z"),
+        }),
+      ],
+    ],
+    [
+      "d2",
+      [
+        impactAssignment({
+          truck: { unitNumber: "TRK-101" },
+          driver: { name: "James Carter" },
+        }),
+      ],
+    ],
+  ]);
+  const risks = new Map([
+    ["d1", { riskLevel: "LOW" }],
+    ["d2", { riskLevel: "LOW" }],
+  ]);
+
+  const whatHappened = buildWhatHappened(
+    impactInput({
+      deliveries,
+      assignmentsByDeliveryId: assignments,
+      riskByDeliveryId: risks,
+    }),
+  );
+  assert.equal(whatHappened.hasDisruption, true);
+  assert.equal(whatHappened.statements.length, 2);
+
+  const { entries } = buildDownstreamImpact(
+    impactInput({
+      deliveries,
+      assignmentsByDeliveryId: assignments,
+      riskByDeliveryId: risks,
+    }),
+  );
+  assert.equal(entries.length, 0);
 });

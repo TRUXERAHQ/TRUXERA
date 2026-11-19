@@ -17,6 +17,14 @@ import {
   buildRecoveryImpact,
 } from "@/src/dashboard/delivery-chain";
 import {
+  buildDownstreamImpact,
+  buildWhatHappened,
+} from "@/src/dashboard/load-impact";
+import {
+  DownstreamImpactPanel,
+  WhatHappenedPanel,
+} from "../load-impact";
+import {
   getOperationsPageContext,
   organizationQuery,
   type OperationsSearchParams,
@@ -134,15 +142,35 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
       events: details.events,
     }).map(({ deliveryId, analysis }) => [deliveryId, analysis] as const),
   );
+  const riskLevelByDeliveryId = new Map(
+    [...riskAnalyses].map(([deliveryId, analysis]) => [
+      deliveryId,
+      { riskLevel: analysis.riskLevel },
+    ]),
+  );
+  const assignmentsAllByDeliveryId = new Map<
+    string,
+    typeof details.assignments
+  >();
+  for (const assignment of details.assignments) {
+    const list = assignmentsAllByDeliveryId.get(assignment.deliveryId) ?? [];
+    list.push(assignment);
+    assignmentsAllByDeliveryId.set(assignment.deliveryId, list);
+  }
+  const loadImpactInput = {
+    deliveries: details.deliveries,
+    loadCustomerName: details.load.customerName,
+    riskByDeliveryId: riskLevelByDeliveryId,
+    assignmentsByDeliveryId: assignmentsAllByDeliveryId,
+    eventsByDeliveryId,
+    timezone: context.organization.timezone,
+  };
+  const whatHappened = buildWhatHappened(loadImpactInput);
+  const downstreamImpact = buildDownstreamImpact(loadImpactInput);
   const chainNodes = buildDeliveryChain({
     deliveries: details.deliveries,
     loadCustomerName: details.load.customerName,
-    riskByDeliveryId: new Map(
-      [...riskAnalyses].map(([deliveryId, analysis]) => [
-        deliveryId,
-        { riskLevel: analysis.riskLevel },
-      ]),
-    ),
+    riskByDeliveryId: riskLevelByDeliveryId,
     activeAssignmentByDeliveryId: new Map(
       [...assignmentsByDeliveryId].map(([deliveryId, assignment]) => [
         deliveryId,
@@ -200,6 +228,13 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
         </section>
 
         <DeliveryChain nodes={chainNodes} />
+
+        <WhatHappenedPanel statements={whatHappened.statements} />
+
+        <DownstreamImpactPanel
+          entries={downstreamImpact.entries}
+          hasOperationalDisruption={whatHappened.hasDisruption}
+        />
 
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-6 py-5">

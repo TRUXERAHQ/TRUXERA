@@ -31,7 +31,7 @@ const activeWorkStatuses = new Set([
   "IN_TRANSIT",
 ]);
 
-function formatDateTime(value: Date, timezone: string) {
+export function formatDateTime(value: Date, timezone: string) {
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -39,7 +39,7 @@ function formatDateTime(value: Date, timezone: string) {
   }).format(value);
 }
 
-function formatDuration(ms: number) {
+export function formatDuration(ms: number) {
   const totalMinutes = Math.round(Math.abs(ms) / 60000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
