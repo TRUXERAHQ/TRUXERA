@@ -231,7 +231,9 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                             {risk.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
                           </ul>
                         )}
-                        {risk.intervention.eligibleReassignmentCount > 0 && (
+                        {(risk.riskLevel === "MEDIUM" ||
+                          risk.riskLevel === "HIGH") &&
+                          risk.intervention.eligibleReassignmentCount > 0 && (
                           <p className="mt-3 text-xs text-slate-600">
                             {risk.intervention.eligibleReassignmentCount} eligible reassignment candidate(s) found.
                             {risk.intervention.recommended

@@ -91,6 +91,10 @@ type ReassignProps = {
   currentAssignmentId: string;
   choices: ReassignmentChoice[];
   initiallyOpen: boolean;
+  recommended: {
+    label: string;
+    capacityLabel: string | null;
+  } | null;
 };
 
 export function ReassignDeliveryForm({
@@ -99,6 +103,7 @@ export function ReassignDeliveryForm({
   currentAssignmentId,
   choices,
   initiallyOpen,
+  recommended,
 }: ReassignProps) {
   const [state, action, pending] = useActionState(
     reassignDeliveryAction,
@@ -115,7 +120,7 @@ export function ReassignDeliveryForm({
         onClick={() => setIsOpen(true)}
         className="mt-4 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
       >
-        Reassign delivery
+        Review recovery
       </button>
     );
   }
@@ -129,6 +134,21 @@ export function ReassignDeliveryForm({
         name="currentAssignmentId"
         value={currentAssignmentId}
       />
+      {recommended && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <p className="text-xs font-semibold text-emerald-900">
+            Recommended recovery
+          </p>
+          <p className="mt-1 text-sm font-medium text-emerald-950">
+            {recommended.label}
+          </p>
+          {recommended.capacityLabel && (
+            <p className="mt-1 text-xs text-emerald-800">
+              {recommended.capacityLabel}
+            </p>
+          )}
+        </div>
+      )}
       <label
         className="block text-xs font-medium text-slate-600"
         htmlFor={`replacement-${deliveryId}`}
@@ -170,13 +190,22 @@ export function ReassignDeliveryForm({
           {state.error}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
-      >
-        {pending ? "Reassigning..." : "Approve reassignment"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setIsOpen(false)}
+          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={pending}
+          className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
+        >
+          {pending ? "Reassigning..." : "Approve reassignment"}
+        </button>
+      </div>
     </form>
   );
 }

@@ -433,9 +433,21 @@ async function CommandCenterContent({ searchParams }: Props) {
                       )}
                     </div>
 
-                    {recommendation && (
+                    {item.risk.riskLevel === "LOW" && (
+                      <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                        🟢 Risk: Low — No recovery action required. Delivery is
+                        operating normally; no unresolved operational issue
+                        requires dispatcher intervention.
+                      </p>
+                    )}
+                    {recommendation &&
+                      (item.risk.riskLevel === "MEDIUM" ||
+                        item.risk.riskLevel === "HIGH") && (
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
                         <p className="text-sm text-emerald-900">
+                          {item.risk.riskLevel === "HIGH"
+                            ? "🔴 Recovery action recommended. "
+                            : "🟠 Recovery action may be required. "}
                           Recommended: Truck {recommendation.truckUnitNumber} ·{" "}
                           {recommendation.driverName}
                           {candidate &&
@@ -445,7 +457,7 @@ async function CommandCenterContent({ searchParams }: Props) {
                           href={`/dashboard/dispatch?${organizationQuery(organizationId)}#delivery-${item.deliveryId}`}
                           className="rounded-lg bg-emerald-800 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                         >
-                          Review reassignment
+                          Review recovery
                         </Link>
                       </div>
                     )}

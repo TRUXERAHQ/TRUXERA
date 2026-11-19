@@ -221,51 +221,113 @@ async function DispatchContent({ searchParams }: Props) {
                           delivery.status,
                         ) && (
                         <div className="mt-4 border-t border-slate-200 pt-4">
-                          <h3 className="text-sm font-semibold text-slate-800">Reassignment options</h3>
-                          <p className="mt-1 text-xs text-slate-600">
-                            {risk.intervention.eligibleReassignmentCount} eligible replacement combination{risk.intervention.eligibleReassignmentCount === 1 ? "" : "s"}.
-                          </p>
-                          {recommended ? (
-                            <>
-                              <p className="mt-2 text-sm text-emerald-800">
-                                Recommended: Truck {recommended.truckUnitNumber} · {recommended.driverName}
+                          {risk.riskLevel === "LOW" ? (
+                            <div>
+                              <p className="text-sm font-semibold text-emerald-800">
+                                🟢 Risk: Low
+                              </p>
+                              <p className="mt-1 text-sm font-medium text-slate-800">
+                                No recovery action required.
                               </p>
                               <p className="mt-1 text-xs text-slate-500">
-                                {recommendedCandidate
-                                  ? `Capacity fit verified · ${recommendedCandidate.capacityUtilizationPercent}% utilized.`
-                                  : "Capacity fit is verified."}
+                                Delivery is operating normally. No unresolved
+                                operational issue requires dispatcher
+                                intervention.
                               </p>
-                              {context.canManage ? (
-                                <ReassignDeliveryForm
-                                  key={assignment.id}
-                                  organizationId={context.organization.id}
-                                  deliveryId={delivery.id}
-                                  currentAssignmentId={assignment.id}
-                                  choices={risk.reassignmentCandidates}
-                                  initiallyOpen={
-                                    context.reassignedDeliveryId !== delivery.id
-                                  }
-                                />
+                            </div>
+                          ) : risk.riskLevel === "MEDIUM" ||
+                            risk.riskLevel === "HIGH" ? (
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800">
+                                {risk.riskLevel === "HIGH" ? "🔴" : "🟠"} Risk:{" "}
+                                {formatLabel(risk.riskLevel)} —{" "}
+                                {risk.riskLevel === "HIGH"
+                                  ? "Recovery action recommended."
+                                  : "Recovery action may be required."}
+                              </p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                {risk.intervention
+                                  .eligibleReassignmentCount}{" "}
+                                eligible replacement combination
+                                {risk.intervention
+                                  .eligibleReassignmentCount === 1
+                                  ? ""
+                                  : "s"}
+                                .
+                              </p>
+                              {recommended && recommendedCandidate ? (
+                                context.canManage ? (
+                                  <ReassignDeliveryForm
+                                    key={assignment.id}
+                                    organizationId={context.organization.id}
+                                    deliveryId={delivery.id}
+                                    currentAssignmentId={assignment.id}
+                                    choices={risk.reassignmentCandidates}
+                                    initiallyOpen={
+                                      context.reassignedDeliveryId !==
+                                      delivery.id
+                                    }
+                                    recommended={{
+                                      label: `${recommended.truckUnitNumber} · ${recommended.driverName}`,
+                                      capacityLabel: `Capacity fit: ${recommendedCandidate.capacityUtilizationPercent}%`,
+                                    }}
+                                  />
+                                ) : (
+                                  <p className="mt-3 text-xs text-slate-500">
+                                    Your role allows dispatch viewing only.
+                                  </p>
+                                )
+                              ) : risk.intervention
+                                  .insufficientReassignmentDataCount > 0 ? (
+                                <p className="mt-2 text-xs text-amber-800">
+                                  Insufficient data to verify capacity for an
+                                  alternative; no reassignment is offered.
+                                </p>
                               ) : (
-                                <p className="mt-3 text-xs text-slate-500">Your role allows dispatch viewing only.</p>
+                                <p className="mt-2 text-xs text-slate-500">
+                                  No eligible alternative truck and driver are
+                                  currently available.
+                                </p>
                               )}
-                            </>
-                          ) : risk.intervention.insufficientReassignmentDataCount > 0 ? (
-                            <p className="mt-2 text-xs text-amber-800">
-                              Insufficient data to verify capacity for an alternative; no reassignment is offered.
-                            </p>
+                              {risk.intervention
+                                .insufficientReassignmentDataCount > 0 && (
+                                <p className="mt-2 text-xs text-amber-800">
+                                  Capacity fit could not be verified for{" "}
+                                  {risk.intervention
+                                    .insufficientReassignmentDataCount}{" "}
+                                  other combination
+                                  {risk.intervention
+                                    .insufficientReassignmentDataCount === 1
+                                    ? ""
+                                    : "s"}
+                                  .
+                                </p>
+                              )}
+                            </div>
                           ) : (
-                            <p className="mt-2 text-xs text-slate-500">
-                              No eligible alternative truck and driver are currently available.
-                            </p>
-                          )}
-                          {risk.intervention.insufficientReassignmentDataCount > 0 && (
-                            <p className="mt-2 text-xs text-amber-800">
-                              Capacity fit could not be verified for {risk.intervention.insufficientReassignmentDataCount} other combination{risk.intervention.insufficientReassignmentDataCount === 1 ? "" : "s"}.
-                            </p>
+                            <div>
+                              <p className="text-xs font-medium text-slate-600">
+                                Recovery review is unavailable because risk data
+                                is insufficient.
+                              </p>
+                              {risk.intervention
+                                .insufficientReassignmentDataCount > 0 && (
+                                <p className="mt-2 text-xs text-amber-800">
+                                  Capacity fit could not be verified for{" "}
+                                  {risk.intervention
+                                    .insufficientReassignmentDataCount}{" "}
+                                  other combination
+                                  {risk.intervention
+                                    .insufficientReassignmentDataCount === 1
+                                    ? ""
+                                    : "s"}
+                                  .
+                                </p>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
+                        )}
                     </div>
                   ) : (
                     <p className="mt-4 text-sm text-slate-500">No current assignment.</p>
