@@ -46,6 +46,10 @@ import {
   parseLoadInput,
   parseLoadUpdateInput,
 } from "../src/fleet/operations-validation.ts";
+import {
+  buildDeliveryChain,
+  buildRecoveryImpact,
+} from "../src/dashboard/delivery-chain.ts";
 
 test("driver records can be created and updated through the validated workflow", async () => {
   const drivers = [];
@@ -1916,4 +1920,138 @@ test("command center does not offer a reassignment without verified eligibility 
     2,
   );
   assert.deepEqual(result.items[0].risk.reassignmentCandidates, []);
+});
+
+function chainDelivery(overrides = {}) {
+  return {
+    id: "delivery-1",
+    reference: "DEL-101",
+    stopNumber: 1,
+    recipientName: null,
+    status: "ASSIGNED",
+    eta: null,
+    deliveryWindowEnd: null,
+    deliveredAt: null,
+    ...overrides,
+  };
+}
+
+test("delivery chain orders stops and flags attention and in-progress nodes", () => {
+  const nodes = buildDeliveryChain({
+    deliveries: [
+      chainDelivery({ id: "d2", reference: "DEL-102", stopNumber: 2, status: "PLANNED" }),
+      chainDelivery({ id: "d1", reference: "DEL-101", stopNumber: 1 }),
+    ],
+    loadCustomerName: "Acme Corp",
+    riskByDeliveryId: new Map([
+      ["d1", { riskLevel: "HIGH" }],
+      ["d2", { riskLevel: "LOW" }],
+    ]),
+    activeAssignmentByDeliveryId: new Map([
+      ["d1", { truckUnitNumber: "TRK-202", driverName: "Michael Brooks" }],
+    ]),
+    timezone: "UTC",
+  });
+
+  assert.deepEqual(nodes.map((node) => node.label), ["DEL-101", "DEL-102"]);
+  assert.equal(nodes[0].attention, true);
+  assert.equal(nodes[0].inProgress, true);
+  assert.equal(nodes[0].truckLabel, "TRK-202 · Michael Brooks");
+  assert.equal(nodes[0].customer, "Acme Corp");
+  assert.equal(nodes[1].attention, false);
+  assert.equal(nodes[1].inProgress, false);
+  assert.equal(nodes[1].truckLabel, null);
+});
+
+test("delivery chain reports projected delay only when window and ETA exist", () => {
+  const windowEnd = new Date("2026-11-20T18:00:00.000Z");
+  const eta = new Date("2026-11-20T20:00:00.000Z");
+  const [node] = buildDeliveryChain({
+    deliveries: [
+      chainDelivery({ eta, deliveryWindowEnd: windowEnd }),
+      chainDelivery({ id: "d2", stopNumber: 2, eta }),
+    ],
+    loadCustomerName: "Acme Corp",
+    riskByDeliveryId: new Map(),
+    activeAssignmentByDeliveryId: new Map(),
+    timezone: "UTC",
+  });
+
+  assert.match(node.projectedDelayLabel, /Projected 2h beyond scheduled window/);
+  const [, noWindow] = buildDeliveryChain({
+    deliveries: [chainDelivery({ id: "d1", eta }), chainDelivery({ id: "d2", stopNumber: 2, eta })],
+    loadCustomerName: "Acme Corp",
+    riskByDeliveryId: new Map(),
+    activeAssignmentByDeliveryId: new Map(),
+    timezone: "UTC",
+  });
+  assert.equal(noWindow.projectedDelayLabel, null);
+});
+
+test("recovery impact uses recorded assignments, events, and honest unavailable states", () => {
+  const impact = buildRecoveryImpact({
+    delivery: { status: "ASSIGNED", eta: null, deliveredAt: null },
+    events: [
+      {
+        type: "ASSIGNMENT_CHANGED",
+        toStatus: "ASSIGNED",
+        note: "Assigned to truck TRK-101 and driver James Carter.",
+        occurredAt: new Date("2026-11-17T16:32:00.000Z"),
+      },
+      {
+        type: "ASSIGNMENT_CHANGED",
+        toStatus: "ASSIGNED",
+        note: "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: test",
+        occurredAt: new Date("2026-11-17T16:33:00.000Z"),
+      },
+    ],
+    assignments: [
+      {
+        truck: { unitNumber: "TRK-101" },
+        driver: { name: "James Carter" },
+        assignedAt: new Date("2026-11-17T16:32:00.000Z"),
+        endedAt: new Date("2026-11-17T16:33:00.000Z"),
+        endReason: "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: test",
+      },
+      {
+        truck: { unitNumber: "TRK-202" },
+        driver: { name: "Michael Brooks" },
+        assignedAt: new Date("2026-11-17T16:33:00.000Z"),
+        endedAt: null,
+        endReason: null,
+      },
+    ],
+    riskLevel: "LOW",
+    timezone: "UTC",
+  });
+
+  assert.equal(impact.hasDisruption, false);
+  assert.equal(impact.stages[0].lines[0], "Truck TRK-101 · James Carter");
+  assert.match(impact.stages[2].lines[0], /Reassigned from truck TRK-101/);
+  assert.equal(impact.stages[3].lines[0], "Truck TRK-202 · Michael Brooks");
+  assert.match(impact.outcomeLabel, /ETA is not recorded/);
+});
+
+test("recovery impact flags disruption and measures completion against recorded ETA", () => {
+  const eta = new Date("2026-11-18T10:00:00.000Z");
+  const deliveredAt = new Date("2026-11-18T11:30:00.000Z");
+  const impact = buildRecoveryImpact({
+    delivery: { status: "DELIVERED", eta, deliveredAt },
+    events: [
+      {
+        type: "STATUS_CHANGED",
+        toStatus: "FAILED",
+        note: "Delivery failed.",
+        occurredAt: new Date("2026-11-18T09:00:00.000Z"),
+      },
+    ],
+    assignments: [],
+    riskLevel: "HIGH",
+    timezone: "UTC",
+  });
+
+  assert.equal(impact.hasDisruption, true);
+  assert.match(impact.stages[1].lines[0], /marked failed/);
+  assert.equal(impact.stages[2].lines[0], "No recovery action recorded.");
+  assert.match(impact.outcomeLabel, /1h 30m after the projected ETA/);
 });

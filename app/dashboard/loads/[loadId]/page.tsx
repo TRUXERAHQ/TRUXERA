@@ -9,6 +9,14 @@ import { analyzeDeliveryRisksForOrganization } from "@/src/fleet/delivery-risk";
 import { getLoadDetailsForOrganization } from "@/src/prisma/operations-data";
 import DeliveryStatusForm from "../delivery-status-form";
 import {
+  DeliveryChain,
+  RecoveryImpactPanel,
+} from "../delivery-chain";
+import {
+  buildDeliveryChain,
+  buildRecoveryImpact,
+} from "@/src/dashboard/delivery-chain";
+import {
   getOperationsPageContext,
   organizationQuery,
   type OperationsSearchParams,
@@ -126,6 +134,26 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
       events: details.events,
     }).map(({ deliveryId, analysis }) => [deliveryId, analysis] as const),
   );
+  const chainNodes = buildDeliveryChain({
+    deliveries: details.deliveries,
+    loadCustomerName: details.load.customerName,
+    riskByDeliveryId: new Map(
+      [...riskAnalyses].map(([deliveryId, analysis]) => [
+        deliveryId,
+        { riskLevel: analysis.riskLevel },
+      ]),
+    ),
+    activeAssignmentByDeliveryId: new Map(
+      [...assignmentsByDeliveryId].map(([deliveryId, assignment]) => [
+        deliveryId,
+        {
+          truckUnitNumber: assignment.truck.unitNumber,
+          driverName: assignment.driver.name,
+        },
+      ]),
+    ),
+    timezone: context.organization.timezone,
+  });
 
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="loads">
@@ -170,6 +198,8 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
             <div className="sm:col-span-2"><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Cargo</dt><dd className="mt-1 text-sm font-medium">{details.load.cargoDescription ?? "Not recorded"}</dd></div>
           </dl>
         </section>
+
+        <DeliveryChain nodes={chainNodes} />
 
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-6 py-5">
@@ -244,6 +274,22 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                         )}
                       </div>
                     )}
+
+                    <RecoveryImpactPanel
+                      impact={buildRecoveryImpact({
+                        delivery: {
+                          status: delivery.status,
+                          eta: delivery.eta,
+                          deliveredAt: delivery.deliveredAt,
+                        },
+                        events,
+                        assignments: details.assignments.filter(
+                          (assignment) => assignment.deliveryId === delivery.id,
+                        ),
+                        riskLevel: risk?.riskLevel ?? null,
+                        timezone: context.organization.timezone,
+                      })}
+                    />
 
                     {context.canManage && statusTransitions.length > 0 && (
                       <DeliveryStatusForm
