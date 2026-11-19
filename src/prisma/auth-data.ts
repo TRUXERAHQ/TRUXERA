@@ -5,15 +5,14 @@ export async function persistAuthenticatedUser(email: string, name: string) {
 
   const normalizedEmail = email.trim().toLowerCase();
 
-  return db.orm.public.User.where({ email: normalizedEmail })
-    .select("id", "email", "name")
-    .upsert({
-      create: {
-        email: normalizedEmail,
-        name: name.trim() || normalizedEmail,
-      },
-      update: {
-        name: name.trim() || normalizedEmail,
-      },
-    });
+  return db.orm.public.User.select("id", "email", "name").upsert({
+    create: {
+      email: normalizedEmail,
+      name: name.trim() || normalizedEmail,
+    },
+    update: {
+      name: name.trim() || normalizedEmail,
+    },
+    conflictOn: { email: normalizedEmail },
+  });
 }
