@@ -1,5 +1,6 @@
 import type { DeliveryStatus } from "./delivery-lifecycle";
 import {
+  explainReassignmentRecommendations,
   getReassignmentRecommendations,
   getResourceAssignmentConflicts,
   type CurrentAssignmentResources,
@@ -90,6 +91,17 @@ export type DeliveryRiskAnalysis = {
       truckUnitNumber: string;
       driverId: string;
       driverName: string;
+    } | null;
+    recommendation: {
+      truckUnitNumber: string;
+      driverName: string;
+      capacityUtilizationPercent: number;
+      reasons: string[];
+      alternatives: Array<{
+        truckUnitNumber: string;
+        driverName: string;
+        capacityUtilizationPercent: number;
+      }>;
     } | null;
   };
   reassignmentCandidates: Array<{
@@ -303,6 +315,7 @@ export function analyzeDeliveryRisk(
         eligibleReassignmentCount: 0,
         insufficientReassignmentDataCount: 0,
         recommended: null,
+        recommendation: null,
       },
       reassignmentCandidates: [],
     };
@@ -459,6 +472,10 @@ export function analyzeDeliveryRisk(
   }
 
   const recommended = reassignment?.recommended;
+  const explanation = reassignment
+    ? explainReassignmentRecommendations(reassignment)
+    : null;
+  const explained = explanation?.recommended ?? null;
   const interventionRequired =
     riskLevel === "HIGH" &&
     input.delivery.status !== "DELIVERED" &&
@@ -488,6 +505,16 @@ export function analyzeDeliveryRisk(
             truckUnitNumber: recommended.truck.unitNumber,
             driverId: recommended.driver.id,
             driverName: recommended.driver.name,
+          }
+        : null,
+      recommendation: explained
+        ? {
+            truckUnitNumber: explained.truckUnitNumber,
+            driverName: explained.driverName,
+            capacityUtilizationPercent:
+              explained.capacityUtilizationPercent,
+            reasons: explained.reasons,
+            alternatives: explanation?.alternatives ?? [],
           }
         : null,
     },

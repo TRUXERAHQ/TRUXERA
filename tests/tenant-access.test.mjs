@@ -1701,6 +1701,7 @@ function commandRisk(level, recommended = null) {
       eligibleReassignmentCount: recommended ? 1 : 0,
       insufficientReassignmentDataCount: 0,
       recommended,
+      recommendation: null,
     },
     reassignmentCandidates: recommended
       ? [{
@@ -2371,4 +2372,203 @@ test("downstream impact ignores resolved historical reassignment on a healthy so
     }),
   );
   assert.equal(entries.length, 0);
+});
+
+test("recommendation explains only verified eligibility evidence", () => {
+  const result = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      currentTruck: { status: "MAINTENANCE" },
+    }),
+  );
+  const recommendation = result.intervention.recommendation;
+
+  assert.equal(result.riskLevel, "HIGH");
+  assert.ok(recommendation);
+  assert.equal(recommendation.truckUnitNumber, "TR-2");
+  assert.equal(recommendation.driverName, "Replacement Driver");
+  assert.equal(recommendation.capacityUtilizationPercent, 42);
+  assert.deepEqual(recommendation.alternatives, []);
+  assert.ok(
+    recommendation.reasons.some((reason) =>
+      reason.includes("TR-2 is available"),
+    ),
+  );
+  assert.ok(
+    recommendation.reasons.some((reason) =>
+      reason.includes("Replacement Driver is available"),
+    ),
+  );
+  assert.ok(
+    recommendation.reasons.some((reason) => reason.includes("capacity")),
+  );
+  assert.ok(
+    recommendation.reasons.some((reason) =>
+      reason.includes("No conflicting active assignment"),
+    ),
+  );
+  assert.ok(
+    recommendation.reasons.some((reason) =>
+      reason.includes("only eligible"),
+    ),
+  );
+});
+
+test("recommendation ranks multiple eligible candidates and lists alternatives", () => {
+  const result = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      currentTruck: { status: "MAINTENANCE" },
+      input: {
+        trucks: [
+          {
+            id: "truck-current-risk",
+            organizationId: "org-a",
+            unitNumber: "TR-1",
+            status: "ON_ROUTE",
+            deactivatedAt: null,
+            capacityKg: 10000,
+          },
+          {
+            id: "truck-a",
+            organizationId: "org-a",
+            unitNumber: "TR-A",
+            status: "AVAILABLE",
+            deactivatedAt: null,
+            capacityKg: 12000,
+          },
+          {
+            id: "truck-b",
+            organizationId: "org-a",
+            unitNumber: "TR-B",
+            status: "AVAILABLE",
+            deactivatedAt: null,
+            capacityKg: 15000,
+          },
+        ],
+        drivers: [
+          {
+            id: "driver-current-risk",
+            organizationId: "org-a",
+            name: "Current Driver",
+            status: "AVAILABLE",
+          },
+          {
+            id: "driver-a",
+            organizationId: "org-a",
+            name: "Driver A",
+            status: "AVAILABLE",
+          },
+          {
+            id: "driver-b",
+            organizationId: "org-a",
+            name: "Driver B",
+            status: "ON_DUTY",
+          },
+        ],
+      },
+    }),
+  );
+  const recommendation = result.intervention.recommendation;
+
+  assert.ok(recommendation);
+  assert.equal(recommendation.truckUnitNumber, "TR-A");
+  assert.equal(recommendation.driverName, "Driver A");
+  assert.equal(recommendation.alternatives.length, 3);
+  assert.ok(
+    recommendation.reasons.some((reason) =>
+      reason.includes("Highest-ranked of 4"),
+    ),
+  );
+  assert.ok(
+    recommendation.alternatives.every(
+      (alternative) =>
+        alternative.truckUnitNumber !== "TR-A" ||
+        alternative.driverName !== "Driver A",
+    ),
+  );
+});
+
+test("recommendation reports on-duty drivers honestly and respects capacity", () => {
+  const onDuty = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      currentTruck: { status: "MAINTENANCE" },
+      replacementDriver: { status: "ON_DUTY" },
+    }),
+  );
+  assert.ok(onDuty.intervention.recommendation);
+  assert.ok(
+    onDuty.intervention.recommendation.reasons.some((reason) =>
+      reason.includes("Replacement Driver is on duty"),
+    ),
+  );
+
+  const overweight = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      delivery: { weightKg: 15000 },
+      replacementTruck: { capacityKg: 12000 },
+    }),
+  );
+  assert.equal(overweight.intervention.recommendation, null);
+  assert.equal(overweight.intervention.eligibleReassignmentCount, 0);
+});
+
+test("recommendation excludes conflicting and insufficient-data candidates", () => {
+  const conflicted = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      currentTruck: { status: "MAINTENANCE" },
+      activeAssignments: [
+        {
+          id: "other-load-truck",
+          deliveryId: "delivery-other",
+          loadId: "load-other",
+          truckId: "truck-replacement-risk",
+          driverId: "driver-other",
+          endedAt: null,
+        },
+      ],
+    }),
+  );
+  assert.equal(conflicted.intervention.recommendation, null);
+  assert.equal(conflicted.intervention.eligibleReassignmentCount, 0);
+
+  const unknownCapacity = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      currentTruck: { status: "MAINTENANCE" },
+      replacementTruck: { capacityKg: null },
+    }),
+  );
+  assert.equal(unknownCapacity.intervention.recommendation, null);
+  assert.equal(
+    unknownCapacity.intervention.insufficientReassignmentDataCount,
+    1,
+  );
+});
+
+test("historical reassignment alone does not alter the recommendation", () => {
+  const withoutHistory = analyzeDeliveryRisk(makeDeliveryRiskInput());
+  const withHistory = analyzeDeliveryRisk(
+    makeDeliveryRiskInput({
+      assignmentHistory: [
+        {
+          endedAt: new Date("2026-11-11T00:00:00.000Z"),
+          endReason:
+            "Reassigned from truck TR-0 / driver Old Driver to truck TR-1 / driver Current Driver. Reason: coverage",
+        },
+      ],
+      events: [
+        {
+          type: "ASSIGNMENT_CHANGED",
+          toStatus: "IN_TRANSIT",
+          note:
+            "Reassigned from truck TR-0 / driver Old Driver to truck TR-1 / driver Current Driver. Reason: coverage",
+        },
+      ],
+    }),
+  );
+
+  assert.deepEqual(
+    withHistory.intervention.recommendation,
+    withoutHistory.intervention.recommendation,
+  );
+  assert.equal(withHistory.riskLevel, "LOW");
+  assert.equal(withoutHistory.riskLevel, "LOW");
 });

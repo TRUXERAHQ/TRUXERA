@@ -146,12 +146,7 @@ async function DispatchContent({ searchParams }: Props) {
           {board.deliveries.map((delivery) => {
             const assignment = assignmentByDeliveryId.get(delivery.id);
             const risk = riskAnalyses.get(delivery.id);
-            const recommended = risk?.intervention.recommended;
-            const recommendedCandidate = risk?.reassignmentCandidates.find(
-              (candidate) =>
-                candidate.truckId === recommended?.truckId &&
-                candidate.driverId === recommended.driverId,
-            );
+            const recommendation = risk?.intervention.recommendation;
             const unavailableTruckIds = new Set(
               activeResourceAssignments
                 .filter(
@@ -255,7 +250,7 @@ async function DispatchContent({ searchParams }: Props) {
                                   : "s"}
                                 .
                               </p>
-                              {recommended && recommendedCandidate ? (
+                              {recommendation ? (
                                 context.canManage ? (
                                   <ReassignDeliveryForm
                                     key={assignment.id}
@@ -267,10 +262,7 @@ async function DispatchContent({ searchParams }: Props) {
                                       context.reassignedDeliveryId !==
                                       delivery.id
                                     }
-                                    recommended={{
-                                      label: `${recommended.truckUnitNumber} · ${recommended.driverName}`,
-                                      capacityLabel: `Capacity fit: ${recommendedCandidate.capacityUtilizationPercent}%`,
-                                    }}
+                                    recommended={recommendation}
                                   />
                                 ) : (
                                   <p className="mt-3 text-xs text-slate-500">

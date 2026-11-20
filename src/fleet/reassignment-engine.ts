@@ -42,6 +42,7 @@ export type CandidateAssessment =
       reason: string;
       score: number;
       capacityUtilizationPercent: number;
+      sameLoadAssignmentCount: number;
     }
   | {
       status: "INSUFFICIENT_DATA";
@@ -201,6 +202,7 @@ export function assessReassignmentCandidate(
     reason: "Capacity and resource availability are verified.",
     score,
     capacityUtilizationPercent: Math.round((weightKg / capacityKg) * 100),
+    sameLoadAssignmentCount,
   };
 }
 
@@ -268,5 +270,89 @@ export function getReassignmentRecommendations(input: {
     eligibleCount: eligible.length,
     insufficientDataCount: candidates.length - eligible.length,
     recommended: eligible[0] ?? null,
+  };
+}
+
+export type RecommendationAlternative = {
+  truckUnitNumber: string;
+  driverName: string;
+  capacityUtilizationPercent: number;
+};
+
+export type RecommendationExplanation = {
+  recommended: {
+    truckUnitNumber: string;
+    driverName: string;
+    capacityUtilizationPercent: number;
+    score: number;
+    reasons: string[];
+  } | null;
+  alternatives: RecommendationAlternative[];
+  eligibleCount: number;
+  insufficientDataCount: number;
+};
+
+type EligibleCandidate = ReassignmentCandidate & {
+  assessment: Extract<CandidateAssessment, { status: "ELIGIBLE" }>;
+};
+
+function isEligibleCandidate(
+  candidate: ReassignmentCandidate,
+): candidate is EligibleCandidate {
+  return candidate.assessment.status === "ELIGIBLE";
+}
+
+export function explainReassignmentRecommendations(
+  recommendations: ReassignmentRecommendations,
+): RecommendationExplanation {
+  const recommended = recommendations.recommended;
+  const eligibleCandidates = recommendations.candidates.filter(
+    isEligibleCandidate,
+  );
+  const alternatives = eligibleCandidates
+    .filter((candidate) => candidate !== recommended)
+    .map((candidate) => ({
+      truckUnitNumber: candidate.truck.unitNumber,
+      driverName: candidate.driver.name,
+      capacityUtilizationPercent:
+        candidate.assessment.capacityUtilizationPercent,
+    }));
+
+  if (!recommended || !isEligibleCandidate(recommended)) {
+    return {
+      recommended: null,
+      alternatives: [],
+      eligibleCount: recommendations.eligibleCount,
+      insufficientDataCount: recommendations.insufficientDataCount,
+    };
+  }
+
+  const { truck, driver, assessment } = recommended;
+  const reasons = [
+    `Truck ${truck.unitNumber} is available.`,
+    `Driver ${driver.name} is ${
+      driver.status === "AVAILABLE" ? "available" : "on duty"
+    }.`,
+    `The load uses ${assessment.capacityUtilizationPercent}% of the truck's capacity.`,
+    "No conflicting active assignment on another load.",
+    assessment.sameLoadAssignmentCount === 0
+      ? "No other active stops on this load use this truck or driver."
+      : `${assessment.sameLoadAssignmentCount} other active stop(s) on this load use this truck or driver.`,
+    recommendations.eligibleCount > 1
+      ? `Highest-ranked of ${recommendations.eligibleCount} eligible truck/driver combinations.`
+      : "The only eligible truck/driver combination currently verified.",
+  ];
+
+  return {
+    recommended: {
+      truckUnitNumber: truck.unitNumber,
+      driverName: driver.name,
+      capacityUtilizationPercent: assessment.capacityUtilizationPercent,
+      score: assessment.score,
+      reasons,
+    },
+    alternatives,
+    eligibleCount: recommendations.eligibleCount,
+    insufficientDataCount: recommendations.insufficientDataCount,
   };
 }

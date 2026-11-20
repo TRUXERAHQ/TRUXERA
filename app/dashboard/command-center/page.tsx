@@ -452,6 +452,9 @@ async function CommandCenterContent({ searchParams }: Props) {
                           {recommendation.driverName}
                           {candidate &&
                             ` · ${candidate.capacityUtilizationPercent}% capacity utilized`}
+                          {item.risk.intervention.recommendation
+                            ?.reasons[0] &&
+                            ` — ${item.risk.intervention.recommendation.reasons[0]}`}
                         </p>
                         <Link
                           href={`/dashboard/dispatch?${organizationQuery(organizationId)}#delivery-${item.deliveryId}`}

@@ -92,8 +92,15 @@ type ReassignProps = {
   choices: ReassignmentChoice[];
   initiallyOpen: boolean;
   recommended: {
-    label: string;
-    capacityLabel: string | null;
+    truckUnitNumber: string;
+    driverName: string;
+    capacityUtilizationPercent: number;
+    reasons: string[];
+    alternatives: Array<{
+      truckUnitNumber: string;
+      driverName: string;
+      capacityUtilizationPercent: number;
+    }>;
   } | null;
 };
 
@@ -137,14 +144,31 @@ export function ReassignDeliveryForm({
       {recommended && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
           <p className="text-xs font-semibold text-emerald-900">
-            Recommended recovery
+            TRUXERA Recommendation
           </p>
           <p className="mt-1 text-sm font-medium text-emerald-950">
-            {recommended.label}
+            {recommended.truckUnitNumber} · {recommended.driverName}
           </p>
-          {recommended.capacityLabel && (
-            <p className="mt-1 text-xs text-emerald-800">
-              {recommended.capacityLabel}
+          <p className="mt-1 text-xs text-emerald-800">
+            Capacity fit: {recommended.capacityUtilizationPercent}%
+          </p>
+          <p className="mt-2 text-xs font-semibold text-emerald-900">
+            Why TRUXERA recommended this
+          </p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-emerald-800">
+            {recommended.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+          {recommended.alternatives.length > 0 && (
+            <p className="mt-2 text-xs text-emerald-800">
+              Also eligible:{" "}
+              {recommended.alternatives
+                .map(
+                  (alternative) =>
+                    `${alternative.truckUnitNumber} · ${alternative.driverName} (${alternative.capacityUtilizationPercent}% capacity)`,
+                )
+                .join("; ")}
             </p>
           )}
         </div>

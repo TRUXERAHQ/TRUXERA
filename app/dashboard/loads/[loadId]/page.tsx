@@ -300,11 +300,34 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                           risk.riskLevel === "HIGH") &&
                           risk.intervention.eligibleReassignmentCount > 0 && (
                           <p className="mt-3 text-xs text-slate-600">
-                            {risk.intervention.eligibleReassignmentCount} eligible reassignment candidate(s) found.
-                            {risk.intervention.recommended
-                              ? ` Suggested: Truck ${risk.intervention.recommended.truckUnitNumber} · ${risk.intervention.recommended.driverName}.`
-                              : ""}
-                            {" "}A dispatcher must approve any reassignment.
+                            {risk.intervention.recommendation ? (
+                              <>
+                                TRUXERA recommends Truck{" "}
+                                {
+                                  risk.intervention.recommendation
+                                    .truckUnitNumber
+                                }{" "}
+                                ·{" "}
+                                {
+                                  risk.intervention.recommendation.driverName
+                                }{" "}
+                                ({
+                                  risk.intervention.recommendation
+                                    .capacityUtilizationPercent
+                                }
+                                % capacity).{" "}
+                                {
+                                  risk.intervention.recommendation.reasons[0]
+                                }{" "}
+                              </>
+                            ) : (
+                              <>
+                                {risk.intervention
+                                  .eligibleReassignmentCount}{" "}
+                                eligible reassignment candidate(s) found.{" "}
+                              </>
+                            )}
+                            A dispatcher must approve any reassignment.
                           </p>
                         )}
                       </div>

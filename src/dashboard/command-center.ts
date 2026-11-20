@@ -288,6 +288,7 @@ export function buildCommandCenter(input: {
         eligibleReassignmentCount: 0,
         insufficientReassignmentDataCount: 0,
         recommended: null,
+        recommendation: null,
       },
       reassignmentCandidates: [],
     };
