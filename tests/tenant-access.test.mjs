@@ -2976,3 +2976,204 @@ test("measure impact does not treat risk change or reassignment alone as impact"
     "insufficient",
   );
 });
+
+import { buildRecoveryReport } from "../src/dashboard/recovery-report.ts";
+
+function reportDelivery(overrides = {}) {
+  return {
+    id: "d1",
+    reference: "DEL-101",
+    stopNumber: 1,
+    recipientName: "Acme Distribution",
+    status: "ASSIGNED",
+    eta: null,
+    deliveredAt: null,
+    deliveryWindowEnd: null,
+    ...overrides,
+  };
+}
+
+function reportAssignment(overrides = {}) {
+  return {
+    truckId: "t1",
+    driverId: "dr1",
+    truck: { unitNumber: "TRK-101" },
+    driver: { name: "James Carter" },
+    assignedAt: new Date("2026-11-17T16:32:00.000Z"),
+    endedAt: new Date("2026-11-17T16:33:53.000Z"),
+    endReason:
+      "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment",
+    ...overrides,
+  };
+}
+
+function reportInput(overrides = {}) {
+  const recoveryResult = buildRecoveryResult(
+    recoveryInput({
+      assignments: [
+        reportAssignment(),
+        reportAssignment({
+          truckId: "t2",
+          driverId: "dr2",
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+          endedAt: null,
+          endReason: null,
+        }),
+      ],
+      riskLevel: "LOW",
+    }),
+  );
+  const measureImpact = buildMeasureImpact(
+    measureInput({ recovery: recoveryResult }),
+  );
+  return {
+    load: { reference: "LOAD-1001", customerName: "Acme Distribution" },
+    delivery: reportDelivery(),
+    timezone: "UTC",
+    assignments: [
+      reportAssignment(),
+      reportAssignment({
+        truckId: "t2",
+        driverId: "dr2",
+        truck: { unitNumber: "TRK-202" },
+        driver: { name: "Michael Brooks" },
+        assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+        endedAt: null,
+        endReason: null,
+      }),
+    ],
+    events: [],
+    riskLevel: "LOW",
+    currentRecommendation: null,
+    recoveryResult,
+    measureImpact,
+    downstreamEntries: [],
+    ...overrides,
+  };
+}
+
+test("recovery report composes a real recovery into all sections", () => {
+  const report = buildRecoveryReport(reportInput());
+  assert.equal(report.hasRecovery, true);
+  assert.equal(report.header.loadReference, "LOAD-1001");
+  assert.equal(report.header.customerName, "Acme Distribution");
+  assert.equal(report.header.deliveryLabel, "DEL-101");
+  assert.equal(report.header.outcome, "successful");
+  assert.ok(report.header.recoveryAtLabel);
+
+  assert.ok(
+    report.whatHappened.some((line) => line.includes("reassigned")),
+  );
+  assert.equal(report.downstream.hasAffected, false);
+
+  assert.equal(report.recommendation.historical, "Not recorded");
+  assert.equal(report.recommendation.current, null);
+
+  assert.equal(report.action.fromLabel, "TRK-101 · James Carter");
+  assert.equal(report.action.toLabel, "TRK-202 · Michael Brooks");
+  assert.equal(
+    report.action.dispatcherReason,
+    "Dispatcher approved reassignment",
+  );
+
+  assert.equal(report.result.before.truck, "TRK-101");
+  assert.equal(report.result.after.truck, "TRK-202");
+  assert.equal(report.result.after.riskLabel, "low risk");
+  assert.match(report.result.outcomeLabel, /operating normally/);
+
+  assert.equal(report.impact.length, 7);
+  assert.ok(
+    report.impact.every((metric) => metric.state === "insufficient"),
+  );
+
+  assert.ok(report.summary.length >= 3);
+  assert.ok(
+    report.summary.some((line) => line.includes("TRK-101")),
+  );
+  assert.ok(
+    report.summary.some((line) =>
+      line.includes("insufficient"),
+    ),
+  );
+  const allText = JSON.stringify(report);
+  assert.ok(!allText.includes("saved $"));
+  assert.ok(!allText.includes("fuel saved"));
+});
+
+test("recovery report does not fabricate a report without recovery", () => {
+  const report = buildRecoveryReport(
+    reportInput({
+      recoveryResult: buildRecoveryResult(
+        recoveryInput({ riskLevel: "LOW" }),
+      ),
+      measureImpact: buildMeasureImpact(
+        measureInput({
+          recovery: buildRecoveryResult(
+            recoveryInput({ riskLevel: "LOW" }),
+          ),
+        }),
+      ),
+    }),
+  );
+  assert.equal(report.hasRecovery, false);
+  assert.equal(report.header.outcome, null);
+  assert.equal(report.action, null);
+  assert.equal(report.result, null);
+  assert.ok(
+    report.summary.some((line) =>
+      line.includes("No recovery action"),
+    ),
+  );
+});
+
+test("recovery report labels current recommendation without rewriting history", () => {
+  const report = buildRecoveryReport(
+    reportInput({
+      currentRecommendation: {
+        truckUnitNumber: "TRK-202",
+        driverName: "Michael Brooks",
+        reasons: ["Truck is available."],
+      },
+    }),
+  );
+  assert.equal(report.recommendation.historical, "Not recorded");
+  assert.equal(
+    report.recommendation.current.truckUnitNumber,
+    "TRK-202",
+  );
+});
+
+test("recovery report reports unresolved outcome truthfully", () => {
+  const recoveryResult = buildRecoveryResult(
+    recoveryInput({
+      delivery: recoveryDelivery({ status: "FAILED" }),
+      assignments: [
+        reportAssignment(),
+        reportAssignment({
+          truckId: "t2",
+          driverId: "dr2",
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+          endedAt: null,
+          endReason: null,
+        }),
+      ],
+      riskLevel: "HIGH",
+    }),
+  );
+  const report = buildRecoveryReport(
+    reportInput({
+      recoveryResult,
+      measureImpact: buildMeasureImpact(
+        measureInput({ recovery: recoveryResult }),
+      ),
+      delivery: reportDelivery({ status: "FAILED" }),
+      riskLevel: "HIGH",
+    }),
+  );
+  assert.equal(report.header.outcome, "unresolved");
+  assert.match(report.result.outcomeLabel, /unresolved/i);
+});

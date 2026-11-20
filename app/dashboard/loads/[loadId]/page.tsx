@@ -28,6 +28,8 @@ import { buildRecoveryResult } from "@/src/dashboard/recovery-result";
 import { RecoveryResultPanel } from "../recovery-result";
 import { buildMeasureImpact } from "@/src/dashboard/measure-impact";
 import { MeasureImpactPanel } from "../measure-impact";
+import { buildRecoveryReport } from "@/src/dashboard/recovery-report";
+import { RecoveryReportPanel } from "../recovery-report";
 import {
   getOperationsPageContext,
   organizationQuery,
@@ -368,31 +370,56 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                         riskLevel: risk?.riskLevel ?? null,
                         timezone: context.organization.timezone,
                       });
+                      const measureImpact = buildMeasureImpact({
+                        recovery: recoveryResult,
+                        delivery: {
+                          id: delivery.id,
+                          reference: delivery.reference,
+                          stopNumber: delivery.stopNumber,
+                          status: delivery.status,
+                          eta: delivery.eta,
+                          deliveredAt: delivery.deliveredAt,
+                          deliveryWindowStart:
+                            delivery.deliveryWindowStart,
+                          deliveryWindowEnd: delivery.deliveryWindowEnd,
+                        },
+                        downstreamEntries: downstreamImpact.entries,
+                        beforeEta: null,
+                        mileage: null,
+                        fuel: null,
+                        labor: null,
+                        timezone: context.organization.timezone,
+                      });
+                      const recoveryReport = buildRecoveryReport({
+                        load: {
+                          reference: details.load.reference,
+                          customerName: details.load.customerName,
+                        },
+                        delivery: {
+                          id: delivery.id,
+                          reference: delivery.reference,
+                          stopNumber: delivery.stopNumber,
+                          recipientName: delivery.recipientName,
+                          status: delivery.status,
+                          eta: delivery.eta,
+                          deliveredAt: delivery.deliveredAt,
+                          deliveryWindowEnd: delivery.deliveryWindowEnd,
+                        },
+                        timezone: context.organization.timezone,
+                        assignments: deliveryAssignments,
+                        events,
+                        riskLevel: risk?.riskLevel ?? null,
+                        currentRecommendation:
+                          risk?.intervention.recommendation ?? null,
+                        recoveryResult,
+                        measureImpact,
+                        downstreamEntries: downstreamImpact.entries,
+                      });
                       return (
                         <>
                           <RecoveryResultPanel result={recoveryResult} />
-                          <MeasureImpactPanel
-                            impact={buildMeasureImpact({
-                              recovery: recoveryResult,
-                              delivery: {
-                                id: delivery.id,
-                                reference: delivery.reference,
-                                stopNumber: delivery.stopNumber,
-                                status: delivery.status,
-                                eta: delivery.eta,
-                                deliveredAt: delivery.deliveredAt,
-                                deliveryWindowStart:
-                                  delivery.deliveryWindowStart,
-                                deliveryWindowEnd: delivery.deliveryWindowEnd,
-                              },
-                              downstreamEntries: downstreamImpact.entries,
-                              beforeEta: null,
-                              mileage: null,
-                              fuel: null,
-                              labor: null,
-                              timezone: context.organization.timezone,
-                            })}
-                          />
+                          <MeasureImpactPanel impact={measureImpact} />
+                          <RecoveryReportPanel report={recoveryReport} />
                         </>
                       );
                     })()}
