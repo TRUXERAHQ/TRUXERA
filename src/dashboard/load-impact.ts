@@ -210,6 +210,7 @@ export type DownstreamImpactEntry = {
   projectedDelayLabel: string | null;
   state: DownstreamImpactState;
   reasons: string[];
+  sourceDeliveryIds: string[];
 };
 
 export type DownstreamImpact = {
@@ -255,7 +256,12 @@ export function buildDownstreamImpact(
 
   const impacts = new Map<
     string,
-    { delivery: ChainDeliveryInput; reasons: string[]; current: boolean }
+    {
+      delivery: ChainDeliveryInput;
+      reasons: string[];
+      current: boolean;
+      sources: Set<string>;
+    }
   >();
 
   for (const source of orderedDeliveries) {
@@ -317,6 +323,7 @@ export function buildDownstreamImpact(
       if (existing) {
         existing.reasons.push(...reasons);
         existing.current = existing.current || isCurrent;
+        existing.sources.add(source.id);
         continue;
       }
 
@@ -324,6 +331,7 @@ export function buildDownstreamImpact(
         delivery: target,
         reasons,
         current: isCurrent,
+        sources: new Set([source.id]),
       });
     }
   }
@@ -335,7 +343,7 @@ export function buildDownstreamImpact(
   };
 
   const entries: DownstreamImpactEntry[] = [...impacts.values()]
-    .map(({ delivery, reasons, current }) => {
+    .map(({ delivery, reasons, current, sources }) => {
       const targetAssignments =
         input.assignmentsByDeliveryId.get(delivery.id) ?? [];
       const active = activeAssignment(targetAssignments);
@@ -367,6 +375,7 @@ export function buildDownstreamImpact(
             : null,
         state,
         reasons,
+        sourceDeliveryIds: [...sources],
       };
     })
     .sort(

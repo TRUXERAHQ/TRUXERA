@@ -2735,3 +2735,244 @@ test("recovery result handles deliveries without recovery honestly", () => {
   assert.equal(result.hasRecovery, false);
   assert.equal(result.recovery, null);
 });
+
+import { buildMeasureImpact } from "../src/dashboard/measure-impact.ts";
+
+function measureRecovery() {
+  return buildRecoveryResult(
+    recoveryInput({
+      assignments: [
+        recoveryAssignment({
+          endedAt: new Date("2026-11-17T16:33:53.000Z"),
+          endReason:
+            "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment",
+        }),
+        recoveryAssignment({
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+        }),
+      ],
+    }),
+  );
+}
+
+function measureDelivery(overrides = {}) {
+  return {
+    id: "d1",
+    reference: "DEL-101",
+    stopNumber: 1,
+    status: "ASSIGNED",
+    eta: null,
+    deliveredAt: null,
+    deliveryWindowStart: null,
+    deliveryWindowEnd: null,
+    ...overrides,
+  };
+}
+
+function measureInput(overrides = {}) {
+  return {
+    recovery: measureRecovery(),
+    delivery: measureDelivery(),
+    downstreamEntries: [],
+    beforeEta: null,
+    mileage: null,
+    fuel: null,
+    labor: null,
+    timezone: "UTC",
+    ...overrides,
+  };
+}
+
+function measureMetric(impact, key) {
+  return impact.metrics.find((metric) => metric.key === key);
+}
+
+test("measure impact reports honest insufficient data without real inputs", () => {
+  const impact = buildMeasureImpact(measureInput());
+  assert.equal(impact.hasRecovery, true);
+  for (const metric of impact.metrics) {
+    assert.equal(metric.state, "insufficient", metric.key);
+    assert.equal(metric.display, "Insufficient data");
+    assert.ok(metric.evidence.length > 0, metric.key);
+  }
+});
+
+test("measure impact calculates delay improvement and late avoidance from real timing", () => {
+  const windowEnd = new Date("2026-11-17T18:00:00.000Z");
+  const impact = buildMeasureImpact(
+    measureInput({
+      delivery: measureDelivery({
+        eta: new Date("2026-11-17T18:15:00.000Z"),
+        deliveryWindowEnd: windowEnd,
+      }),
+      beforeEta: new Date("2026-11-17T18:48:00.000Z"),
+    }),
+  );
+  const delay = measureMetric(impact, "projectedDelayImprovement");
+  assert.equal(delay.state, "estimated");
+  assert.equal(delay.display, "33 min");
+  assert.ok(delay.evidence.some((item) => item.includes("48")));
+
+  const avoided = measureMetric(impact, "lateDeliveriesAvoided");
+  assert.equal(avoided.state, "estimated");
+  assert.equal(avoided.display, "0 deliveries");
+
+  const onTime = buildMeasureImpact(
+    measureInput({
+      delivery: measureDelivery({
+        eta: new Date("2026-11-17T17:30:00.000Z"),
+        deliveryWindowEnd: windowEnd,
+      }),
+      beforeEta: new Date("2026-11-17T18:48:00.000Z"),
+    }),
+  );
+  assert.equal(
+    measureMetric(onTime, "lateDeliveriesAvoided").display,
+    "1 delivery",
+  );
+});
+
+test("measure impact does not invent delay or lateness without timing data", () => {
+  const impact = buildMeasureImpact(
+    measureInput({
+      delivery: measureDelivery({
+        eta: new Date("2026-11-17T18:15:00.000Z"),
+        deliveryWindowEnd: new Date("2026-11-17T18:00:00.000Z"),
+      }),
+    }),
+  );
+  assert.equal(
+    measureMetric(impact, "projectedDelayImprovement").state,
+    "insufficient",
+  );
+  assert.equal(
+    measureMetric(impact, "lateDeliveriesAvoided").state,
+    "insufficient",
+  );
+});
+
+test("measure impact computes mileage, fuel, and benefit only from recorded inputs", () => {
+  const withMileage = buildMeasureImpact(
+    measureInput({ mileage: { before: 120, after: 80, unit: "mi" } }),
+  );
+  const miles = measureMetric(withMileage, "avoidedMiles");
+  assert.equal(miles.state, "estimated");
+  assert.equal(miles.display, "40 mi");
+
+  const withFuel = buildMeasureImpact(
+    measureInput({
+      mileage: { before: 120, after: 80, unit: "mi" },
+      fuel: {
+        consumptionPerMile: 0.2,
+        pricePerUnit: 4,
+        currency: "$",
+        distanceDelta: 40,
+      },
+      labor: { ratePerHour: 30, currency: "$", minutesDelta: 60 },
+    }),
+  );
+  const fuelMetric = measureMetric(withFuel, "fuelImpact");
+  assert.equal(fuelMetric.state, "estimated");
+  assert.equal(fuelMetric.display, "$32.00");
+  const benefit = measureMetric(withFuel, "operationalBenefit");
+  assert.equal(benefit.state, "estimated");
+  assert.equal(benefit.display, "$62.00");
+  assert.ok(benefit.evidence.some((item) => item.includes("Fuel")));
+  assert.ok(benefit.evidence.some((item) => item.includes("Driver time")));
+
+  const noFuel = buildMeasureImpact(
+    measureInput({ mileage: { before: 120, after: 80, unit: "mi" } }),
+  );
+  assert.equal(measureMetric(noFuel, "fuelImpact").state, "insufficient");
+  assert.equal(
+    measureMetric(noFuel, "operationalBenefit").state,
+    "insufficient",
+  );
+});
+
+test("measure impact counts only attributed resolved downstream deliveries as protected", () => {
+  const resolvedEntry = {
+    deliveryId: "d2",
+    label: "DEL-102",
+    stopNumber: 2,
+    customer: null,
+    status: "DELIVERED",
+    riskLevel: "LOW",
+    truck: "TRK-101",
+    driver: "James Carter",
+    etaLabel: null,
+    projectedDelayLabel: null,
+    state: "resolved",
+    reasons: ["Later stop on the same load route after DEL-101 (stop 1)."],
+    sourceDeliveryIds: ["d1"],
+  };
+  const impact = buildMeasureImpact(
+    measureInput({ downstreamEntries: [resolvedEntry] }),
+  );
+  const protectedMetric = measureMetric(impact, "deliveriesProtected");
+  assert.equal(protectedMetric.state, "actual");
+  assert.equal(protectedMetric.display, "1 downstream delivery");
+  assert.ok(protectedMetric.evidence.length > 0);
+
+  const impactedEntry = {
+    ...resolvedEntry,
+    status: "IN_TRANSIT",
+    state: "current",
+    riskLevel: "HIGH",
+  };
+  const unresolved = buildMeasureImpact(
+    measureInput({ downstreamEntries: [impactedEntry] }),
+  );
+  assert.equal(
+    measureMetric(unresolved, "deliveriesProtected").display,
+    "0 downstream deliveries",
+  );
+});
+
+test("measure impact does not treat risk change or reassignment alone as impact", () => {
+  const noRecovery = buildRecoveryResult(
+    recoveryInput({
+      delivery: recoveryDelivery({ status: "ASSIGNED" }),
+      riskLevel: "LOW",
+    }),
+  );
+  const impact = buildMeasureImpact(
+    measureInput({ recovery: noRecovery }),
+  );
+  assert.equal(impact.hasRecovery, false);
+  for (const metric of impact.metrics) {
+    assert.equal(metric.state, "insufficient", metric.key);
+  }
+
+  const withRiskOnly = buildMeasureImpact(
+    measureInput({
+      recovery: buildRecoveryResult(
+        recoveryInput({
+          assignments: [
+            recoveryAssignment({
+              endedAt: new Date("2026-11-17T16:33:53.000Z"),
+              endReason:
+                "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: x",
+            }),
+            recoveryAssignment({
+              truck: { unitNumber: "TRK-202" },
+              driver: { name: "Michael Brooks" },
+              assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+            }),
+          ],
+          riskLevel: "LOW",
+        }),
+      ),
+    }),
+  );
+  assert.equal(
+    measureMetric(withRiskOnly, "lateDeliveriesAvoided").state,
+    "insufficient",
+  );
+  assert.equal(
+    measureMetric(withRiskOnly, "deliveriesProtected").state,
+    "insufficient",
+  );
+});

@@ -26,6 +26,8 @@ import {
 } from "../load-impact";
 import { buildRecoveryResult } from "@/src/dashboard/recovery-result";
 import { RecoveryResultPanel } from "../recovery-result";
+import { buildMeasureImpact } from "@/src/dashboard/measure-impact";
+import { MeasureImpactPanel } from "../measure-impact";
 import {
   getOperationsPageContext,
   organizationQuery,
@@ -352,8 +354,8 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                       })}
                     />
 
-                    <RecoveryResultPanel
-                      result={buildRecoveryResult({
+                    {(() => {
+                      const recoveryResult = buildRecoveryResult({
                         delivery: {
                           id: delivery.id,
                           reference: delivery.reference,
@@ -365,8 +367,35 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                         events,
                         riskLevel: risk?.riskLevel ?? null,
                         timezone: context.organization.timezone,
-                      })}
-                    />
+                      });
+                      return (
+                        <>
+                          <RecoveryResultPanel result={recoveryResult} />
+                          <MeasureImpactPanel
+                            impact={buildMeasureImpact({
+                              recovery: recoveryResult,
+                              delivery: {
+                                id: delivery.id,
+                                reference: delivery.reference,
+                                stopNumber: delivery.stopNumber,
+                                status: delivery.status,
+                                eta: delivery.eta,
+                                deliveredAt: delivery.deliveredAt,
+                                deliveryWindowStart:
+                                  delivery.deliveryWindowStart,
+                                deliveryWindowEnd: delivery.deliveryWindowEnd,
+                              },
+                              downstreamEntries: downstreamImpact.entries,
+                              beforeEta: null,
+                              mileage: null,
+                              fuel: null,
+                              labor: null,
+                              timezone: context.organization.timezone,
+                            })}
+                          />
+                        </>
+                      );
+                    })()}
 
                     {context.canManage && statusTransitions.length > 0 && (
                       <DeliveryStatusForm
