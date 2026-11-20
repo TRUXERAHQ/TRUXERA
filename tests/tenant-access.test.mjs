@@ -3177,3 +3177,165 @@ test("recovery report reports unresolved outcome truthfully", () => {
   assert.equal(report.header.outcome, "unresolved");
   assert.match(report.result.outcomeLabel, /unresolved/i);
 });
+
+import { buildAssignmentVehicleReport } from "../src/dashboard/assignment-report.ts";
+
+function avAssignment(overrides = {}) {
+  return {
+    id: overrides.id ?? "a1",
+    truckId: "t1",
+    driverId: "dr1",
+    assignedAt: new Date("2026-11-17T16:32:00.000Z"),
+    endedAt: new Date("2026-11-17T16:33:53.000Z"),
+    endReason:
+      "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment",
+    truck: {
+      unitNumber: "TRK-101",
+      vin: "1XKWD49X1EJ000001",
+      capacityKg: 20000,
+      status: "AVAILABLE",
+    },
+    driver: { name: "James Carter", status: "ON_DUTY" },
+    ...overrides,
+  };
+}
+
+function avDelivery(overrides = {}) {
+  return { reference: "DEL-101", stopNumber: 1, ...overrides };
+}
+
+test("assignment report shows current, history, changes, and continuity", () => {
+  const report = buildAssignmentVehicleReport({
+    delivery: avDelivery(),
+    timezone: "UTC",
+    assignments: [
+      avAssignment({
+        id: "a0",
+        truckId: "t0",
+        driverId: "dr0",
+        assignedAt: new Date("2026-11-17T16:06:00.000Z"),
+        endedAt: new Date("2026-11-17T16:13:00.000Z"),
+        endReason: "Assignment ended",
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "James Carter", status: "ON_DUTY" },
+      }),
+      avAssignment({ id: "a1" }),
+      avAssignment({
+        id: "a2",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+        endedAt: null,
+        endReason: null,
+        truck: {
+          unitNumber: "TRK-202",
+          vin: "2XKWD49X1EJ000002",
+          capacityKg: 22000,
+          status: "AVAILABLE",
+        },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+  });
+
+  assert.equal(report.hasAssignments, true);
+  assert.equal(report.current.truck, "TRK-202");
+  assert.equal(report.current.driver, "Michael Brooks");
+  assert.equal(report.current.vinLabel, "2XKWD49X1EJ000002");
+  assert.equal(report.current.capacityLabel, "22000 kg");
+  assert.equal(report.current.truckStatusLabel, "available");
+
+  assert.equal(report.history.length, 3);
+  assert.equal(report.history[0].state, "ended");
+  assert.equal(report.history[2].state, "current");
+  assert.equal(report.history[1].endReason.includes("Reassigned"), true);
+
+  assert.equal(report.changes.length, 2);
+  assert.equal(report.changes[1].fromLabel, "TRK-101 · James Carter");
+  assert.equal(report.changes[1].toLabel, "TRK-202 · Michael Brooks");
+  assert.equal(report.changes[1].reason, "Dispatcher approved reassignment");
+  assert.equal(report.changes[1].sameResources, false);
+
+  assert.equal(report.continuity.kind, "both");
+  assert.match(report.continuity.label, /both changed/);
+
+  const events = report.timeline.map((entry) => entry.event);
+  assert.ok(events.includes("Assigned — current"));
+  assert.ok(events.includes("Reassigned"));
+  assert.ok(events.includes("Assignment ended"));
+});
+
+test("assignment report handles single assignment and empty history honestly", () => {
+  const single = buildAssignmentVehicleReport({
+    delivery: avDelivery(),
+    timezone: "UTC",
+    assignments: [
+      avAssignment({
+        endedAt: null,
+        endReason: null,
+        truck: {
+          unitNumber: "TRK-101",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+      }),
+    ],
+  });
+  assert.equal(single.continuity.kind, "single");
+  assert.equal(single.changes.length, 0);
+  assert.equal(single.current.vinLabel, "Not recorded");
+  assert.equal(single.current.capacityLabel, "Not recorded");
+
+  const empty = buildAssignmentVehicleReport({
+    delivery: avDelivery({ reference: "DEL-102", stopNumber: 2 }),
+    timezone: "UTC",
+    assignments: [],
+  });
+  assert.equal(empty.hasAssignments, false);
+  assert.equal(empty.current, null);
+  assert.equal(empty.continuity.kind, "none");
+  assert.equal(empty.history.length, 0);
+  assert.equal(empty.timeline.length, 0);
+});
+
+test("assignment report does not label reassignment as recovery or risk", () => {
+  const report = buildAssignmentVehicleReport({
+    delivery: avDelivery(),
+    timezone: "UTC",
+    assignments: [
+      avAssignment({
+        id: "a0",
+        assignedAt: new Date("2026-11-17T16:06:00.000Z"),
+        endedAt: new Date("2026-11-17T16:13:00.000Z"),
+        endReason: "Assignment ended",
+      }),
+      avAssignment({ id: "a1" }),
+      avAssignment({
+        id: "a2",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+        endedAt: null,
+        endReason: null,
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+  });
+  const serialized = JSON.stringify(report).toLowerCase();
+  assert.ok(!serialized.includes("recovery successful"));
+  assert.ok(!serialized.includes("high risk"));
+  assert.ok(!serialized.includes("recommend"));
+  assert.ok(report.changes[0].fromLabel.includes("TRK-101"));
+});

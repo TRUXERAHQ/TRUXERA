@@ -30,6 +30,8 @@ import { buildMeasureImpact } from "@/src/dashboard/measure-impact";
 import { MeasureImpactPanel } from "../measure-impact";
 import { buildRecoveryReport } from "@/src/dashboard/recovery-report";
 import { RecoveryReportPanel } from "../recovery-report";
+import { buildAssignmentVehicleReport } from "@/src/dashboard/assignment-report";
+import { AssignmentVehicleReportPanel } from "../assignment-report";
 import {
   getOperationsPageContext,
   organizationQuery,
@@ -415,11 +417,23 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                         measureImpact,
                         downstreamEntries: downstreamImpact.entries,
                       });
+                      const assignmentReport =
+                        buildAssignmentVehicleReport({
+                          delivery: {
+                            reference: delivery.reference,
+                            stopNumber: delivery.stopNumber,
+                          },
+                          assignments: deliveryAssignments,
+                          timezone: context.organization.timezone,
+                        });
                       return (
                         <>
                           <RecoveryResultPanel result={recoveryResult} />
                           <MeasureImpactPanel impact={measureImpact} />
                           <RecoveryReportPanel report={recoveryReport} />
+                          <AssignmentVehicleReportPanel
+                            report={assignmentReport}
+                          />
                         </>
                       );
                     })()}
