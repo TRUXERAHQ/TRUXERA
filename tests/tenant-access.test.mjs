@@ -2572,3 +2572,166 @@ test("historical reassignment alone does not alter the recommendation", () => {
   assert.equal(withHistory.riskLevel, "LOW");
   assert.equal(withoutHistory.riskLevel, "LOW");
 });
+
+import { buildRecoveryResult } from "../src/dashboard/recovery-result.ts";
+
+function recoveryAssignment(overrides = {}) {
+  return {
+    truck: { unitNumber: "TRK-101" },
+    driver: { name: "James Carter" },
+    assignedAt: new Date("2026-11-17T16:32:00.000Z"),
+    endedAt: null,
+    endReason: null,
+    ...overrides,
+  };
+}
+
+function recoveryDelivery(overrides = {}) {
+  return {
+    id: "d1",
+    reference: "DEL-101",
+    stopNumber: 1,
+    status: "ASSIGNED",
+    eta: null,
+    ...overrides,
+  };
+}
+
+function recoveryInput(overrides = {}) {
+  return {
+    delivery: recoveryDelivery(),
+    assignments: [],
+    events: [],
+    riskLevel: "LOW",
+    timezone: "UTC",
+    ...overrides,
+  };
+}
+
+test("recovery result reports before, action, and after from recorded history", () => {
+  const result = buildRecoveryResult(
+    recoveryInput({
+      assignments: [
+        recoveryAssignment({
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "James Carter" },
+          assignedAt: new Date("2026-11-17T16:06:00.000Z"),
+          endedAt: new Date("2026-11-17T16:13:00.000Z"),
+          endReason: "Assignment ended",
+        }),
+        recoveryAssignment({
+          truck: { unitNumber: "TRK-101" },
+          driver: { name: "James Carter" },
+          assignedAt: new Date("2026-11-17T16:32:00.000Z"),
+          endedAt: new Date("2026-11-17T16:33:53.000Z"),
+          endReason:
+            "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment",
+        }),
+        recoveryAssignment({
+          truck: { unitNumber: "TRK-202" },
+          driver: { name: "Michael Brooks" },
+          assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+        }),
+      ],
+      events: [
+        {
+          type: "STATUS_CHANGED",
+          toStatus: "ASSIGNED",
+          note: "Assigned to truck TRK-202 and driver James Carter.",
+          occurredAt: new Date("2026-11-17T16:06:00.000Z"),
+        },
+      ],
+    }),
+  );
+
+  assert.equal(result.hasRecovery, true);
+  const recovery = result.recovery;
+  assert.equal(recovery.before.truck, "TRK-101");
+  assert.equal(recovery.before.driver, "James Carter");
+  assert.equal(recovery.before.status, "ASSIGNED");
+  assert.equal(recovery.before.etaLabel, null);
+  assert.equal(recovery.action.fromLabel, "TRK-101 · James Carter");
+  assert.equal(recovery.action.toLabel, "TRK-202 · Michael Brooks");
+  assert.equal(recovery.dispatcherReason, "Dispatcher approved reassignment");
+  assert.equal(recovery.after.truck, "TRK-202");
+  assert.equal(recovery.after.driver, "Michael Brooks");
+  assert.equal(recovery.after.status, "ASSIGNED");
+  assert.equal(recovery.after.riskLabel, "low risk");
+  assert.equal(recovery.after.hasActiveAssignment, true);
+  assert.equal(recovery.outcome, "successful");
+  assert.match(recovery.outcomeLabel, /operating normally/);
+
+  const truckRow = recovery.comparison.find((row) => row.metric === "Truck");
+  assert.deepEqual(truckRow, {
+    metric: "Truck",
+    before: "TRK-101",
+    after: "TRK-202",
+  });
+  const riskRow = recovery.comparison.find((row) => row.metric === "Risk");
+  assert.equal(riskRow.before, "Not recorded");
+  assert.equal(riskRow.after, "low risk");
+  assert.match(recovery.etaComparisonLabel, /unavailable/);
+  assert.ok(
+    recovery.limitations.some((item) => item.includes("Risk before")),
+  );
+});
+
+test("recovery result does not label unresolved states as successful", () => {
+  const baseAssignments = [
+    recoveryAssignment({
+      endedAt: new Date("2026-11-17T16:33:53.000Z"),
+      endReason:
+        "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: x",
+    }),
+    recoveryAssignment({
+      truck: { unitNumber: "TRK-202" },
+      driver: { name: "Michael Brooks" },
+      assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+    }),
+  ];
+
+  const high = buildRecoveryResult(
+    recoveryInput({
+      assignments: baseAssignments,
+      riskLevel: "HIGH",
+    }),
+  );
+  assert.equal(high.recovery.outcome, "unresolved");
+
+  const failed = buildRecoveryResult(
+    recoveryInput({
+      delivery: recoveryDelivery({ status: "FAILED" }),
+      assignments: baseAssignments,
+      riskLevel: "HIGH",
+    }),
+  );
+  assert.equal(failed.recovery.outcome, "unresolved");
+
+  const medium = buildRecoveryResult(
+    recoveryInput({
+      assignments: baseAssignments,
+      riskLevel: "MEDIUM",
+    }),
+  );
+  assert.equal(medium.recovery.outcome, "monitoring");
+
+  const insufficient = buildRecoveryResult(
+    recoveryInput({ riskLevel: null }),
+  );
+  assert.equal(insufficient.hasRecovery, false);
+});
+
+test("recovery result handles deliveries without recovery honestly", () => {
+  const result = buildRecoveryResult(
+    recoveryInput({
+      assignments: [
+        recoveryAssignment({
+          endedAt: new Date("2026-11-17T16:13:00.000Z"),
+          endReason: "Assignment ended",
+        }),
+      ],
+    }),
+  );
+  assert.equal(result.hasRecovery, false);
+  assert.equal(result.recovery, null);
+});

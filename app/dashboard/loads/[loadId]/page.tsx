@@ -24,6 +24,8 @@ import {
   DownstreamImpactPanel,
   WhatHappenedPanel,
 } from "../load-impact";
+import { buildRecoveryResult } from "@/src/dashboard/recovery-result";
+import { RecoveryResultPanel } from "../recovery-result";
 import {
   getOperationsPageContext,
   organizationQuery,
@@ -248,6 +250,9 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
               {details.deliveries.map((delivery) => {
                 const assignment = assignmentsByDeliveryId.get(delivery.id);
                 const events = eventsByDeliveryId.get(delivery.id) ?? [];
+                const deliveryAssignments = details.assignments.filter(
+                  (item) => item.deliveryId === delivery.id,
+                );
                 const risk = riskAnalyses.get(delivery.id);
                 const statusTransitions =
                   getAllowedDeliveryStatusTransitions(delivery.status);
@@ -341,9 +346,23 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                           deliveredAt: delivery.deliveredAt,
                         },
                         events,
-                        assignments: details.assignments.filter(
-                          (assignment) => assignment.deliveryId === delivery.id,
-                        ),
+                        assignments: deliveryAssignments,
+                        riskLevel: risk?.riskLevel ?? null,
+                        timezone: context.organization.timezone,
+                      })}
+                    />
+
+                    <RecoveryResultPanel
+                      result={buildRecoveryResult({
+                        delivery: {
+                          id: delivery.id,
+                          reference: delivery.reference,
+                          stopNumber: delivery.stopNumber,
+                          status: delivery.status,
+                          eta: delivery.eta,
+                        },
+                        assignments: deliveryAssignments,
+                        events,
                         riskLevel: risk?.riskLevel ?? null,
                         timezone: context.organization.timezone,
                       })}
