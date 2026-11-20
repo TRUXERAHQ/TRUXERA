@@ -3339,3 +3339,504 @@ test("assignment report does not label reassignment as recovery or risk", () => 
   assert.ok(!serialized.includes("recommend"));
   assert.ok(report.changes[0].fromLabel.includes("TRK-101"));
 });
+
+import {
+  buildDailyOperationsSummary,
+  operationalDayBounds,
+} from "../src/dashboard/daily-summary.ts";
+
+function dsAssignment(overrides = {}) {
+  return {
+    id: overrides.id ?? "a1",
+    truckId: overrides.truckId ?? "t1",
+    driverId: overrides.driverId ?? "dr1",
+    assignedAt: overrides.assignedAt ?? new Date("2026-11-17T16:32:00.000Z"),
+    endedAt: overrides.endedAt ?? null,
+    endReason: overrides.endReason ?? null,
+    truck: overrides.truck ?? {
+      unitNumber: "TRK-101",
+      vin: null,
+      capacityKg: null,
+      status: "AVAILABLE",
+    },
+    driver: overrides.driver ?? { name: "James Carter", status: "ON_DUTY" },
+  };
+}
+
+function dsDelivery(overrides = {}) {
+  const delivery = {
+    id: overrides.id ?? "d1",
+    loadId: overrides.loadId ?? "load-1",
+    loadReference: overrides.loadReference ?? "LOAD-1001",
+    customerName: overrides.customerName ?? "Acme Freight",
+    reference: overrides.reference ?? "DEL-101",
+    stopNumber: overrides.stopNumber ?? 1,
+    recipientName: overrides.recipientName ?? null,
+    status: overrides.status ?? "ASSIGNED",
+    eta: overrides.eta ?? null,
+    deliveredAt: overrides.deliveredAt ?? null,
+    createdAt:
+      overrides.createdAt ?? new Date("2026-11-17T15:00:00.000Z"),
+    deliveryWindowStart: overrides.deliveryWindowStart ?? null,
+    deliveryWindowEnd: overrides.deliveryWindowEnd ?? null,
+  };
+  return {
+    delivery,
+    assignments: overrides.assignments ?? [],
+    events: overrides.events ?? [],
+    riskLevel: overrides.riskLevel ?? "LOW",
+    projectedDelay: overrides.projectedDelay ?? false,
+    downstreamEntries: overrides.downstreamEntries ?? [],
+  };
+}
+
+function dsSummary({ date = "2026-11-17", timezone = "UTC", deliveries = [] }) {
+  return buildDailyOperationsSummary({ date, timezone, deliveries });
+}
+
+const reassignReason =
+  "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment";
+
+function recoveredPair(prefix) {
+  return [
+    dsAssignment({
+      id: `${prefix}-old`,
+      endedAt: new Date("2026-11-17T11:00:00.000Z"),
+      endReason: reassignReason,
+    }),
+    dsAssignment({
+      id: `${prefix}-new`,
+      truckId: "t2",
+      driverId: "dr2",
+      assignedAt: new Date("2026-11-17T11:00:00.000Z"),
+      endedAt: null,
+      truck: {
+        unitNumber: "TRK-202",
+        vin: null,
+        capacityKg: null,
+        status: "AVAILABLE",
+      },
+      driver: { name: "Michael Brooks", status: "AVAILABLE" },
+    }),
+  ];
+}
+
+test("daily summary aggregates a populated day across multiple deliveries", () => {
+  const recovered = dsDelivery({
+    id: "d1",
+    reference: "DEL-101",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T15:00:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "a0",
+        truckId: "t0",
+        driverId: "dr0",
+        assignedAt: new Date("2026-11-17T16:06:00.000Z"),
+        endedAt: new Date("2026-11-17T16:13:00.000Z"),
+        endReason: "Assignment ended",
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "James Carter", status: "ON_DUTY" },
+      }),
+      dsAssignment({
+        id: "a1",
+        truckId: "t1",
+        driverId: "dr1",
+        assignedAt: new Date("2026-11-17T16:20:00.000Z"),
+        endedAt: new Date("2026-11-17T16:33:53.000Z"),
+        endReason: reassignReason,
+      }),
+      dsAssignment({
+        id: "a2",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-17T16:33:53.000Z"),
+        endedAt: null,
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+    events: [
+      {
+        type: "STATUS_CHANGED",
+        toStatus: "ASSIGNED",
+        note: null,
+        occurredAt: new Date("2026-11-17T16:33:53.000Z"),
+      },
+    ],
+  });
+  const plain = dsDelivery({
+    id: "d2",
+    reference: "DEL-102",
+    stopNumber: 2,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T10:00:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "b0",
+        assignedAt: new Date("2026-11-17T11:00:00.000Z"),
+        endedAt: null,
+      }),
+    ],
+  });
+
+  const summary = dsSummary({ deliveries: [recovered, plain] });
+
+  assert.equal(summary.scopeCount, 2);
+  assert.equal(summary.snapshot.completed, 0);
+  assert.equal(summary.snapshot.currentlyAssigned, 2);
+  assert.equal(summary.snapshot.withRecoveryAction, 1);
+  assert.equal(summary.snapshot.withoutRecoveryAction, 1);
+
+  assert.equal(summary.riskSummary.low, 2);
+  assert.equal(summary.riskSummary.high, 0);
+  assert.equal(summary.riskSummary.medium, 0);
+
+  assert.equal(summary.recovery.actionsExecuted, 1);
+  assert.equal(summary.recovery.deliveriesWithRecovery, 1);
+  assert.equal(summary.recovery.outcomes.successful, 1);
+  assert.equal(summary.recovery.outcomes.monitoring, 0);
+  assert.equal(summary.recovery.noAction, 1);
+
+  assert.equal(summary.assignmentActivity.transitions, 2);
+  assert.equal(summary.assignmentActivity.deliveriesWithChanges, 1);
+  assert.equal(summary.assignmentActivity.truckAndDriverChanges, 2);
+  assert.equal(summary.assignmentActivity.assignmentsCreated, 4);
+  assert.equal(summary.assignmentActivity.unchanged, 1);
+
+  assert.ok(
+    summary.impact.metrics.every((metric) => metric.state === "insufficient"),
+  );
+  assert.ok(
+    summary.impact.metrics.every(
+      (metric) => metric.display === "Insufficient data",
+    ),
+  );
+
+  const del101 = summary.deliveries.find((row) => row.label === "DEL-101");
+  const del102 = summary.deliveries.find((row) => row.label === "DEL-102");
+  assert.equal(del101.recoveryState, "successful");
+  assert.equal(del101.currentAssignmentLabel, "TRK-202 · Michael Brooks");
+  assert.equal(del102.recoveryState, "none");
+  assert.equal(del102.impactState, "notApplicable");
+
+  assert.match(summary.narrative, /2 deliveries were in scope/);
+  assert.ok(
+    summary.events.some((event) => event.kind === "Recovery reassignment"),
+  );
+});
+
+test("daily summary respects the operational timezone day boundary", () => {
+  const bounds = operationalDayBounds("2026-11-17", "America/New_York");
+  assert.equal(bounds.start.toISOString(), "2026-11-17T05:00:00.000Z");
+  assert.equal(bounds.end.toISOString(), "2026-11-18T05:00:00.000Z");
+
+  const delivery = dsDelivery({
+    id: "tz1",
+    createdAt: new Date("2026-11-10T00:00:00.000Z"),
+    events: [
+      {
+        type: "EXCEPTION_REPORTED",
+        toStatus: null,
+        note: "Delay noted",
+        occurredAt: new Date("2026-11-18T02:30:00.000Z"),
+      },
+    ],
+  });
+
+  const ny17 = dsSummary({
+    date: "2026-11-17",
+    timezone: "America/New_York",
+    deliveries: [delivery],
+  });
+  const ny18 = dsSummary({
+    date: "2026-11-18",
+    timezone: "America/New_York",
+    deliveries: [delivery],
+  });
+  const utc17 = dsSummary({
+    date: "2026-11-17",
+    timezone: "UTC",
+    deliveries: [delivery],
+  });
+  const utc18 = dsSummary({
+    date: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [delivery],
+  });
+
+  assert.equal(ny17.scopeCount, 1);
+  assert.equal(ny18.scopeCount, 0);
+  assert.equal(utc17.scopeCount, 0);
+  assert.equal(utc18.scopeCount, 1);
+});
+
+test("daily summary handles a delivery spanning multiple days", () => {
+  const spanning = dsDelivery({
+    id: "span1",
+    reference: "DEL-200",
+    status: "DELIVERED",
+    createdAt: new Date("2026-11-16T09:00:00.000Z"),
+    deliveredAt: new Date("2026-11-18T18:00:00.000Z"),
+    events: [
+      {
+        type: "STATUS_CHANGED",
+        toStatus: "DELIVERED",
+        note: null,
+        occurredAt: new Date("2026-11-18T18:00:00.000Z"),
+      },
+    ],
+  });
+
+  const day16 = dsSummary({ date: "2026-11-16", deliveries: [spanning] });
+  const day17 = dsSummary({ date: "2026-11-17", deliveries: [spanning] });
+  const day18 = dsSummary({ date: "2026-11-18", deliveries: [spanning] });
+
+  assert.equal(day16.scopeCount, 1);
+  assert.equal(day17.scopeCount, 0);
+  assert.equal(day18.scopeCount, 1);
+  assert.equal(day18.snapshot.completed, 1);
+});
+
+test("daily summary keeps current risk independent of reassignment history", () => {
+  const reassignedLow = dsDelivery({
+    id: "r1",
+    reference: "DEL-R1",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T10:00:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "ra0",
+        endedAt: new Date("2026-11-17T12:00:00.000Z"),
+        endReason: reassignReason,
+      }),
+      dsAssignment({
+        id: "ra1",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-17T12:00:00.000Z"),
+        endedAt: null,
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+  });
+  const high = dsDelivery({
+    id: "r2",
+    reference: "DEL-R2",
+    status: "IN_TRANSIT",
+    riskLevel: "HIGH",
+    createdAt: new Date("2026-11-17T10:30:00.000Z"),
+  });
+
+  const summary = dsSummary({ deliveries: [reassignedLow, high] });
+  assert.equal(summary.riskSummary.low, 1);
+  assert.equal(summary.riskSummary.high, 1);
+  assert.equal(summary.riskSummary.medium, 0);
+  const row = summary.deliveries.find((item) => item.label === "DEL-R1");
+  assert.equal(row.riskLevel, "LOW");
+  assert.equal(row.recoveryState, "successful");
+});
+
+test("daily summary does not count historical assignment changes outside the day", () => {
+  const delivery = dsDelivery({
+    id: "hist1",
+    reference: "DEL-H1",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-10T09:00:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "h0",
+        assignedAt: new Date("2026-11-10T10:00:00.000Z"),
+        endedAt: new Date("2026-11-10T12:00:00.000Z"),
+        endReason: "Assignment ended",
+      }),
+      dsAssignment({
+        id: "h1",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-10T12:00:00.000Z"),
+        endedAt: null,
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+    events: [
+      {
+        type: "EXCEPTION_REPORTED",
+        toStatus: null,
+        note: "Noted",
+        occurredAt: new Date("2026-11-17T09:00:00.000Z"),
+      },
+    ],
+  });
+
+  const summary = dsSummary({ date: "2026-11-17", deliveries: [delivery] });
+  assert.equal(summary.scopeCount, 1);
+  assert.equal(summary.assignmentActivity.transitions, 0);
+  assert.equal(summary.assignmentActivity.assignmentsCreated, 0);
+  assert.equal(summary.assignmentActivity.deliveriesWithChanges, 0);
+  assert.equal(summary.assignmentActivity.unchanged, 1);
+});
+
+test("daily summary keeps recovery outcomes distinct and never assumes success", () => {
+  const failed = dsDelivery({
+    id: "f1",
+    reference: "DEL-F1",
+    status: "FAILED",
+    riskLevel: "HIGH",
+    createdAt: new Date("2026-11-17T08:00:00.000Z"),
+    assignments: recoveredPair("f"),
+  });
+  const monitoring = dsDelivery({
+    id: "m1",
+    reference: "DEL-M1",
+    status: "ASSIGNED",
+    riskLevel: "MEDIUM",
+    createdAt: new Date("2026-11-17T08:30:00.000Z"),
+    assignments: recoveredPair("m"),
+  });
+
+  const summary = dsSummary({ deliveries: [failed, monitoring] });
+  assert.equal(summary.recovery.outcomes.unresolved, 1);
+  assert.equal(summary.recovery.outcomes.monitoring, 1);
+  assert.equal(summary.recovery.outcomes.successful, 0);
+  assert.equal(summary.recovery.deliveriesWithRecovery, 2);
+});
+
+test("daily summary aggregates only attributed impact and preserves insufficient states", () => {
+  const protectedEntry = {
+    deliveryId: "target-1",
+    label: "DEL-105",
+    stopNumber: 3,
+    customer: null,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    truck: null,
+    driver: null,
+    etaLabel: null,
+    projectedDelayLabel: null,
+    state: "resolved",
+    reasons: [],
+    sourceDeliveryIds: ["d1"],
+  };
+  const unattributedEntry = {
+    ...protectedEntry,
+    deliveryId: "target-2",
+    label: "DEL-106",
+    sourceDeliveryIds: ["other-delivery"],
+  };
+  const recovered = dsDelivery({
+    id: "d1",
+    reference: "DEL-101",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T10:00:00.000Z"),
+    downstreamEntries: [protectedEntry, unattributedEntry],
+    assignments: recoveredPair("i"),
+  });
+  const recoveredNoEntries = dsDelivery({
+    id: "d2",
+    reference: "DEL-102",
+    stopNumber: 2,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T10:30:00.000Z"),
+    assignments: recoveredPair("j"),
+  });
+
+  const summary = dsSummary({ deliveries: [recovered, recoveredNoEntries] });
+  const protectedMetric = summary.impact.metrics.find(
+    (metric) => metric.key === "deliveriesProtected",
+  );
+  assert.equal(protectedMetric.state, "actual");
+  assert.equal(protectedMetric.display, "1 deliveries");
+  assert.equal(
+    protectedMetric.coverage,
+    "1 of 2 recovered deliveries measurable.",
+  );
+
+  for (const key of [
+    "lateDeliveriesAvoided",
+    "projectedDelayImprovement",
+    "avoidedMiles",
+    "driverTimeImpact",
+    "fuelImpact",
+    "operationalBenefit",
+  ]) {
+    const metric = summary.impact.metrics.find((item) => item.key === key);
+    assert.equal(metric.state, "insufficient", key);
+    assert.equal(metric.display, "Insufficient data", key);
+  }
+
+  assert.equal(summary.downstreamAffected.length, 1);
+  assert.equal(summary.downstreamAffected[0].label, "DEL-105");
+});
+
+test("daily summary contains no dispatcher feedback or manual scoring", () => {
+  const delivery = dsDelivery({
+    id: "nf1",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    assignments: recoveredPair("n"),
+  });
+  const summary = dsSummary({ deliveries: [delivery] });
+  const serialized = JSON.stringify(summary).toLowerCase();
+  for (const key of [
+    '"feedback"',
+    '"rating"',
+    '"score"',
+    '"comment"',
+    '"review"',
+  ]) {
+    assert.ok(!serialized.includes(key), key);
+  }
+});
+
+test("daily summary reports an honest empty-day state", () => {
+  const old = dsDelivery({
+    id: "old1",
+    reference: "DEL-OLD",
+    createdAt: new Date("2026-11-10T09:00:00.000Z"),
+    deliveredAt: new Date("2026-11-10T18:00:00.000Z"),
+    events: [
+      {
+        type: "STATUS_CHANGED",
+        toStatus: "DELIVERED",
+        note: null,
+        occurredAt: new Date("2026-11-10T18:00:00.000Z"),
+      },
+    ],
+  });
+  const summary = dsSummary({ date: "2026-11-20", deliveries: [old] });
+  assert.equal(summary.scopeCount, 0);
+  assert.equal(summary.snapshot.completed, 0);
+  assert.equal(summary.recovery.actionsExecuted, 0);
+  assert.equal(summary.assignmentActivity.transitions, 0);
+  assert.match(summary.narrative, /No deliveries with recorded activity/);
+  assert.ok(summary.impact.metrics.every((m) => m.state === "insufficient"));
+});

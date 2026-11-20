@@ -7,7 +7,7 @@ type Props = {
   organizations: Models.public_Organization[];
   organization: Models.public_Organization;
   children: ReactNode;
-  activeSection?: "command-center" | "trucks" | "drivers" | "loads" | "dispatch";
+  activeSection?: "command-center" | "daily-summary" | "trucks" | "drivers" | "loads" | "dispatch";
 };
 
 export default function TruckShell({
@@ -18,6 +18,7 @@ export default function TruckShell({
 }: Props) {
   const sections = [
     { id: "command-center", label: "Command Center", href: `/dashboard/command-center?organizationId=${encodeURIComponent(organization.id)}` },
+    { id: "daily-summary", label: "Daily Summary", href: `/dashboard/daily-summary?organizationId=${encodeURIComponent(organization.id)}` },
     { id: "trucks", label: "Fleet", href: `/dashboard/trucks?organizationId=${encodeURIComponent(organization.id)}` },
     { id: "drivers", label: "Drivers", href: `/dashboard/drivers?organizationId=${encodeURIComponent(organization.id)}` },
     { id: "loads", label: "Loads", href: `/dashboard/loads?organizationId=${encodeURIComponent(organization.id)}` },

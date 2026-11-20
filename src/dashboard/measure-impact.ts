@@ -9,6 +9,8 @@ export type ImpactMetric = {
   state: ImpactMetricState;
   display: string;
   evidence: string[];
+  numericValue: number | null;
+  unit: string | null;
 };
 
 export type MeasureImpactDelivery = {
@@ -62,6 +64,8 @@ function insufficient(
     state: "insufficient",
     display: "Insufficient data",
     evidence,
+    numericValue: null,
+    unit: null,
   };
 }
 
@@ -71,8 +75,18 @@ function metric(
   state: ImpactMetricState,
   display: string,
   evidence: string[],
+  numericValue: number | null = null,
+  unit: string | null = null,
 ): ImpactMetric {
-  return { key, label, state, display, evidence };
+  return {
+    key,
+    label,
+    state,
+    display,
+    evidence,
+    numericValue,
+    unit,
+  };
 }
 
 function minutesBetween(later: Date, earlier: Date) {
@@ -141,6 +155,8 @@ function deliveriesProtected(
     "actual",
     `${protectedCount} downstream ${protectedCount === 1 ? "delivery" : "deliveries"}`,
     evidence,
+    protectedCount,
+    "deliveries",
   );
 }
 
@@ -180,6 +196,8 @@ function lateDeliveriesAvoided(
       `Pre-recovery projection ${beforeLate ? "exceeded" : "met"} the delivery window.`,
       `Post-recovery ${delivery.deliveredAt ? "actual delivery" : "projection"} ${afterLate ? "exceeded" : "met"} the delivery window.`,
     ],
+    avoided,
+    "deliveries",
   );
 }
 
@@ -216,7 +234,7 @@ function projectedDelayImprovement(
   return metric(key, label, "estimated", display, [
     `Pre-recovery projected delay beyond window: ${Math.round(beforeDelay)} min.`,
     `Current projected delay beyond window: ${Math.round(afterDelay)} min.`,
-  ]);
+  ], improvementMinutes, "min");
 }
 
 function avoidedMiles(input: MeasureImpactInput): ImpactMetric {
@@ -243,6 +261,8 @@ function avoidedMiles(input: MeasureImpactInput): ImpactMetric {
       `Recorded distance before recovery: ${mileage.before} ${mileage.unit}.`,
       `Recorded distance after recovery: ${mileage.after} ${mileage.unit}.`,
     ],
+    avoided,
+    mileage.unit,
   );
 }
 
@@ -268,6 +288,8 @@ function driverTimeImpact(input: MeasureImpactInput): ImpactMetric {
     [
       `Recorded duration delta across the recovery: ${Math.round(delta)} minutes.`,
     ],
+    delta,
+    "min",
   );
 }
 
@@ -299,6 +321,8 @@ function fuelImpact(input: MeasureImpactInput): ImpactMetric {
       `Fuel price: ${fuel.currency}${fuel.pricePerUnit} per unit (recorded).`,
       `Distance delta: ${fuel.distanceDelta} miles (recorded).`,
     ],
+    cost,
+    fuel.currency,
   );
 }
 
@@ -360,6 +384,8 @@ function operationalBenefit(input: MeasureImpactInput): ImpactMetric {
       ),
       "Only validated components are included; no value is assigned to unmeasured outcomes.",
     ],
+    total,
+    currency,
   );
 }
 
