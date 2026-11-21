@@ -1,38 +1,27 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import type { DailyOperationsSummary } from "@/src/dashboard/daily-summary";
+import {
+  Badge,
+  EmptyState,
+  PageHeader,
+  Panel,
+  Stat,
+  StatGrid,
+  buttonPrimaryClass,
+  dataQualityTone,
+  inputClass,
+  labelClass,
+  tableCellClass,
+  tableClass,
+  tableHeadClass,
+  tableRowClass,
+} from "../ui";
 
 type Props = {
   summary: DailyOperationsSummary;
   organizationId: string;
   selectedDate: string;
 };
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </dt>
-      <dd className="mt-1 text-lg font-semibold text-slate-900">{value}</dd>
-    </div>
-  );
-}
 
 const statusLabel = (status: string) =>
   status.toLowerCase().replaceAll("_", " ");
@@ -47,65 +36,53 @@ export default function DailySummaryView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Fleet operations
-          </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">
-            Daily Operations Summary
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
+      <PageHeader
+        eyebrow="Fleet operations"
+        title="Daily Operations Summary"
+        description={
+          <>
             {summary.dateLabel}
             {summary.timezoneAvailable
               ? ` · ${summary.timezone}`
               : " · operational timezone unavailable; UTC day boundary used"}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {summary.scopeCount === 0
-              ? "No deliveries recorded activity in this operational day."
-              : `${summary.scopeCount} ${summary.scopeCount === 1 ? "delivery" : "deliveries"} with recorded activity in this operational day.`}
-          </p>
-        </div>
-        <form method="get" action="/dashboard/daily-summary" className="flex items-end gap-2">
-          <input type="hidden" name="organizationId" value={organizationId} />
-          <div>
-            <label
-              htmlFor="daily-summary-date"
-              className="block text-xs font-medium uppercase tracking-wide text-slate-500"
-            >
-              Operational date
-            </label>
-            <input
-              id="daily-summary-date"
-              type="date"
-              name="date"
-              defaultValue={selectedDate}
-              className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
-            />
-          </div>
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
-            View
-          </button>
-        </form>
-      </div>
+            <span className="mt-1 block text-xs text-slate-500">
+              {summary.scopeCount === 0
+                ? "No deliveries recorded activity in this operational day."
+                : `${summary.scopeCount} ${summary.scopeCount === 1 ? "delivery" : "deliveries"} with recorded activity in this operational day.`}
+            </span>
+          </>
+        }
+        actions={
+          <form method="get" action="/dashboard/daily-summary" className="flex items-end gap-2">
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <div>
+              <label htmlFor="daily-summary-date" className={labelClass}>
+                Operational date
+              </label>
+              <input
+                id="daily-summary-date"
+                type="date"
+                name="date"
+                defaultValue={selectedDate}
+                className={inputClass}
+              />
+            </div>
+            <button className={buttonPrimaryClass}>View</button>
+          </form>
+        }
+      />
 
       {summary.scopeCount === 0 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold tracking-tight">
-            No deliveries recorded for this operational day.
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            {summary.dateLabel}
-            {summary.timezoneAvailable ? ` (${summary.timezone})` : ""}. No
-            deliveries, assignments, or events fall within the operational day
-            boundary, so there is nothing to summarize.
-          </p>
-        </section>
+        <div className="mt-6">
+          <EmptyState
+            title="No deliveries recorded for this operational day."
+            description={`${summary.dateLabel}${summary.timezoneAvailable ? ` (${summary.timezone})` : ""}. No deliveries, assignments, or events fall within the operational day boundary, so there is nothing to summarize.`}
+          />
+        </div>
       ) : (
         <>
-          <Section title="Operations Snapshot">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <Panel title="Operations Snapshot">
+            <StatGrid columns="lg:grid-cols-6">
               <Stat label="In scope" value={summary.scopeCount} />
               <Stat label="Completed" value={summary.snapshot.completed} />
               <Stat label="Currently assigned" value={summary.snapshot.currentlyAssigned} />
@@ -115,14 +92,14 @@ export default function DailySummaryView({
                 label="With recovery action"
                 value={summary.snapshot.withRecoveryAction}
               />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               {summary.snapshot.withoutRecoveryAction} {summary.snapshot.withoutRecoveryAction === 1 ? "delivery has" : "deliveries have"} no recorded recovery action. Counts reflect current state of deliveries with recorded activity in this day.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Risk & Disruption Summary">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <Panel title="Risk & Disruption Summary">
+            <StatGrid columns="lg:grid-cols-7">
               <Stat label="Low risk" value={summary.riskSummary.low} />
               <Stat label="Medium risk" value={summary.riskSummary.medium} />
               <Stat label="High risk" value={summary.riskSummary.high} />
@@ -130,30 +107,30 @@ export default function DailySummaryView({
               <Stat label="Failed" value={summary.riskSummary.failed} />
               <Stat label="Cancelled" value={summary.riskSummary.cancelled} />
               <Stat label="Projected delay" value={summary.riskSummary.projectedDelay} />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Current risk levels from the existing risk engine. Historical
               reassignment does not raise current risk.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Recovery Activity">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <Panel title="Recovery Activity">
+            <StatGrid columns="lg:grid-cols-5">
               <Stat label="Recovery actions executed" value={summary.recovery.actionsExecuted} />
               <Stat label="Deliveries with recovery" value={summary.recovery.deliveriesWithRecovery} />
               <Stat label="Successful" value={summary.recovery.outcomes.successful} />
               <Stat label="Monitoring" value={summary.recovery.outcomes.monitoring} />
               <Stat label="Unresolved" value={summary.recovery.outcomes.unresolved} />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Outcomes use Recovery Result semantics; insufficient-data outcomes:{" "}
               {summary.recovery.outcomes.insufficientData}. A reassignment alone
               is not counted as a successful recovery.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Assignment & Vehicle Activity">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <Panel title="Assignment & Vehicle Activity">
+            <StatGrid columns="lg:grid-cols-7">
               <Stat label="Assignments created" value={summary.assignmentActivity.assignmentsCreated} />
               <Stat label="Changes recorded" value={summary.assignmentActivity.transitions} />
               <Stat label="Deliveries changed" value={summary.assignmentActivity.deliveriesWithChanges} />
@@ -161,14 +138,14 @@ export default function DailySummaryView({
               <Stat label="Driver changes" value={summary.assignmentActivity.driverChanges} />
               <Stat label="Truck + driver" value={summary.assignmentActivity.truckAndDriverChanges} />
               <Stat label="Unchanged" value={summary.assignmentActivity.unchanged} />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Factual assignment history only; changes are not interpreted as
               disruption, recovery, or risk.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Measured Impact">
+          <Panel title="Measured Impact">
             {summary.impact.metrics.every(
               (metric) => metric.state === "insufficient",
             ) ? (
@@ -186,9 +163,12 @@ export default function DailySummaryView({
                     >
                       <span className="text-sm font-medium text-slate-700">
                         {metric.label}
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-slate-600">
+                        <Badge
+                          tone={dataQualityTone(metric.state)}
+                          className="ml-2"
+                        >
                           {metric.state}
-                        </span>
+                        </Badge>
                       </span>
                       <span className="text-sm font-semibold text-slate-900">
                         {metric.display}
@@ -207,9 +187,9 @@ export default function DailySummaryView({
               fuel, labor, or financial inputs remain insufficient — never
               zero.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Operational Outcomes">
+          <Panel title="Operational Outcomes">
             <div className="grid gap-4 sm:grid-cols-2">
               {(
                 [
@@ -257,9 +237,9 @@ export default function DailySummaryView({
                 </ul>
               )}
             </div>
-          </Section>
+          </Panel>
 
-          <Section title="Notable Operational Events">
+          <Panel title="Notable Operational Events">
             {summary.events.length === 0 ? (
               <p className="text-sm text-slate-500">
                 No notable events recorded for this operational day.
@@ -277,21 +257,21 @@ export default function DailySummaryView({
                     <span className="font-medium text-slate-800">
                       {event.deliveryLabel}
                     </span>
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">
+                    <Badge tone="neutral" className="px-2 py-0 text-[11px]">
                       {event.kind}
-                    </span>
+                    </Badge>
                     <span className="text-slate-600">{event.description}</span>
                   </li>
                 ))}
               </ul>
             )}
-          </Section>
+          </Panel>
 
-          <Section title="Delivery Detail">
+          <Panel title="Delivery Detail">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className={tableClass}>
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                  <tr className={tableHeadClass}>
                     <th className="py-2 pr-4">Delivery</th>
                     <th className="py-2 pr-4">Status</th>
                     <th className="py-2 pr-4">Risk</th>
@@ -303,11 +283,8 @@ export default function DailySummaryView({
                 </thead>
                 <tbody>
                   {summary.deliveries.map((row) => (
-                    <tr
-                      key={row.deliveryId}
-                      className="border-b border-slate-100 last:border-0"
-                    >
-                      <td className="py-2 pr-4 font-medium text-slate-900">
+                    <tr key={row.deliveryId} className={tableRowClass}>
+                      <td className="py-2.5 pr-4 font-medium text-slate-900">
                         <Link
                           href={`/dashboard/loads/${encodeURIComponent(row.loadId)}?${orgQuery}&${dateQuery}`}
                           className="hover:underline"
@@ -315,33 +292,33 @@ export default function DailySummaryView({
                           {row.label}
                         </Link>
                         {row.attention && (
-                          <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+                          <Badge tone="warning" className="ml-2">
                             attention
-                          </span>
+                          </Badge>
                         )}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {statusLabel(row.status)}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.riskLevel ?? "unassessed"}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.recoveryState === "none"
                           ? "No recovery action"
                           : statusLabel(row.recoveryState)}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.currentAssignmentLabel ?? "Not recorded"}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.impactState === "notApplicable"
                           ? "Not applicable"
                           : row.impactState === "insufficient"
                             ? "Insufficient data"
                             : "Measured"}
                       </td>
-                      <td className="py-2 text-slate-500">
+                      <td className="py-2.5 text-slate-500">
                         {row.loadReference}
                       </td>
                     </tr>
@@ -349,13 +326,13 @@ export default function DailySummaryView({
                 </tbody>
               </table>
             </div>
-          </Section>
+          </Panel>
 
-          <Section title="Daily Automatic Summary">
+          <Panel title="Daily Automatic Summary">
             <p className="text-sm leading-6 text-slate-700">
               {summary.narrative}
             </p>
-          </Section>
+          </Panel>
         </>
       )}
     </div>

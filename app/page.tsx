@@ -15,6 +15,7 @@ import {
   getTruckCapacityUtilizationPercent,
 } from "@/src/dashboard/dashboard-metrics";
 import { signOutUser } from "./auth-actions";
+import { Badge, type BadgeTone } from "./dashboard/ui";
 
 type HomeProps = {
   searchParams: Promise<{ organizationId?: string | string[] }>;
@@ -56,49 +57,35 @@ function getDeliveryLabel(delivery: {
   return delivery.reference ?? `${delivery.load.reference} · Stop ${delivery.stopNumber}`;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    "At Risk": "bg-red-50 text-red-700 border-red-200",
-    Available: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    "On Route": "bg-blue-50 text-blue-700 border-blue-200",
-    Maintenance: "bg-amber-50 text-amber-700 border-amber-200",
-    "Out Of Service": "bg-red-50 text-red-700 border-red-200",
-    Planned: "bg-slate-50 text-slate-700 border-slate-200",
-    Assigned: "bg-blue-50 text-blue-700 border-blue-200",
-    "Picked Up": "bg-blue-50 text-blue-700 border-blue-200",
-    "In Transit": "bg-blue-50 text-blue-700 border-blue-200",
-    Delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    Failed: "bg-red-50 text-red-700 border-red-200",
-    Cancelled: "bg-slate-50 text-slate-700 border-slate-200",
-  };
+const statusTones: Record<string, BadgeTone> = {
+  "At Risk": "danger",
+  Available: "success",
+  "On Route": "info",
+  Maintenance: "warning",
+  "Out Of Service": "danger",
+  Planned: "neutral",
+  Assigned: "info",
+  "Picked Up": "info",
+  "In Transit": "info",
+  Delivered: "success",
+  Failed: "danger",
+  Cancelled: "neutral",
+};
 
-  return (
-    <span
-      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
-        styles[status] || "bg-gray-50 text-gray-700 border-gray-200"
-      }`}
-    >
-      {status}
-    </span>
-  );
+function StatusBadge({ status }: { status: string }) {
+  return <Badge tone={statusTones[status] ?? "neutral"}>{status}</Badge>;
 }
 
 function RiskBadge({ risk }: { risk: string }) {
-  const styles: Record<string, string> = {
-    High: "bg-red-50 text-red-700",
-    Medium: "bg-amber-50 text-amber-700",
-    Low: "bg-emerald-50 text-emerald-700",
-  };
-
-  return (
-    <span
-      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-        styles[risk] || "bg-gray-50 text-gray-700"
-      }`}
-    >
-      {risk}
-    </span>
-  );
+  const tone: BadgeTone =
+    risk === "High"
+      ? "danger"
+      : risk === "Medium"
+        ? "warning"
+        : risk === "Low"
+          ? "success"
+          : "neutral";
+  return <Badge tone={tone}>{risk}</Badge>;
 }
 
 export default function Home({ searchParams }: HomeProps) {
@@ -244,78 +231,75 @@ async function Dashboard({ searchParams }: HomeProps) {
         {/* Sidebar */}
         <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
           <div className="border-b border-slate-200 px-6 py-6">
-            <div className="text-2xl font-bold tracking-tight text-slate-950">
-              TRUXERA
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-900 text-xs font-bold text-white">
+                T
+              </span>
+              <div className="text-xl font-bold tracking-tight text-slate-950">
+                TRUXERA
+              </div>
             </div>
             <div className="mt-1 text-xs font-medium text-slate-500">
-              Intelligent Fleet Optimization
+              Fleet Operations
             </div>
           </div>
 
-          <nav className="flex-1 px-4 py-6">
-            <div className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Operations
-            </div>
-
-            <a
-              href="#"
-              className="mb-1 block rounded-lg bg-slate-900 px-3 py-2.5 text-sm font-medium text-white"
-            >
-              Dashboard
-            </a>
-
-            <Link
-              href={`/dashboard/trucks?organizationId=${encodeURIComponent(data.organization?.id ?? "")}`}
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Fleet
-            </Link>
-
-            <Link
-              href={`/dashboard/drivers?organizationId=${encodeURIComponent(data.organization?.id ?? "")}`}
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Drivers
-            </Link>
-
-            <Link
-              href={`/dashboard/loads?organizationId=${encodeURIComponent(data.organization?.id ?? "")}`}
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Loads &amp; deliveries
-            </Link>
-
-            <a
-              href="#"
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Risk Detection
-            </a>
-
-            <Link
-              href={`/dashboard/dispatch?organizationId=${encodeURIComponent(data.organization?.id ?? "")}`}
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Dispatch
-            </Link>
-
-            <div className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Management
-            </div>
-
-            <a
-              href="#"
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Analytics
-            </a>
-
-            <a
-              href="#"
-              className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-            >
-              Settings
-            </a>
+          <nav className="flex-1 overflow-y-auto px-4 py-6">
+            {(
+              [
+                {
+                  label: "Overview",
+                  items: [
+                    { label: "Dashboard", href: null },
+                    { label: "Command Center", href: "command-center" },
+                    { label: "Daily Summary", href: "daily-summary" },
+                    { label: "Executive Report", href: "executive-report" },
+                    { label: "History", href: "operational-history" },
+                  ],
+                },
+                {
+                  label: "Operations",
+                  items: [
+                    { label: "Loads", href: "loads" },
+                    { label: "Dispatch", href: "dispatch" },
+                  ],
+                },
+                {
+                  label: "Fleet",
+                  items: [
+                    { label: "Fleet", href: "trucks" },
+                    { label: "Drivers", href: "drivers" },
+                  ],
+                },
+              ] as const
+            ).map((group, groupIndex) => (
+              <div key={group.label}>
+                <div
+                  className={`${groupIndex === 0 ? "mb-3" : "mb-3 mt-8"} px-3 text-xs font-semibold uppercase tracking-wider text-slate-400`}
+                >
+                  {group.label}
+                </div>
+                {group.items.map((item) =>
+                  item.href === null ? (
+                    <span
+                      key={item.label}
+                      aria-current="page"
+                      className="mb-1 block rounded-lg bg-slate-900 px-3 py-2.5 text-sm font-medium text-white"
+                    >
+                      {item.label}
+                    </span>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      href={`/dashboard/${item.href}?organizationId=${encodeURIComponent(data.organization?.id ?? "")}`}
+                      className="mb-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    >
+                      {item.label}
+                    </Link>
+                  ),
+                )}
+              </div>
+            ))}
           </nav>
 
           <div className="border-t border-slate-200 p-4">
@@ -694,9 +678,12 @@ async function Dashboard({ searchParams }: HomeProps) {
                     </p>
                   </div>
 
-                  <button className="text-sm font-medium text-slate-600 hover:text-slate-900">
+                  <Link
+                    href={`/dashboard/loads?organizationId=${encodeURIComponent(data.organization?.id ?? "")}`}
+                    className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                  >
                     View all
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="overflow-x-auto">

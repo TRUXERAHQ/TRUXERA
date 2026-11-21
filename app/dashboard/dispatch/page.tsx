@@ -14,6 +14,7 @@ import {
 } from "./assignment-forms";
 import { analyzeDeliveryRisksForOrganization } from "@/src/fleet/delivery-risk";
 import TruckShell from "../trucks/truck-shell";
+import { Badge, riskTone, statusTone } from "../ui";
 
 type Props = { searchParams: Promise<OperationsSearchParams> };
 
@@ -180,7 +181,7 @@ async function DispatchContent({ searchParams }: Props) {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold">{delivery.reference ?? `${delivery.load.reference} · Stop ${delivery.stopNumber}`}</h2>
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium capitalize text-slate-700">{formatLabel(delivery.status)}</span>
+                    <Badge tone={statusTone(delivery.status)}>{formatLabel(delivery.status)}</Badge>
                   </div>
                   <p className="mt-1 text-sm text-slate-500">{delivery.load.customerName} · {delivery.destinationAddress}</p>
                   <p className="mt-2 text-xs text-slate-500">Analyzed risk {risk?.riskLevel ? formatLabel(risk.riskLevel) : "insufficient data"} · Stored risk {formatLabel(delivery.riskLevel)} · ETA {delivery.eta ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: context.organization.timezone }).format(delivery.eta) : "not set"}</p>
@@ -219,7 +220,8 @@ async function DispatchContent({ searchParams }: Props) {
                           {risk.riskLevel === "LOW" ? (
                             <div>
                               <p className="text-sm font-semibold text-emerald-800">
-                                🟢 Risk: Low
+                                <Badge tone="success" className="mr-1">Low risk</Badge>
+                                No recovery action required.
                               </p>
                               <p className="mt-1 text-sm font-medium text-slate-800">
                                 No recovery action required.
@@ -234,8 +236,9 @@ async function DispatchContent({ searchParams }: Props) {
                             risk.riskLevel === "HIGH" ? (
                             <div>
                               <p className="text-sm font-semibold text-slate-800">
-                                {risk.riskLevel === "HIGH" ? "🔴" : "🟠"} Risk:{" "}
-                                {formatLabel(risk.riskLevel)} —{" "}
+                                <Badge tone={riskTone(risk.riskLevel)} className="mr-1">
+                                  {formatLabel(risk.riskLevel)} risk
+                                </Badge>
                                 {risk.riskLevel === "HIGH"
                                   ? "Recovery action recommended."
                                   : "Recovery action may be required."}

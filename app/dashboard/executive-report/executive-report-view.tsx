@@ -1,6 +1,21 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
 import type { ExecutiveReport } from "@/src/dashboard/executive-report";
+import {
+  Badge,
+  EmptyState,
+  PageHeader,
+  Panel,
+  Stat,
+  StatGrid,
+  buttonPrimaryClass,
+  dataQualityTone,
+  inputClass,
+  labelClass,
+  tableCellClass,
+  tableClass,
+  tableHeadClass,
+  tableRowClass,
+} from "../ui";
 
 type Props = {
   report: ExecutiveReport;
@@ -10,32 +25,6 @@ type Props = {
   previousAnchor: string | null;
   periodBoundsValid: boolean;
 };
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </dt>
-      <dd className="mt-1 text-lg font-semibold text-slate-900">{value}</dd>
-    </div>
-  );
-}
 
 const statusLabel = (status: string) =>
   status.toLowerCase().replaceAll("_", " ");
@@ -53,101 +42,86 @@ export default function ExecutiveReportView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Fleet operations · Executive report
-          </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">
-            {report.periodLabel}
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Timezone: {report.timezone}
-            {report.timezoneAvailable
-              ? ""
-              : " (invalid — UTC fallback used)"}
-          </p>
-          {!periodBoundsValid && (
-            <p className="mt-1 text-xs text-amber-700">
-              The selected period could not be resolved in the operational
-              timezone; a fallback window is shown.
-            </p>
-          )}
-          {report.recordsWithoutTimestamps > 0 && (
-            <p className="mt-1 text-xs text-amber-700">
-              {report.recordsWithoutTimestamps}{" "}
-              {report.recordsWithoutTimestamps === 1
-                ? "delivery has"
-                : "deliveries have"}{" "}
-              no recorded timestamps and cannot be assigned to a period.
-            </p>
-          )}
-        </div>
-        <form
-          method="get"
-          action="/dashboard/executive-report"
-          className="flex flex-wrap items-end gap-2"
-        >
-          <input type="hidden" name="organizationId" value={organizationId} />
-          <div>
-            <label
-              htmlFor="report-period"
-              className="block text-xs font-medium uppercase tracking-wide text-slate-500"
-            >
-              Period
-            </label>
-            <select
-              id="report-period"
-              name="period"
-              defaultValue={kind}
-              className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
-            >
-              <option value="week">Week</option>
-              <option value="month">Month</option>
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="report-anchor"
-              className="block text-xs font-medium uppercase tracking-wide text-slate-500"
-            >
-              {kind === "week" ? "Any date in week" : "Month"}
-            </label>
-            <input
-              id="report-anchor"
-              type={kind === "week" ? "date" : "month"}
-              name="anchor"
-              defaultValue={anchor}
-              className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
-            />
-          </div>
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
-            View
-          </button>
-          {previousAnchor && (
-            <Link
-              href={`/dashboard/executive-report?organizationId=${encodeURIComponent(organizationId)}&period=${kind}&anchor=${previousAnchor}`}
-              className="self-center text-sm font-medium text-slate-600 underline hover:text-slate-900"
-            >
-              View previous period
-            </Link>
-          )}
-        </form>
-      </div>
+      <PageHeader
+        eyebrow="Fleet operations · Executive report"
+        title={report.periodLabel}
+        description={`Timezone: ${report.timezone}${report.timezoneAvailable ? "" : " (invalid — UTC fallback used)"}`}
+        meta={
+          <>
+            {!periodBoundsValid && (
+              <p className="mt-1 text-amber-700">
+                The selected period could not be resolved in the operational
+                timezone; a fallback window is shown.
+              </p>
+            )}
+            {report.recordsWithoutTimestamps > 0 && (
+              <p className="mt-1 text-amber-700">
+                {report.recordsWithoutTimestamps}{" "}
+                {report.recordsWithoutTimestamps === 1
+                  ? "delivery has"
+                  : "deliveries have"}{" "}
+                no recorded timestamps and cannot be assigned to a period.
+              </p>
+            )}
+          </>
+        }
+        actions={
+          <form
+            method="get"
+            action="/dashboard/executive-report"
+            className="flex flex-wrap items-end gap-2"
+          >
+            <input type="hidden" name="organizationId" value={organizationId} />
+            <div>
+              <label htmlFor="report-period" className={labelClass}>
+                Period
+              </label>
+              <select
+                id="report-period"
+                name="period"
+                defaultValue={kind}
+                className={inputClass}
+              >
+                <option value="week">Week</option>
+                <option value="month">Month</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="report-anchor" className={labelClass}>
+                {kind === "week" ? "Any date in week" : "Month"}
+              </label>
+              <input
+                id="report-anchor"
+                type={kind === "week" ? "date" : "month"}
+                name="anchor"
+                defaultValue={anchor}
+                className={inputClass}
+              />
+            </div>
+            <button className={buttonPrimaryClass}>View</button>
+            {previousAnchor && (
+              <Link
+                href={`/dashboard/executive-report?organizationId=${encodeURIComponent(organizationId)}&period=${kind}&anchor=${previousAnchor}`}
+                className="self-center text-sm font-medium text-slate-600 underline hover:text-slate-900"
+              >
+                View previous period
+              </Link>
+            )}
+          </form>
+        }
+      />
 
       {empty ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold tracking-tight">
-            No operational activity recorded for this period.
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            {report.periodLabel} ({report.timezone}).
-          </p>
-        </section>
+        <div className="mt-6">
+          <EmptyState
+            title="No operational activity recorded for this period."
+            description={`${report.periodLabel} (${report.timezone}).`}
+          />
+        </div>
       ) : (
         <>
-          <Section title="Executive Overview">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <Panel title="Executive Overview">
+            <StatGrid columns="lg:grid-cols-6">
               <Stat label="Deliveries in scope" value={report.scopeCount} />
               <Stat label="Completed" value={report.snapshot.completed} />
               <Stat
@@ -160,7 +134,7 @@ export default function ExecutiveReportView({
                 label="Recovery actions"
                 value={report.recovery.actionsExecuted}
               />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Current state of deliveries with recorded activity in the
               period. {report.snapshot.withoutRecoveryAction}{" "}
@@ -169,9 +143,9 @@ export default function ExecutiveReportView({
                 : "deliveries have"}{" "}
               no recorded recovery action.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Operational Performance">
+          <Panel title="Operational Performance">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {(
                 [
@@ -206,10 +180,10 @@ export default function ExecutiveReportView({
               Outcomes use Recovery Result semantics; a reassignment alone is
               not counted as successful.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Risk & Disruption">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <Panel title="Risk & Disruption">
+            <StatGrid columns="lg:grid-cols-7">
               <Stat label="Low risk (current)" value={report.riskSummary.low} />
               <Stat
                 label="Medium risk (current)"
@@ -229,7 +203,7 @@ export default function ExecutiveReportView({
                 label="Projected delay"
                 value={report.riskSummary.projectedDelay}
               />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Current risk levels from the existing risk engine. Historical
               reassignment does not raise current risk; recorded disruption
@@ -252,10 +226,10 @@ export default function ExecutiveReportView({
                 </ul>
               </div>
             )}
-          </Section>
+          </Panel>
 
-          <Section title="Recovery Performance">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <Panel title="Recovery Performance">
+            <StatGrid columns="lg:grid-cols-5">
               <Stat
                 label="Actions executed"
                 value={report.recovery.actionsExecuted}
@@ -276,16 +250,16 @@ export default function ExecutiveReportView({
                 label="Unresolved"
                 value={report.recovery.outcomes.unresolved}
               />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Insufficient-outcome deliveries:{" "}
               {report.recovery.outcomes.insufficientData}. Outcomes come from
               Recovery Result only.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Assignment & Vehicle Activity">
-            <dl className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <Panel title="Assignment & Vehicle Activity">
+            <StatGrid columns="lg:grid-cols-7">
               <Stat
                 label="Assignments created"
                 value={report.assignmentActivity.assignmentsCreated}
@@ -311,15 +285,15 @@ export default function ExecutiveReportView({
                 value={report.assignmentActivity.truckAndDriverChanges}
               />
               <Stat label="Unchanged" value={report.assignmentActivity.unchanged} />
-            </dl>
+            </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Factual assignment history only — no performance scoring or
               ranking. Assignments spanning the period without a transition are
               not counted as changes.
             </p>
-          </Section>
+          </Panel>
 
-          <Section title="Measured Impact">
+          <Panel title="Measured Impact">
             {report.impact.metrics.every(
               (metric) => metric.state === "insufficient",
             ) ? (
@@ -337,9 +311,12 @@ export default function ExecutiveReportView({
                     >
                       <span className="text-sm font-medium text-slate-700">
                         {metric.label}
-                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-slate-600">
+                        <Badge
+                          tone={dataQualityTone(metric.state)}
+                          className="ml-2"
+                        >
                           {metric.state}
-                        </span>
+                        </Badge>
                       </span>
                       <span className="text-sm font-semibold text-slate-900">
                         {metric.display}
@@ -358,9 +335,9 @@ export default function ExecutiveReportView({
               fuel, labor, or financial inputs remain insufficient — never
               zero.
             </p>
-          </Section>
+          </Panel>
 
-          <Section
+          <Panel
             title={`Previous Period Comparison${report.comparison.previousLabel ? ` — ${report.comparison.previousLabel}` : ""}`}
           >
             {!report.comparison.available ? (
@@ -370,9 +347,9 @@ export default function ExecutiveReportView({
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
+                  <table className={tableClass}>
                     <thead>
-                      <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                      <tr className={tableHeadClass}>
                         <th className="py-2 pr-4">Metric</th>
                         <th className="py-2 pr-4">Current</th>
                         <th className="py-2 pr-4">Previous</th>
@@ -383,18 +360,18 @@ export default function ExecutiveReportView({
                       {report.comparison.rows.map((row) => (
                         <tr
                           key={row.label}
-                          className="border-b border-slate-100 last:border-0"
+                          className={tableRowClass}
                         >
-                          <td className="py-2 pr-4 font-medium text-slate-800">
+                          <td className="py-2.5 pr-4 font-medium text-slate-800">
                             {row.label}
                           </td>
-                          <td className="py-2 pr-4 text-slate-700">
+                          <td className={tableCellClass}>
                             {row.current}
                           </td>
-                          <td className="py-2 pr-4 text-slate-700">
+                          <td className={tableCellClass}>
                             {row.previous}
                           </td>
-                          <td className="py-2 text-slate-700">
+                          <td className="py-2.5 text-slate-700">
                             {row.delta > 0
                               ? `+${row.delta}`
                               : row.delta < 0
@@ -421,9 +398,9 @@ export default function ExecutiveReportView({
                 )}
               </>
             )}
-          </Section>
+          </Panel>
 
-          <Section title="Notable Events">
+          <Panel title="Notable Events">
             {report.events.length === 0 ? (
               <p className="text-sm text-slate-500">
                 No notable events recorded for this period.
@@ -441,9 +418,9 @@ export default function ExecutiveReportView({
                     <span className="font-medium text-slate-800">
                       {event.deliveryLabel}
                     </span>
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">
+                    <Badge tone="neutral" className="px-2 py-0 text-[11px]">
                       {event.kind}
-                    </span>
+                    </Badge>
                     <span className="text-slate-600">{event.description}</span>
                   </li>
                 ))}
@@ -455,13 +432,13 @@ export default function ExecutiveReportView({
                 )}
               </ul>
             )}
-          </Section>
+          </Panel>
 
-          <Section title="Deliveries in Scope">
+          <Panel title="Deliveries in Scope">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className={tableClass}>
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                  <tr className={tableHeadClass}>
                     <th className="py-2 pr-4">Delivery</th>
                     <th className="py-2 pr-4">Status</th>
                     <th className="py-2 pr-4">Risk</th>
@@ -474,9 +451,9 @@ export default function ExecutiveReportView({
                   {report.deliveries.map((row) => (
                     <tr
                       key={row.deliveryId}
-                      className="border-b border-slate-100 last:border-0"
+                      className={tableRowClass}
                     >
-                      <td className="py-2 pr-4 font-medium text-slate-900">
+                      <td className="py-2.5 pr-4 font-medium text-slate-900">
                         <Link
                           href={`/dashboard/loads/${encodeURIComponent(row.loadId)}?${orgQuery}`}
                           className="hover:underline"
@@ -484,26 +461,26 @@ export default function ExecutiveReportView({
                           {row.label}
                         </Link>
                         {row.attention && (
-                          <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+                          <Badge tone="warning" className="ml-2">
                             attention
-                          </span>
+                          </Badge>
                         )}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {statusLabel(row.status)}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.riskLevel ?? "unassessed"}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.recoveryState === "none"
                           ? "No recovery action"
                           : statusLabel(row.recoveryState)}
                       </td>
-                      <td className="py-2 pr-4 text-slate-700">
+                      <td className={tableCellClass}>
                         {row.currentAssignmentLabel ?? "Not recorded"}
                       </td>
-                      <td className="py-2 text-slate-500">
+                      <td className="py-2.5 text-slate-500">
                         {row.loadReference}
                       </td>
                     </tr>
@@ -511,13 +488,13 @@ export default function ExecutiveReportView({
                 </tbody>
               </table>
             </div>
-          </Section>
+          </Panel>
 
-          <Section title="Executive Summary">
+          <Panel title="Executive Summary">
             <p className="text-sm leading-6 text-slate-700">
               {report.narrative}
             </p>
-          </Section>
+          </Panel>
         </>
       )}
     </div>

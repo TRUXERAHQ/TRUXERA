@@ -14,6 +14,21 @@ import {
   parseCommandCenterFilters,
 } from "@/src/dashboard/command-center";
 import { deliveryStatuses } from "@/src/fleet/delivery-lifecycle";
+import {
+  Badge,
+  EmptyState,
+  Notice,
+  PageHeader,
+  Panel,
+  Stat,
+  StatGrid,
+  buttonAccentClass,
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  inputClass,
+  riskTone,
+  statusTone,
+} from "../ui";
 
 type SearchParams = OperationsSearchParams & {
   q?: string | string[];
@@ -175,47 +190,28 @@ async function CommandCenterContent({ searchParams }: Props) {
       organization={context.organization}
       activeSection="command-center"
     >
-      <div>
-        <p className="text-sm font-medium text-slate-500">Fleet operations</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Dispatcher Command Center
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Prioritized operational issues and actions across your fleet.
-        </p>
-        <p className="mt-1 text-xs text-slate-500">
-          Risk is deterministic and evidence-backed; it is not an AI or ETA
-          prediction.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Fleet operations"
+        title="Dispatcher Command Center"
+        description="Prioritized operational issues and actions across your fleet."
+        meta="Risk is deterministic and evidence-backed; it is not an AI or ETA prediction."
+      />
 
-      <section
-        aria-label="Operational summary"
-        className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
-      >
-        {[
-          ["Requires attention", result.summary.requiresAttention],
-          ["High risk", result.summary.highRisk],
-          ["Medium risk", result.summary.mediumRisk],
-          ["Active assignments", result.summary.activeAssignments],
-          ["Open deliveries", result.summary.openDeliveries],
-        ].map(([label, count]) => (
-          <article
-            key={label}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-          >
-            <p className="text-sm text-slate-500">{label}</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-950">{count}</p>
-          </article>
-        ))}
+      <section aria-label="Operational summary" className="mt-6">
+        <StatGrid columns="lg:grid-cols-5">
+          <Stat label="Requires attention" value={result.summary.requiresAttention} />
+          <Stat label="High risk" value={result.summary.highRisk} />
+          <Stat label="Medium risk" value={result.summary.mediumRisk} />
+          <Stat label="Active assignments" value={result.summary.activeAssignments} />
+          <Stat label="Open deliveries" value={result.summary.openDeliveries} />
+        </StatGrid>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold">Filter operational work</h2>
+      <Panel title="Filter operational work" className="mt-6">
         <form
           action="/dashboard/command-center"
           method="get"
-          className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
         >
           <input
             type="hidden"
@@ -228,7 +224,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               name="q"
               defaultValue={filters.query}
               maxLength={100}
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className={inputClass}
             />
           </label>
           <label className="text-xs font-medium text-slate-600">
@@ -236,7 +232,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="risk"
               defaultValue={filters.risk}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="ANY">Any risk</option>
               <option value="HIGH">High</option>
@@ -250,7 +246,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="status"
               defaultValue={filters.status}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="ANY">Any status</option>
               {deliveryStatuses.map((status) => (
@@ -265,7 +261,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="assignmentState"
               defaultValue={filters.assignmentState}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="ANY">Any assignment</option>
               <option value="ASSIGNED">Assigned</option>
@@ -277,7 +273,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="truckId"
               defaultValue={params.truckId?.toString() ?? ""}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="">Any truck</option>
               {board.trucks.map((truck) => (
@@ -292,7 +288,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="driverId"
               defaultValue={params.driverId?.toString() ?? ""}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="">Any driver</option>
               {board.drivers.map((driver) => (
@@ -307,7 +303,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="loadId"
               defaultValue={params.loadId?.toString() ?? ""}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="">Any load</option>
               {loads.map((load) => (
@@ -322,7 +318,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             <select
               name="attention"
               defaultValue={params.attention?.toString() ?? ""}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className={inputClass}
             >
               <option value="">Any</option>
               <option value="1">Requires attention</option>
@@ -330,18 +326,18 @@ async function CommandCenterContent({ searchParams }: Props) {
             </select>
           </label>
           <div className="flex items-end gap-2">
-            <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+            <button className={buttonPrimaryClass}>
               Apply filters
             </button>
             <Link
               href={`/dashboard/command-center?${organizationQuery(organizationId)}`}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className={buttonSecondaryClass}
             >
               Clear
             </Link>
           </div>
         </form>
-      </section>
+      </Panel>
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,0.8fr)]">
         <section aria-label="Prioritized attention queue">
@@ -355,14 +351,14 @@ async function CommandCenterContent({ searchParams }: Props) {
             </div>
           </div>
           {result.summary.requiresAttention === 0 && (
-            <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              There are no current issues requiring attention.
-            </p>
+            <div className="mb-4">
+              <Notice tone="success">
+                There are no current issues requiring attention.
+              </Notice>
+            </div>
           )}
           {result.items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-600">
-              No operational items match these filters.
-            </div>
+            <EmptyState title="No operational items match these filters." />
           ) : (
             <div className="space-y-4">
               {result.items.map((item) => {
@@ -390,14 +386,14 @@ async function CommandCenterContent({ searchParams }: Props) {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium capitalize text-slate-700">
+                        <Badge tone={statusTone(item.status)}>
                           {formatLabel(item.status)}
-                        </span>
-                        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold capitalize text-amber-900">
+                        </Badge>
+                        <Badge tone={riskTone(item.risk.riskLevel)}>
                           {item.risk.riskLevel
                             ? `${formatLabel(item.risk.riskLevel)} risk`
                             : "Insufficient risk data"}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
 
@@ -434,11 +430,13 @@ async function CommandCenterContent({ searchParams }: Props) {
                     </div>
 
                     {item.risk.riskLevel === "LOW" && (
-                      <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                        🟢 Risk: Low — No recovery action required. Delivery is
-                        operating normally; no unresolved operational issue
-                        requires dispatcher intervention.
-                      </p>
+                      <div className="mt-4">
+                        <Notice tone="success">
+                          Risk: Low — No recovery action required. Delivery is
+                          operating normally; no unresolved operational issue
+                          requires dispatcher intervention.
+                        </Notice>
+                      </div>
                     )}
                     {recommendation &&
                       (item.risk.riskLevel === "MEDIUM" ||
@@ -446,8 +444,8 @@ async function CommandCenterContent({ searchParams }: Props) {
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
                         <p className="text-sm text-emerald-900">
                           {item.risk.riskLevel === "HIGH"
-                            ? "🔴 Recovery action recommended. "
-                            : "🟠 Recovery action may be required. "}
+                            ? "Recovery action recommended. "
+                            : "Recovery action may be required. "}
                           Recommended: Truck {recommendation.truckUnitNumber} ·{" "}
                           {recommendation.driverName}
                           {candidate &&
@@ -458,7 +456,7 @@ async function CommandCenterContent({ searchParams }: Props) {
                         </p>
                         <Link
                           href={`/dashboard/dispatch?${organizationQuery(organizationId)}#delivery-${item.deliveryId}`}
-                          className="rounded-lg bg-emerald-800 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                          className={buttonAccentClass}
                         >
                           Review recovery
                         </Link>
@@ -507,21 +505,15 @@ async function CommandCenterContent({ searchParams }: Props) {
         </section>
 
         <aside>
-          <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="font-semibold">Recent operational activity</h2>
-              <p className="mt-1 text-xs text-slate-500">
-                Latest assignment and delivery events
-              </p>
-            </div>
+          <Panel title="Recent operational activity" description="Latest assignment and delivery events">
             {result.recentEvents.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate-500">
+              <p className="text-sm text-slate-500">
                 No operational events recorded.
               </p>
             ) : (
               <ol className="divide-y divide-slate-100">
                 {result.recentEvents.map((event) => (
-                  <li key={event.id} className="px-5 py-4">
+                  <li key={event.id} className="py-4">
                     <p className="text-sm font-medium">
                       {formatEventLabel(event)}
                     </p>
@@ -540,7 +532,7 @@ async function CommandCenterContent({ searchParams }: Props) {
                 ))}
               </ol>
             )}
-          </section>
+          </Panel>
           {!context.canManage && (
             <p className="mt-4 rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-500">
               Your organization role allows operational viewing but not

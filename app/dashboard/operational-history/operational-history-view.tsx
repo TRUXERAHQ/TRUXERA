@@ -6,18 +6,22 @@ import type {
   OperationalHistoryFilters,
 } from "@/src/dashboard/operational-history";
 import type { RecoveryOutcome } from "@/src/dashboard/recovery-result";
+import {
+  Badge,
+  EmptyState,
+  PageHeader,
+  Panel,
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  inputClass,
+  labelClass,
+  recoveryTone,
+} from "../ui";
 
 type Props = {
   history: OperationalHistory;
   organizationId: string;
   filters: OperationalHistoryFilters;
-};
-
-const outcomeStyles: Record<RecoveryOutcome, string> = {
-  successful: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  monitoring: "bg-amber-50 text-amber-700 border-amber-200",
-  unresolved: "bg-rose-50 text-rose-700 border-rose-200",
-  insufficientData: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 const outcomeLabels: Record<RecoveryOutcome, string> = {
@@ -26,11 +30,6 @@ const outcomeLabels: Record<RecoveryOutcome, string> = {
   unresolved: "Unresolved",
   insufficientData: "Insufficient data",
 };
-
-const inputClass =
-  "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700";
-const labelClass =
-  "block text-xs font-medium uppercase tracking-wide text-slate-500";
 
 function Field({
   label,
@@ -58,15 +57,11 @@ function EntryCard({ entry }: { entry: OperationalHistoryEntry }) {
         <span className="text-sm font-medium text-slate-500">
           {entry.timeLabel}
         </span>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">
-          {entry.typeLabel}
-        </span>
+        <Badge tone="neutral">{entry.typeLabel}</Badge>
         {entry.outcome && (
-          <span
-            className={`rounded-full border px-2 py-0.5 text-xs font-medium ${outcomeStyles[entry.outcome]}`}
-          >
+          <Badge tone={recoveryTone(entry.outcome)}>
             {outcomeLabels[entry.outcome]}
-          </span>
+          </Badge>
         )}
       </div>
       <h3 className="mt-2 text-sm font-semibold text-slate-900">
@@ -133,29 +128,26 @@ export default function OperationalHistoryView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-slate-500">
-          Fleet operations · Operational history
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Complete Operational History
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Timezone: {history.timezone}
-          {history.timezoneAvailable
-            ? ""
-            : " (invalid — UTC fallback used)"}
-          {" · "}
-          {history.entries.length} of {history.totalEntries} recorded
-          {history.totalEntries === 1 ? " entry" : " entries"}
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Fleet operations · Operational history"
+        title="Complete Operational History"
+        description={
+          <>
+            Timezone: {history.timezone}
+            {history.timezoneAvailable ? "" : " (invalid — UTC fallback used)"}
+            <span className="mt-1 block text-xs text-slate-500">
+              {history.entries.length} of {history.totalEntries} recorded
+              {history.totalEntries === 1 ? " entry" : " entries"}
+            </span>
+          </>
+        }
+      />
 
-      <form
-        method="get"
-        action="/dashboard/operational-history"
-        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-      >
+      <Panel>
+        <form
+          method="get"
+          action="/dashboard/operational-history"
+        >
         <input type="hidden" name="organizationId" value={organizationId} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Search" htmlFor="history-q">
@@ -278,39 +270,40 @@ export default function OperationalHistoryView({
           </Field>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+          <button className={buttonPrimaryClass}>
             Apply filters
           </button>
           {hasActiveFilters && (
             <Link
               href={`/dashboard/operational-history?${orgQuery}`}
-              className="text-sm font-medium text-slate-600 underline hover:text-slate-900"
+              className={buttonSecondaryClass}
             >
               Clear filters
             </Link>
           )}
           <Link
             href={toggleOrder}
-            className="text-sm font-medium text-slate-600 underline hover:text-slate-900"
+            className="self-center text-sm font-medium text-slate-600 underline hover:text-slate-900"
           >
             {ascending ? "Newest first" : "Oldest first"}
           </Link>
         </div>
-      </form>
+        </form>
+      </Panel>
 
       {history.entries.length === 0 ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {history.totalEntries === 0
+        <EmptyState
+          title={
+            history.totalEntries === 0
               ? "No operational history recorded."
-              : "No operational history found for the selected filters."}
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            {history.totalEntries === 0
+              : "No operational history found for the selected filters."
+          }
+          description={
+            history.totalEntries === 0
               ? "Recorded loads, deliveries, assignments, recovery actions, and measured impact will appear here as they occur."
-              : "Adjust or clear the filters to see more entries."}
-          </p>
-        </section>
+              : "Adjust or clear the filters to see more entries."
+          }
+        />
       ) : (
         <ol className="space-y-3">
           {history.entries.map((entry) => (

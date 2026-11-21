@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { signOutUser } from "@/app/auth-actions";
 import type { Models } from "@/src/prisma/contract";
+import { buttonSecondaryClass } from "../ui";
 
 type Props = {
   organizations: Models.public_Organization[];
@@ -10,97 +11,242 @@ type Props = {
   activeSection?: "command-center" | "daily-summary" | "executive-report" | "operational-history" | "trucks" | "drivers" | "loads" | "dispatch";
 };
 
+type IconName =
+  | "grid"
+  | "calendar"
+  | "chart"
+  | "clock"
+  | "truck"
+  | "users"
+  | "box"
+  | "dispatch";
+
+function NavIcon({ name }: { name: IconName }) {
+  const paths: Record<IconName, ReactNode> = {
+    grid: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect x="3" y="4" width="18" height="17" rx="2" />
+        <path d="M8 2v4M16 2v4M3 10h18" />
+      </>
+    ),
+    chart: <path d="M3 3v18h18M8 16v-5M13 16V8M18 16v-8" />,
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 3" />
+      </>
+    ),
+    truck: (
+      <>
+        <path d="M1 8h13v9H1zM14 11h4l3 3v3h-7" />
+        <circle cx="6" cy="19" r="2" />
+        <circle cx="17" cy="19" r="2" />
+      </>
+    ),
+    users: (
+      <>
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5" />
+      </>
+    ),
+    box: (
+      <>
+        <path d="M21 8l-9-5-9 5v8l9 5 9-5z" />
+        <path d="M3 8l9 5 9-5M12 13v8" />
+      </>
+    ),
+    dispatch: (
+      <>
+        <path d="M5 17h14M7 17l1.5-6h7L17 17" />
+        <circle cx="8" cy="19" r="1.5" />
+        <circle cx="16" cy="19" r="1.5" />
+        <path d="M9 11V7h4v4" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4 shrink-0"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
 export default function TruckShell({
   organizations,
   organization,
   children,
   activeSection = "trucks",
 }: Props) {
-  const sections = [
-    { id: "command-center", label: "Command Center", href: `/dashboard/command-center?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "daily-summary", label: "Daily Summary", href: `/dashboard/daily-summary?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "executive-report", label: "Executive Report", href: `/dashboard/executive-report?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "operational-history", label: "History", href: `/dashboard/operational-history?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "trucks", label: "Fleet", href: `/dashboard/trucks?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "drivers", label: "Drivers", href: `/dashboard/drivers?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "loads", label: "Loads", href: `/dashboard/loads?organizationId=${encodeURIComponent(organization.id)}` },
-    { id: "dispatch", label: "Dispatch", href: `/dashboard/dispatch?organizationId=${encodeURIComponent(organization.id)}` },
-  ] as const;
+  const orgQuery = `organizationId=${encodeURIComponent(organization.id)}`;
+  const navGroups = [
+    {
+      label: "Overview",
+      items: [
+        { id: "command-center", label: "Command Center", icon: "grid" as IconName, href: `/dashboard/command-center?${orgQuery}` },
+        { id: "daily-summary", label: "Daily Summary", icon: "calendar" as IconName, href: `/dashboard/daily-summary?${orgQuery}` },
+        { id: "executive-report", label: "Executive Report", icon: "chart" as IconName, href: `/dashboard/executive-report?${orgQuery}` },
+        { id: "operational-history", label: "History", icon: "clock" as IconName, href: `/dashboard/operational-history?${orgQuery}` },
+      ],
+    },
+    {
+      label: "Operations",
+      items: [
+        { id: "loads", label: "Loads", icon: "box" as IconName, href: `/dashboard/loads?${orgQuery}` },
+        { id: "dispatch", label: "Dispatch", icon: "dispatch" as IconName, href: `/dashboard/dispatch?${orgQuery}` },
+      ],
+    },
+    {
+      label: "Fleet",
+      items: [
+        { id: "trucks", label: "Fleet", icon: "truck" as IconName, href: `/dashboard/trucks?${orgQuery}` },
+        { id: "drivers", label: "Drivers", icon: "users" as IconName, href: `/dashboard/drivers?${orgQuery}` },
+      ],
+    },
+  ];
   const sectionPath = `/dashboard/${activeSection}`;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-            <Link
-              href={`/?organizationId=${encodeURIComponent(organization.id)}`}
-              className="text-xl font-bold tracking-tight text-slate-950"
-            >
-              TRUXERA
-            </Link>
-            <nav aria-label="Primary navigation" className="flex flex-wrap gap-2">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-6">
               <Link
-                href={`/?organizationId=${encodeURIComponent(organization.id)}`}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                href={`/?${orgQuery}`}
+                className="flex shrink-0 items-center gap-2"
+                aria-label="TRUXERA dashboard"
               >
-                Dashboard
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-900 text-xs font-bold text-white">
+                  T
+                </span>
+                <span className="text-base font-bold tracking-tight text-slate-950">
+                  TRUXERA
+                </span>
               </Link>
-              {sections.map((section) => {
+              <nav
+                aria-label="Primary navigation"
+                className="hidden items-center gap-1 overflow-x-auto lg:flex"
+              >
+                <Link
+                  href={`/?${orgQuery}`}
+                  className="whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                >
+                  Dashboard
+                </Link>
+                {navGroups.map((group, groupIndex) => (
+                  <div key={group.label} className="flex items-center gap-1">
+                    {groupIndex > 0 && (
+                      <span
+                        className="mx-1 h-5 w-px bg-slate-200"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {group.items.map((section) => {
+                      const active = activeSection === section.id;
+                      return (
+                        <Link
+                          key={section.id}
+                          href={section.href}
+                          aria-current={active ? "page" : undefined}
+                          className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                            active
+                              ? "bg-slate-900 text-white"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          }`}
+                        >
+                          <NavIcon name={section.icon} />
+                          {section.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
+              </nav>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              {organizations.length > 1 && (
+                <form action={sectionPath} method="get" className="flex gap-1.5">
+                  <label className="sr-only" htmlFor="truck-organization">
+                    Organization
+                  </label>
+                  <select
+                    id="truck-organization"
+                    name="organizationId"
+                    defaultValue={organization.id}
+                    className="max-w-40 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-700 lg:max-w-52"
+                  >
+                    {organizations.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button className={buttonSecondaryClass}>Switch</button>
+                </form>
+              )}
+              <span className="hidden max-w-40 truncate text-sm text-slate-500 xl:block">
+                {organization.name}
+              </span>
+              <form action={signOutUser}>
+                <button className={buttonSecondaryClass}>Sign out</button>
+              </form>
+            </div>
+          </div>
+          <nav
+            aria-label="Primary navigation"
+            className="flex gap-1 overflow-x-auto pb-2 lg:hidden"
+          >
+            <Link
+              href={`/?${orgQuery}`}
+              className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600"
+            >
+              <NavIcon name="grid" />
+              Dashboard
+            </Link>
+            {navGroups.flatMap((group) =>
+              group.items.map((section) => {
                 const active = activeSection === section.id;
                 return (
                   <Link
                     key={section.id}
                     href={section.href}
                     aria-current={active ? "page" : undefined}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                    className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium ${
                       active
                         ? "bg-slate-900 text-white"
-                        : "text-slate-600 hover:bg-slate-100"
+                        : "text-slate-600"
                     }`}
                   >
+                    <NavIcon name={section.icon} />
                     {section.label}
                   </Link>
                 );
-              })}
-            </nav>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {organizations.length > 1 && (
-              <form action={sectionPath} method="get" className="flex gap-2">
-                <label className="sr-only" htmlFor="truck-organization">
-                  Organization
-                </label>
-                <select
-                  id="truck-organization"
-                  name="organizationId"
-                  defaultValue={organization.id}
-                  className="max-w-56 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700"
-                >
-                  {organizations.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-                <button className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  Switch
-                </button>
-              </form>
+              }),
             )}
-            <span className="max-w-56 truncate text-sm text-slate-500">
-              {organization.name}
-            </span>
-            <form action={signOutUser}>
-              <button className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                Sign out
-              </button>
-            </form>
-          </div>
+          </nav>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">{children}</div>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        {children}
+      </div>
     </main>
   );
 }
