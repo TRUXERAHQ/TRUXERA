@@ -4,6 +4,16 @@ import { notFound } from "next/navigation";
 import { getTrucksForOrganization } from "@/src/prisma/truck-data";
 import { canManageFleet, getTruckPageContext, type TruckPageSearchParams } from "./truck-page-data";
 import TruckShell from "./truck-shell";
+import {
+  Badge,
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  EmptyState,
+  labelClass,
+  Notice,
+  PageHeader,
+  resourceStatusTone,
+} from "../ui";
 
 type Props = {
   searchParams: Promise<TruckPageSearchParams>;
@@ -82,63 +92,55 @@ async function TrucksContent({ searchParams }: Props) {
       organizations={context.organizations}
       organization={context.organization}
     >
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-medium text-slate-500">Fleet management</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Trucks</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Manage registered vehicles and review their current assignments.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={archiveHref}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            {context.showArchived ? "Show active fleet" : "View archived"}
-          </Link>
-          {canManage && (
-            <Link
-              href={addTruckHref}
-              className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
-            >
-              Add Truck
+      <PageHeader
+        eyebrow="Fleet management"
+        title="Trucks"
+        description="Manage registered vehicles and review their current assignments."
+        actions={
+          <>
+            <Link href={archiveHref} className={buttonSecondaryClass}>
+              {context.showArchived ? "Show active fleet" : "View archived"}
             </Link>
-          )}
-        </div>
-      </div>
+            {canManage && (
+              <Link href={addTruckHref} className={buttonPrimaryClass}>
+                Add Truck
+              </Link>
+            )}
+          </>
+        }
+      />
 
       {context.showArchived && (
-        <p className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Archived trucks are shown with their preserved records. They are
-          excluded from the active fleet and dashboard metrics.
-        </p>
+        <div className="mt-5">
+          <Notice tone="warning">
+            Archived trucks are shown with their preserved records. They are
+            excluded from the active fleet and dashboard metrics.
+          </Notice>
+        </div>
       )}
 
       {fleet.trucks.length === 0 ? (
-        <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-          <div className="mx-auto max-w-lg">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-700">
-              +
-            </div>
-            <h2 className="mt-4 text-xl font-semibold">
-              {context.showArchived ? "No trucks to show" : "Your fleet is ready to start"}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {context.showArchived
+        <div className="mt-8">
+          <EmptyState
+            title={
+              context.showArchived
+                ? "No trucks to show"
+                : "Your fleet is ready to start"
+            }
+            description={
+              context.showArchived
                 ? "There are no truck records in this organization."
-                : "Add your organization's first truck to begin tracking fleet capacity and operational status."}
-            </p>
-            {canManage && !context.showArchived && (
-              <Link
-                href={addTruckHref}
-                className="mt-6 inline-flex rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
-              >
-                Add your first truck
-              </Link>
-            )}
-          </div>
-        </section>
+                : "Add your organization's first truck to begin tracking fleet capacity and operational status."
+            }
+            action={
+              canManage && !context.showArchived ? (
+                <Link href={addTruckHref} className={buttonPrimaryClass}>
+                  Add your first truck
+                </Link>
+              ) : undefined
+            }
+          />
+        </div>
       ) : (
         <section
           aria-label="Truck list"
@@ -160,24 +162,24 @@ async function TrucksContent({ searchParams }: Props) {
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold">{truck.unitNumber}</h2>
+                      <h2 className="break-words text-lg font-semibold">
+                        {truck.unitNumber}
+                      </h2>
                       {truck.deactivatedAt ? (
-                        <span className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                          Archived
-                        </span>
+                        <Badge tone="neutral">Archived</Badge>
                       ) : (
-                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                        <Badge tone={resourceStatusTone(truck.status)}>
                           {formatLabel(truck.status)}
-                        </span>
+                        </Badge>
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 break-words text-sm text-slate-500">
                       {truck.vin ? `VIN ${truck.vin}` : "VIN not recorded"}
                     </p>
                   </div>
                   <Link
                     href={detailHref}
-                    className="inline-flex shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    className={`${buttonSecondaryClass} shrink-0`}
                   >
                     View details
                   </Link>
@@ -185,36 +187,28 @@ async function TrucksContent({ searchParams }: Props) {
 
                 <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Capacity
-                    </dt>
+                    <dt className={labelClass}>Capacity</dt>
                     <dd className="mt-1 text-sm font-medium">
                       {formatKg(truck.capacityKg)}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Current location
-                    </dt>
-                    <dd className="mt-1 truncate text-sm font-medium">
+                    <dt className={labelClass}>Current location</dt>
+                    <dd className="mt-1 break-words text-sm font-medium">
                       {truck.currentLocation ?? "Not recorded"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Assigned driver
-                    </dt>
-                    <dd className="mt-1 text-sm font-medium">
+                    <dt className={labelClass}>Assigned driver</dt>
+                    <dd className="mt-1 break-words text-sm font-medium">
                       {assignments.length
                         ? assignments.map(({ driver }) => driver.name).join(", ")
                         : "No active driver"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Current load
-                    </dt>
-                    <dd className="mt-1 text-sm font-medium">
+                    <dt className={labelClass}>Current load</dt>
+                    <dd className="mt-1 break-words text-sm font-medium">
                       {assignments.length
                         ? assignments
                             .map(({ delivery }) => delivery.load.reference)

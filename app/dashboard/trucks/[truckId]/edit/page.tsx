@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTruckDetailsForOrganization } from "@/src/prisma/truck-data";
 import { isUuid } from "@/src/trucks/truck-policy";
 import { canManageFleet, getTruckPageContext, type TruckPageSearchParams } from "../../truck-page-data";
 import TruckForm from "../../truck-form";
 import TruckShell from "../../truck-shell";
+import { BackLink } from "../../../ui";
 
 type Props = {
   params: Promise<{ truckId: string }>;
@@ -45,13 +45,12 @@ async function EditTruckContent({ params, searchParams }: Props) {
       organization={context.organization}
     >
       <div className="mx-auto max-w-3xl">
-        <Link
+        <BackLink
           href={`/dashboard/trucks/${encodeURIComponent(truckId)}?organizationId=${encodeURIComponent(context.organization.id)}`}
-          className="text-sm font-medium text-slate-600 hover:text-slate-950"
         >
-          ← Back to truck
-        </Link>
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          Back to truck
+        </BackLink>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <p className="text-sm font-medium text-slate-500">Fleet management</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">
             Edit {details.truck.unitNumber}

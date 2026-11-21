@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import type { DeliveryStatus } from "@/src/fleet/delivery-lifecycle";
 import { updateDeliveryStatusAction } from "./actions";
+import { buttonPrimaryClass, inputClass, labelClass } from "../ui";
 
 type Props = {
   organizationId: string;
@@ -38,7 +39,7 @@ export default function DeliveryStatusForm({
         value={currentStatus}
       />
       <label
-        className="block text-xs font-medium text-slate-600"
+        className={labelClass}
         htmlFor={`next-status-${deliveryId}`}
       >
         Update delivery status
@@ -48,7 +49,7 @@ export default function DeliveryStatusForm({
         name="nextStatus"
         required
         defaultValue=""
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+        className={inputClass}
       >
         <option value="" disabled>
           Select next status
@@ -60,7 +61,7 @@ export default function DeliveryStatusForm({
         ))}
       </select>
       <label
-        className="block text-xs font-medium text-slate-600"
+        className={labelClass}
         htmlFor={`status-note-${deliveryId}`}
       >
         Operational note (optional)
@@ -70,7 +71,7 @@ export default function DeliveryStatusForm({
         name="note"
         maxLength={250}
         rows={2}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        className={inputClass}
       />
       {state.error && (
         <p role="alert" className="text-xs text-red-700">
@@ -80,7 +81,7 @@ export default function DeliveryStatusForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+        className={`${buttonPrimaryClass} disabled:opacity-60`}
       >
         {pending ? "Updating..." : "Update status"}
       </button>

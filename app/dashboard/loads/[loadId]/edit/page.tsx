@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isUuid } from "@/src/trucks/truck-policy";
 import { getLoadDetailsForOrganization } from "@/src/prisma/operations-data";
@@ -10,6 +9,7 @@ import {
 } from "../../../operations-page-data";
 import { LoadEditForm } from "../../load-form";
 import TruckShell from "../../../trucks/truck-shell";
+import { BackLink } from "../../../ui";
 
 type Props = {
   params: Promise<{ loadId: string }>;
@@ -41,13 +41,12 @@ async function EditLoadContent({ params, searchParams }: Props) {
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="loads">
       <div className="mx-auto max-w-3xl">
-        <Link
+        <BackLink
           href={`/dashboard/loads/${encodeURIComponent(loadId)}?${organizationQuery(context.organization.id)}`}
-          className="text-sm font-medium text-slate-600 hover:text-slate-950"
         >
-          ← Back to load
-        </Link>
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          Back to load
+        </BackLink>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <p className="text-sm font-medium text-slate-500">Fleet operations</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">
             Edit {details.load.reference}

@@ -10,6 +10,9 @@ export const buttonSecondaryClass =
 export const buttonAccentClass =
   "inline-flex items-center justify-center rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700";
 
+export const buttonDangerClass =
+  "inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50";
+
 export const inputClass =
   "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400";
 
@@ -74,6 +77,26 @@ export function statusTone(status: string): BadgeTone {
   if (status === "FAILED") return "danger";
   if (status === "CANCELLED") return "neutral";
   if (status === "IN_TRANSIT" || status === "PICKED_UP") return "info";
+  return "neutral";
+}
+
+export function resourceStatusTone(status: string): BadgeTone {
+  if (status === "AVAILABLE") return "success";
+  if (
+    status === "ON_ROUTE" ||
+    status === "ON_DUTY" ||
+    status === "ASSIGNED"
+  ) {
+    return "info";
+  }
+  if (
+    status === "MAINTENANCE" ||
+    status === "OFF_DUTY" ||
+    status === "ON_LEAVE"
+  ) {
+    return "warning";
+  }
+  if (status === "OUT_OF_SERVICE") return "danger";
   return "neutral";
 }
 

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { driverStatuses, type DriverInput } from "@/src/fleet/operations-validation";
 import { saveDriverAction } from "./actions";
+import { buttonPrimaryClass, inputClass, labelClass } from "../ui";
 
 type Props = {
   organizationId: string;
@@ -24,7 +25,7 @@ export default function DriverForm({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="driver-name" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="driver-name" className={labelClass}>
             Driver name <span aria-hidden="true">*</span>
           </label>
           <input
@@ -34,11 +35,11 @@ export default function DriverForm({
             maxLength={120}
             autoComplete="name"
             defaultValue={initial?.name ?? ""}
-            className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            className={inputClass}
           />
         </div>
         <div>
-          <label htmlFor="driver-phone" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="driver-phone" className={labelClass}>
             Phone
           </label>
           <input
@@ -48,11 +49,11 @@ export default function DriverForm({
             maxLength={40}
             autoComplete="tel"
             defaultValue={initial?.phone ?? ""}
-            className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            className={inputClass}
           />
         </div>
         <div>
-          <label htmlFor="driver-license" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="driver-license" className={labelClass}>
             License number
           </label>
           <input
@@ -61,18 +62,18 @@ export default function DriverForm({
             maxLength={64}
             autoComplete="off"
             defaultValue={initial?.licenseNumber ?? ""}
-            className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm uppercase outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            className={`${inputClass} uppercase`}
           />
         </div>
         <div>
-          <label htmlFor="driver-status" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="driver-status" className={labelClass}>
             Status
           </label>
           <select
             id="driver-status"
             name="status"
             defaultValue={initial?.status ?? "AVAILABLE"}
-            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            className={inputClass}
           >
             {driverStatuses.map((status) => (
               <option key={status} value={status}>
@@ -93,7 +94,7 @@ export default function DriverForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+          className={`${buttonPrimaryClass} disabled:cursor-wait disabled:opacity-60`}
         >
           {pending ? "Saving..." : driverId ? "Save changes" : "Add driver"}
         </button>

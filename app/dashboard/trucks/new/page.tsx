@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { canManageFleet, getTruckPageContext, type TruckPageSearchParams } from "../truck-page-data";
 import TruckForm from "../truck-form";
 import TruckShell from "../truck-shell";
+import { BackLink } from "../../ui";
 
 type Props = {
   searchParams: Promise<TruckPageSearchParams>;
@@ -33,13 +33,12 @@ async function NewTruckContent({ searchParams }: Props) {
       organization={context.organization}
     >
       <div className="mx-auto max-w-3xl">
-        <Link
+        <BackLink
           href={`/dashboard/trucks?organizationId=${encodeURIComponent(context.organization.id)}`}
-          className="text-sm font-medium text-slate-600 hover:text-slate-950"
         >
-          ← Back to trucks
-        </Link>
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          Back to trucks
+        </BackLink>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <p className="text-sm font-medium text-slate-500">Fleet management</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">Add truck</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">

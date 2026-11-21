@@ -8,6 +8,16 @@ import {
   type OperationsSearchParams,
 } from "../operations-page-data";
 import TruckShell from "../trucks/truck-shell";
+import {
+  Badge,
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  EmptyState,
+  labelClass,
+  Notice,
+  PageHeader,
+  resourceStatusTone,
+} from "../ui";
 
 type Props = { searchParams: Promise<OperationsSearchParams> };
 
@@ -32,45 +42,72 @@ async function DriversContent({ searchParams }: Props) {
 
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="drivers">
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-medium text-slate-500">Fleet operations</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Drivers</h1>
-          <p className="mt-2 text-sm text-slate-600">Maintain driver records and operational status.</p>
-        </div>
-        {context.canManage && (
-          <Link href={addHref} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">
-            Add driver
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Fleet operations"
+        title="Drivers"
+        description="Maintain driver records and operational status."
+        actions={
+          context.canManage ? (
+            <Link href={addHref} className={buttonPrimaryClass}>
+              Add driver
+            </Link>
+          ) : undefined
+        }
+      />
 
-      {context.created && <p role="status" className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">Driver added.</p>}
+      {context.created && (
+        <div className="mt-5">
+          <Notice tone="success">Driver added.</Notice>
+        </div>
+      )}
 
       {drivers.length === 0 ? (
-        <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-          <h2 className="text-xl font-semibold">No drivers yet</h2>
-          <p className="mt-2 text-sm text-slate-600">Add a driver before creating dispatch assignments.</p>
-          {context.canManage && <Link href={addHref} className="mt-6 inline-flex rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Add your first driver</Link>}
-        </section>
+        <div className="mt-8">
+          <EmptyState
+            title="No drivers yet"
+            description="Add a driver before creating dispatch assignments."
+            action={
+              context.canManage ? (
+                <Link href={addHref} className={buttonPrimaryClass}>
+                  Add your first driver
+                </Link>
+              ) : undefined
+            }
+          />
+        </div>
       ) : (
         <section aria-label="Driver list" className="mt-8 grid gap-4 xl:grid-cols-2">
           {drivers.map((driver) => (
             <article key={driver.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold">{driver.name}</h2>
-                  <p className="mt-1 text-sm text-slate-500">{driver.licenseNumber ?? "License not recorded"}</p>
+                <div className="min-w-0">
+                  <h2 className="break-words text-lg font-semibold">{driver.name}</h2>
+                  <p className="mt-1 break-words text-sm text-slate-500">
+                    {driver.licenseNumber ?? "License not recorded"}
+                  </p>
                 </div>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+                <Badge tone={resourceStatusTone(driver.status)} className="shrink-0">
                   {driver.status.toLowerCase().replaceAll("_", " ")}
-                </span>
+                </Badge>
               </div>
               <dl className="mt-5 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
-                <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</dt><dd className="mt-1 text-sm">{driver.phone ?? "Not recorded"}</dd></div>
-                <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt><dd className="mt-1 text-sm">{driver.status.toLowerCase().replaceAll("_", " ")}</dd></div>
+                <div>
+                  <dt className={labelClass}>Phone</dt>
+                  <dd className="mt-1 break-words text-sm">
+                    {driver.phone ?? "Not recorded"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className={labelClass}>Status</dt>
+                  <dd className="mt-1 text-sm">
+                    {driver.status.toLowerCase().replaceAll("_", " ")}
+                  </dd>
+                </div>
               </dl>
-              <Link href={`/dashboard/drivers/${encodeURIComponent(driver.id)}?${organizationQuery(context.organization.id)}`} className="mt-5 inline-flex rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              <Link
+                href={`/dashboard/drivers/${encodeURIComponent(driver.id)}?${organizationQuery(context.organization.id)}`}
+                className={`${buttonSecondaryClass} mt-5`}
+              >
                 View driver
               </Link>
             </article>

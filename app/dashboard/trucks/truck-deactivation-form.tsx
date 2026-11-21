@@ -6,6 +6,7 @@ import {
   reactivateTruckAction,
 } from "./actions";
 import type { TruckActionState } from "@/src/trucks/action-state";
+import { buttonDangerClass, buttonSecondaryClass } from "../ui";
 
 type Props = {
   organizationId: string;
@@ -28,7 +29,7 @@ export default function TruckDeactivationForm({
       <form action={reactivateTruckAction}>
         <input type="hidden" name="organizationId" value={organizationId} />
         <input type="hidden" name="truckId" value={truckId} />
-        <button className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+        <button className={buttonSecondaryClass}>
           Return to active fleet
         </button>
       </form>
@@ -53,7 +54,7 @@ export default function TruckDeactivationForm({
         <input type="hidden" name="truckId" value={truckId} />
         <button
           disabled={pending}
-          className="rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
+          className={`${buttonDangerClass} disabled:opacity-60`}
         >
           {pending ? "Removing..." : "Remove from active fleet"}
         </button>

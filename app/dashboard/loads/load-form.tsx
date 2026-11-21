@@ -2,6 +2,12 @@
 
 import { useActionState, useState } from "react";
 import { createLoadAction, updateLoadAction } from "./actions";
+import {
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  inputClass,
+  labelClass,
+} from "../ui";
 
 type Props = { organizationId: string };
 
@@ -16,24 +22,24 @@ export default function LoadForm({ organizationId }: Props) {
       <fieldset className="grid gap-5 sm:grid-cols-2">
         <legend className="mb-1 text-sm font-semibold text-slate-800">Load details</legend>
         <div>
-          <label htmlFor="load-reference" className="block text-sm font-medium text-slate-700">Load reference <span aria-hidden="true">*</span></label>
-          <input id="load-reference" name="reference" required maxLength={64} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          <label htmlFor="load-reference" className={labelClass}>Load reference <span aria-hidden="true">*</span></label>
+          <input id="load-reference" name="reference" required maxLength={64} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="customer-name" className="block text-sm font-medium text-slate-700">Customer <span aria-hidden="true">*</span></label>
-          <input id="customer-name" name="customerName" required maxLength={120} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          <label htmlFor="customer-name" className={labelClass}>Customer <span aria-hidden="true">*</span></label>
+          <input id="customer-name" name="customerName" required maxLength={120} className={inputClass} />
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor="pickup-address" className="block text-sm font-medium text-slate-700">Pickup address <span aria-hidden="true">*</span></label>
-          <input id="pickup-address" name="pickupAddress" required maxLength={500} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          <label htmlFor="pickup-address" className={labelClass}>Pickup address <span aria-hidden="true">*</span></label>
+          <input id="pickup-address" name="pickupAddress" required maxLength={500} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="cargo-description" className="block text-sm font-medium text-slate-700">Cargo description</label>
-          <input id="cargo-description" name="cargoDescription" maxLength={500} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          <label htmlFor="cargo-description" className={labelClass}>Cargo description</label>
+          <input id="cargo-description" name="cargoDescription" maxLength={500} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="load-weight" className="block text-sm font-medium text-slate-700">Load weight (kg)</label>
-          <input id="load-weight" name="weightKg" type="number" min="0.001" max="1000000000" step="0.001" inputMode="decimal" className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+          <label htmlFor="load-weight" className={labelClass}>Load weight (kg)</label>
+          <input id="load-weight" name="weightKg" type="number" min="0.001" max="1000000000" step="0.001" inputMode="decimal" className={inputClass} />
         </div>
       </fieldset>
 
@@ -47,7 +53,7 @@ export default function LoadForm({ organizationId }: Props) {
             type="button"
             disabled={stopCount >= 20}
             onClick={() => setStopCount((count) => Math.min(count + 1, 20))}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className={`${buttonSecondaryClass} disabled:opacity-50`}
           >
             Add stop
           </button>
@@ -58,16 +64,16 @@ export default function LoadForm({ organizationId }: Props) {
             <fieldset key={index} className="grid gap-4 rounded-xl border border-slate-200 p-4 sm:grid-cols-2">
               <legend className="px-1 text-sm font-medium text-slate-700">Stop {index + 1}</legend>
               <div>
-                <label htmlFor={`stop-${index}-recipient`} className="block text-sm font-medium text-slate-700">Recipient</label>
-                <input id={`stop-${index}-recipient`} name="stopRecipientName" maxLength={120} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+                <label htmlFor={`stop-${index}-recipient`} className={labelClass}>Recipient</label>
+                <input id={`stop-${index}-recipient`} name="stopRecipientName" maxLength={120} className={inputClass} />
               </div>
               <div>
-                <label htmlFor={`stop-${index}-reference`} className="block text-sm font-medium text-slate-700">Delivery reference</label>
-                <input id={`stop-${index}-reference`} name="stopReference" maxLength={64} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+                <label htmlFor={`stop-${index}-reference`} className={labelClass}>Delivery reference</label>
+                <input id={`stop-${index}-reference`} name="stopReference" maxLength={64} className={inputClass} />
               </div>
               <div className="sm:col-span-2">
-                <label htmlFor={`stop-${index}-destination`} className="block text-sm font-medium text-slate-700">Destination address <span aria-hidden="true">*</span></label>
-                <input id={`stop-${index}-destination`} name="stopDestinationAddress" required maxLength={500} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" />
+                <label htmlFor={`stop-${index}-destination`} className={labelClass}>Destination address <span aria-hidden="true">*</span></label>
+                <input id={`stop-${index}-destination`} name="stopDestinationAddress" required maxLength={500} className={inputClass} />
               </div>
             </fieldset>
           ))}
@@ -77,7 +83,7 @@ export default function LoadForm({ organizationId }: Props) {
       {state.error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{state.error}</p>}
 
       <div className="border-t border-slate-200 pt-5">
-        <button type="submit" disabled={pending} className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60">
+        <button type="submit" disabled={pending} className={`${buttonPrimaryClass} disabled:cursor-wait disabled:opacity-60`}>
           {pending ? "Creating load..." : "Create load and deliveries"}
         </button>
       </div>
@@ -107,7 +113,7 @@ export function LoadEditForm({
       <div>
         <label
           htmlFor="edit-customer-name"
-          className="block text-sm font-medium text-slate-700"
+          className={labelClass}
         >
           Customer
         </label>
@@ -117,13 +123,13 @@ export function LoadEditForm({
           required
           maxLength={120}
           defaultValue={customerName}
-          className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
+          className={inputClass}
         />
       </div>
       <div>
         <label
           htmlFor="edit-cargo-description"
-          className="block text-sm font-medium text-slate-700"
+          className={labelClass}
         >
           Cargo description
         </label>
@@ -133,7 +139,7 @@ export function LoadEditForm({
           maxLength={500}
           rows={3}
           defaultValue={cargoDescription ?? ""}
-          className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"
+          className={inputClass}
         />
       </div>
       <p className="text-xs leading-5 text-slate-500">
@@ -149,7 +155,7 @@ export function LoadEditForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+        className={`${buttonPrimaryClass} disabled:cursor-wait disabled:opacity-60`}
       >
         {pending ? "Saving..." : "Save load details"}
       </button>

@@ -9,6 +9,14 @@ import {
   type OperationsSearchParams,
 } from "../../operations-page-data";
 import TruckShell from "../../trucks/truck-shell";
+import {
+  BackLink,
+  Badge,
+  buttonSecondaryClass,
+  labelClass,
+  Notice,
+  resourceStatusTone,
+} from "../../ui";
 
 type Props = {
   params: Promise<{ driverId: string }>;
@@ -46,54 +54,109 @@ async function DriverDetailsContent({ params, searchParams }: Props) {
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="drivers">
       <div className="mx-auto max-w-4xl">
-        <Link href={`/dashboard/drivers?${organizationQuery(context.organization.id)}`} className="text-sm font-medium text-slate-600 hover:text-slate-950">
-          ← Back to drivers
-        </Link>
+        <BackLink href={`/dashboard/drivers?${organizationQuery(context.organization.id)}`}>
+          Back to drivers
+        </BackLink>
 
         {(context.created || context.updated) && (
-          <p role="status" className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            {context.created ? "Driver added." : "Driver details saved."}
-          </p>
+          <div className="mt-5">
+            <Notice tone="success">
+              {context.created ? "Driver added." : "Driver details saved."}
+            </Notice>
+          </div>
         )}
-        {context.hasError && <p role="alert" className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">The driver operation could not be completed.</p>}
+        {context.hasError && (
+          <div className="mt-5">
+            <Notice tone="danger">
+              The driver operation could not be completed.
+            </Notice>
+          </div>
+        )}
 
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <div>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+            <div className="min-w-0">
               <p className="text-sm font-medium text-slate-500">Driver details</p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight">{details.driver.name}</h1>
-              <span className="mt-3 inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+              <h1 className="mt-1 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                {details.driver.name}
+              </h1>
+              <Badge
+                tone={resourceStatusTone(details.driver.status)}
+                className="mt-3"
+              >
                 {details.driver.status.toLowerCase().replaceAll("_", " ")}
-              </span>
+              </Badge>
             </div>
             {context.canManage && (
-              <Link href={`/dashboard/drivers/${encodeURIComponent(driverId)}/edit?${organizationQuery(context.organization.id)}`} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              <Link
+                href={`/dashboard/drivers/${encodeURIComponent(driverId)}/edit?${organizationQuery(context.organization.id)}`}
+                className={buttonSecondaryClass}
+              >
                 Edit driver
               </Link>
             )}
           </div>
 
-          <dl className="mt-8 grid gap-5 border-t border-slate-100 pt-6 sm:grid-cols-2">
-            <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Phone</dt><dd className="mt-1 text-sm font-medium">{details.driver.phone ?? "Not recorded"}</dd></div>
-            <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">License number</dt><dd className="mt-1 text-sm font-medium">{details.driver.licenseNumber ?? "Not recorded"}</dd></div>
-            <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Last updated</dt><dd className="mt-1 text-sm font-medium">{formatDate(details.driver.updatedAt, context.organization.timezone)}</dd></div>
+          <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
+            <div>
+              <dt className={labelClass}>Phone</dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-800">
+                {details.driver.phone ?? "Not recorded"}
+              </dd>
+            </div>
+            <div>
+              <dt className={labelClass}>License number</dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-800">
+                {details.driver.licenseNumber ?? "Not recorded"}
+              </dd>
+            </div>
+            <div>
+              <dt className={labelClass}>Last updated</dt>
+              <dd className="mt-1 text-sm font-medium text-slate-800">
+                {formatDate(details.driver.updatedAt, context.organization.timezone)}
+              </dd>
+            </div>
           </dl>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-5">
-            <h2 className="font-semibold">Current assignments</h2>
-            <p className="mt-1 text-sm text-slate-500">Only active dispatch records for this organization are shown.</p>
+        <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-5 py-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+              Current assignments
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Only active dispatch records for this organization are shown.
+            </p>
           </div>
           {details.assignments.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-slate-600">This driver has no current assignments.</p>
+            <p className="px-5 py-8 text-sm text-slate-600">
+              This driver has no current assignments.
+            </p>
           ) : (
             <ul className="divide-y divide-slate-100">
               {details.assignments.map((assignment) => (
-                <li key={assignment.id} className="grid gap-4 px-6 py-5 sm:grid-cols-3">
-                  <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Load / stop</p><p className="mt-1 text-sm font-semibold">{assignment.delivery.load.reference} · Stop {assignment.delivery.stopNumber}</p><p className="mt-1 text-xs text-slate-500">{assignment.delivery.destinationAddress}</p></div>
-                  <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Truck</p><p className="mt-1 text-sm font-semibold">{assignment.truck.unitNumber}</p></div>
-                  <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Assigned</p><p className="mt-1 text-sm font-semibold">{formatDate(assignment.assignedAt, context.organization.timezone)}</p></div>
+                <li key={assignment.id} className="grid gap-4 px-5 py-5 sm:grid-cols-3">
+                  <div className="min-w-0">
+                    <p className={labelClass}>Load / stop</p>
+                    <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                      {assignment.delivery.load.reference} · Stop {assignment.delivery.stopNumber}
+                    </p>
+                    <p className="mt-1 break-words text-xs text-slate-500">
+                      {assignment.delivery.destinationAddress}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className={labelClass}>Truck</p>
+                    <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                      {assignment.truck.unitNumber}
+                    </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className={labelClass}>Assigned</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                      {formatDate(assignment.assignedAt, context.organization.timezone)}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>

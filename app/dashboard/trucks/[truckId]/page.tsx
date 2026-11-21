@@ -6,6 +6,14 @@ import { isUuid } from "@/src/trucks/truck-policy";
 import TruckDeactivationForm from "../truck-deactivation-form";
 import { canManageFleet, getTruckPageContext, type TruckPageSearchParams, firstTruckSearchValue } from "../truck-page-data";
 import TruckShell from "../truck-shell";
+import {
+  BackLink,
+  Badge,
+  buttonSecondaryClass,
+  labelClass,
+  Notice,
+  resourceStatusTone,
+} from "../../ui";
 
 type Props = {
   params: Promise<{ truckId: string }>;
@@ -63,58 +71,53 @@ async function TruckDetailsContent({ params, searchParams }: Props) {
       organization={context.organization}
     >
       <div className="mx-auto max-w-4xl">
-        <Link
+        <BackLink
           href={`/dashboard/trucks?organizationId=${encodeURIComponent(context.organization.id)}${context.showArchived ? "&showArchived=true" : ""}`}
-          className="text-sm font-medium text-slate-600 hover:text-slate-950"
         >
-          ← Back to trucks
-        </Link>
+          Back to trucks
+        </BackLink>
 
         {(context.notice || alert) && (
-          <p
-            role="status"
-            className={`mt-5 rounded-lg border px-4 py-3 text-sm ${
-              alert
-                ? "border-red-200 bg-red-50 text-red-800"
-                : "border-emerald-200 bg-emerald-50 text-emerald-800"
-            }`}
-          >
-            {alert ? context.notice ?? "The truck could not be updated." : context.notice}
-          </p>
+          <div className="mt-5">
+            <Notice tone={alert ? "danger" : "success"}>
+              {alert ? context.notice ?? "The truck could not be updated." : context.notice}
+            </Notice>
+          </div>
         )}
 
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <div>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+            <div className="min-w-0">
               <p className="text-sm font-medium text-slate-500">
                 Truck details
               </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              <h1 className="mt-1 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
                 {truck.unitNumber}
               </h1>
-              <span
-                className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
-                  truck.deactivatedAt
-                    ? "border-slate-300 bg-slate-100 text-slate-600"
-                    : "border-emerald-200 bg-emerald-50 text-emerald-700"
-                }`}
-              >
-                {truck.deactivatedAt
-                  ? "Archived"
-                  : truck.status
-                      .toLowerCase()
-                      .split("_")
-                      .map((word) => word[0].toUpperCase() + word.slice(1))
-                      .join(" ")}
-              </span>
+              {truck.deactivatedAt ? (
+                <Badge tone="neutral" className="mt-3">
+                  Archived
+                </Badge>
+              ) : (
+                <Badge
+                  tone={resourceStatusTone(truck.status)}
+                  className="mt-3"
+                >
+                  {truck.status
+                    .toLowerCase()
+                    .split("_")
+                    .map((word) => word[0].toUpperCase() + word.slice(1))
+                    .join(" ")}
+                </Badge>
+              )}
             </div>
 
             {canManage && (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {!truck.deactivatedAt && (
                   <Link
                     href={`/dashboard/trucks/${encodeURIComponent(truck.id)}/edit?organizationId=${encodeURIComponent(context.organization.id)}`}
-                    className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    className={buttonSecondaryClass}
                   >
                     Edit truck
                   </Link>
@@ -128,20 +131,18 @@ async function TruckDetailsContent({ params, searchParams }: Props) {
             )}
           </div>
 
-          <dl className="mt-8 grid gap-5 border-t border-slate-100 pt-6 sm:grid-cols-2">
+          <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              <dt className={labelClass}>
                 Vehicle identification number
               </dt>
-              <dd className="mt-1 text-sm font-medium">
+              <dd className="mt-1 break-words text-sm font-medium text-slate-800">
                 {truck.vin ?? "Not recorded"}
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Rated capacity
-              </dt>
-              <dd className="mt-1 text-sm font-medium">
+              <dt className={labelClass}>Rated capacity</dt>
+              <dd className="mt-1 text-sm font-medium text-slate-800">
                 {truck.capacityKg === null
                   ? "Not set"
                   : `${new Intl.NumberFormat("en-US", {
@@ -150,27 +151,23 @@ async function TruckDetailsContent({ params, searchParams }: Props) {
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Current location
-              </dt>
-              <dd className="mt-1 text-sm font-medium">
+              <dt className={labelClass}>Current location</dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-800">
                 {truck.currentLocation ?? "Not recorded"}
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Last updated
-              </dt>
-              <dd className="mt-1 text-sm font-medium">
+              <dt className={labelClass}>Last updated</dt>
+              <dd className="mt-1 text-sm font-medium text-slate-800">
                 {formatDate(truck.updatedAt, context.organization.timezone)}
               </dd>
             </div>
             {truck.deactivatedAt && (
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                <dt className={labelClass}>
                   Removed from active fleet
                 </dt>
-                <dd className="mt-1 text-sm font-medium">
+                <dd className="mt-1 text-sm font-medium text-slate-800">
                   {formatDate(
                     truck.deactivatedAt,
                     context.organization.timezone,
@@ -181,15 +178,17 @@ async function TruckDetailsContent({ params, searchParams }: Props) {
           </dl>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-5">
-            <h2 className="font-semibold">Current assignment</h2>
+        <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-5 py-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+              Current assignment
+            </h2>
             <p className="mt-1 text-sm text-slate-500">
               Assignment details come from the existing dispatch records.
             </p>
           </div>
           {assignments.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-slate-600">
+            <p className="px-5 py-8 text-sm text-slate-600">
               This truck has no current assignment.
             </p>
           ) : (
@@ -197,43 +196,40 @@ async function TruckDetailsContent({ params, searchParams }: Props) {
               {assignments.map((assignment) => (
                 <li
                   key={assignment.id}
-                  className="grid gap-4 px-6 py-5 sm:grid-cols-3"
+                  className="grid gap-4 px-5 py-5 sm:grid-cols-3"
                 >
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Load
-                    </p>
-                    <p className="mt-1 text-sm font-semibold">
+                  <div className="min-w-0">
+                    <p className={labelClass}>Load</p>
+                    <p className="mt-1 break-words text-sm font-semibold text-slate-900">
                       {assignment.delivery.load.reference}
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 break-words text-xs text-slate-500">
                       {assignment.delivery.load.customerName}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Driver
-                    </p>
-                    <p className="mt-1 text-sm font-semibold">
+                  <div className="min-w-0">
+                    <p className={labelClass}>Driver</p>
+                    <p className="mt-1 break-words text-sm font-semibold text-slate-900">
                       {assignment.driver.name}
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <Badge
+                      tone={resourceStatusTone(assignment.driver.status)}
+                      className="mt-1"
+                    >
                       {assignment.driver.status
                         .toLowerCase()
                         .replaceAll("_", " ")}
-                    </p>
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Assigned
-                    </p>
-                    <p className="mt-1 text-sm font-semibold">
+                  <div className="min-w-0">
+                    <p className={labelClass}>Assigned</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-900">
                       {formatDate(
                         assignment.assignedAt,
                         context.organization.timezone,
                       )}
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 break-words text-xs text-slate-500">
                       Delivery {assignment.delivery.reference ?? assignment.delivery.id}
                     </p>
                   </div>
@@ -241,7 +237,7 @@ async function TruckDetailsContent({ params, searchParams }: Props) {
               ))}
             </ul>
           )}
-          <div className="border-t border-slate-100 px-6 py-4">
+          <div className="border-t border-slate-100 px-5 py-4">
             <p className="text-sm text-slate-600">
               Capacity utilization:{" "}
               <span className="font-semibold">

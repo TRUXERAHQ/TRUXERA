@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import DriverForm from "../driver-form";
 import {
@@ -8,6 +7,7 @@ import {
   type OperationsSearchParams,
 } from "../../operations-page-data";
 import TruckShell from "../../trucks/truck-shell";
+import { BackLink } from "../../ui";
 
 type Props = { searchParams: Promise<OperationsSearchParams> };
 
@@ -26,10 +26,10 @@ async function NewDriverContent({ searchParams }: Props) {
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="drivers">
       <div className="mx-auto max-w-3xl">
-        <Link href={`/dashboard/drivers?${organizationQuery(context.organization.id)}`} className="text-sm font-medium text-slate-600 hover:text-slate-950">
-          ← Back to drivers
-        </Link>
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <BackLink href={`/dashboard/drivers?${organizationQuery(context.organization.id)}`}>
+          Back to drivers
+        </BackLink>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <p className="text-sm font-medium text-slate-500">Fleet operations</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">Add driver</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">Enter the driver details supported by this organization’s records.</p>
