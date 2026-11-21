@@ -104,6 +104,7 @@ export function buildDeliveryChain(input: {
 
 export type ImpactEventInput = {
   type: string;
+  fromStatus?: string | null;
   toStatus: string | null;
   note: string | null;
   occurredAt: Date;

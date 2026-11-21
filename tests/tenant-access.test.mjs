@@ -4204,3 +4204,312 @@ test("executive report scopes strictly to provided organization deliveries", () 
     ["DEL-A1"],
   );
 });
+
+import { buildOperationalHistory } from "../src/dashboard/operational-history.ts";
+
+const ohLoads = [
+  {
+    id: "load-1",
+    reference: "LOAD-1001",
+    createdAt: new Date("2026-11-17T14:00:00.000Z"),
+  },
+];
+
+function ohHistory({ deliveries = [], loads = ohLoads, timezone = "UTC", filters = {} } = {}) {
+  return buildOperationalHistory({ deliveries, loads, timezone, filters });
+}
+
+test("operational history emits factual entries for a recovered delivery", () => {
+  const recovered = dsDelivery({
+    id: "d1",
+    reference: "DEL-101",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T15:00:00.000Z"),
+    assignments: recoveredPair("h"),
+    events: [
+      {
+        type: "STATUS_CHANGED",
+        toStatus: "ASSIGNED",
+        note: "Dispatcher approved reassignment",
+        occurredAt: new Date("2026-11-17T17:00:00.000Z"),
+      },
+    ],
+  });
+  const history = ohHistory({ deliveries: [recovered] });
+  const types = history.entries.map((entry) => entry.type);
+
+  assert.ok(types.includes("LOAD_CREATED"));
+  assert.ok(types.includes("DELIVERY_CREATED"));
+  assert.ok(types.includes("ASSIGNMENT_CREATED"));
+  assert.ok(types.includes("RECOVERY_ACTION"));
+  assert.ok(types.includes("DELIVERY_EVENT"));
+  assert.ok(types.includes("IMPACT_MEASURED"));
+
+  const loadEntries = history.entries.filter(
+    (entry) => entry.type === "LOAD_CREATED",
+  );
+  assert.equal(loadEntries.length, 1);
+
+  const recovery = history.entries.find(
+    (entry) => entry.type === "RECOVERY_ACTION",
+  );
+  assert.ok(recovery);
+  assert.match(recovery.description, /Historical recommendation: Not recorded/);
+  assert.equal(recovery.outcome, "successful");
+  assert.match(recovery.description, /TRK-101 · James Carter → TRK-202 · Michael Brooks/);
+
+  const impact = history.entries.find(
+    (entry) => entry.type === "IMPACT_MEASURED",
+  );
+  assert.ok(impact);
+  assert.ok(impact.impactMetrics.length > 0);
+  assert.ok(
+    impact.impactMetrics.every(
+      (metric) =>
+        metric.state === "actual" ||
+        metric.state === "estimated" ||
+        metric.state === "insufficient",
+    ),
+  );
+});
+
+test("operational history orders newest first with deterministic ties", () => {
+  const a = dsDelivery({
+    id: "d1",
+    reference: "DEL-A",
+    createdAt: new Date("2026-11-17T10:00:00.000Z"),
+    assignments: recoveredPair("a"),
+  });
+  const b = dsDelivery({
+    id: "d2",
+    reference: "DEL-B",
+    stopNumber: 2,
+    createdAt: new Date("2026-11-18T10:00:00.000Z"),
+    assignments: recoveredPair("b"),
+  });
+  const desc = ohHistory({ deliveries: [a, b] });
+  const asc = ohHistory({ deliveries: [a, b], filters: { order: "asc" } });
+
+  const descTimes = desc.entries.map((entry) => entry.timestamp.getTime());
+  assert.deepEqual(
+    descTimes,
+    [...descTimes].sort((x, y) => y - x),
+  );
+  const ascTimes = asc.entries.map((entry) => entry.timestamp.getTime());
+  assert.deepEqual(
+    ascTimes,
+    [...ascTimes].sort((x, y) => x - y),
+  );
+  assert.notEqual(desc.entries[0].id, asc.entries[0].id);
+
+  const idsDesc = desc.entries.map((entry) => entry.id);
+  const idsAsc = asc.entries.map((entry) => entry.id);
+  assert.equal(new Set(idsDesc).size, idsDesc.length);
+  assert.equal(new Set(idsAsc).size, idsAsc.length);
+});
+
+test("operational history filters by date range in the operational timezone", () => {
+  const early = dsDelivery({
+    id: "d1",
+    reference: "DEL-EARLY",
+    createdAt: new Date("2026-11-16T15:00:00.000Z"),
+    assignments: recoveredPair("e"),
+  });
+  const late = dsDelivery({
+    id: "d2",
+    reference: "DEL-LATE",
+    stopNumber: 2,
+    createdAt: new Date("2026-11-20T15:00:00.000Z"),
+    assignments: recoveredPair("l"),
+  });
+  const history = ohHistory({
+    deliveries: [early, late],
+    timezone: "America/New_York",
+    filters: { from: "2026-11-17", to: "2026-11-19" },
+  });
+
+  assert.ok(history.entries.length > 0);
+  assert.ok(
+    history.entries.every(
+      (entry) =>
+        entry.deliveryLabel !== "DEL-EARLY" ||
+        entry.timestamp.getTime() >=
+          new Date("2026-11-17T05:00:00.000Z").getTime(),
+    ),
+  );
+  assert.ok(
+    history.entries.every(
+      (entry) =>
+        entry.timestamp.getTime() < new Date("2026-11-20T05:00:00.000Z").getTime(),
+    ),
+  );
+});
+
+test("operational history filters by load, delivery, truck, driver, type, outcome, and search", () => {
+  const recovered = dsDelivery({
+    id: "d1",
+    reference: "DEL-101",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T15:00:00.000Z"),
+    assignments: recoveredPair("f"),
+  });
+  const plain = dsDelivery({
+    id: "d2",
+    reference: "DEL-102",
+    stopNumber: 2,
+    status: "ASSIGNED",
+    riskLevel: "MEDIUM",
+    createdAt: new Date("2026-11-17T16:00:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "p1",
+        truckId: "t9",
+        driverId: "dr9",
+        truck: { unitNumber: "TRK-999", vin: null, capacityKg: null, status: "AVAILABLE" },
+        driver: { name: "Sam Driver", status: "ON_DUTY" },
+      }),
+    ],
+  });
+
+  const byLoad = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { loadId: "load-1" },
+  });
+  assert.ok(byLoad.entries.length > 0);
+
+  const byDelivery = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { deliveryId: "d2" },
+  });
+  assert.ok(byDelivery.entries.every((entry) => entry.deliveryId === "d2" || entry.type === "LOAD_CREATED"));
+
+  const byTruck = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { truckId: "t9" },
+  });
+  assert.ok(byTruck.entries.every((entry) => entry.truckId === "t9"));
+  assert.ok(byTruck.entries.some((entry) => entry.truckLabel === "TRK-999"));
+
+  const byDriver = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { driverId: "dr9" },
+  });
+  assert.ok(byDriver.entries.every((entry) => entry.driverId === "dr9"));
+
+  const byType = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { type: "RECOVERY_ACTION" },
+  });
+  assert.ok(byType.entries.every((entry) => entry.type === "RECOVERY_ACTION"));
+  assert.ok(byType.entries.length >= 1);
+
+  const byOutcome = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { outcome: "successful" },
+  });
+  assert.ok(byOutcome.entries.every((entry) => entry.outcome === "successful"));
+
+  const bySearch = ohHistory({
+    deliveries: [recovered, plain],
+    filters: { q: "sam driver" },
+  });
+  assert.ok(bySearch.entries.length > 0);
+  assert.ok(bySearch.entries.every((entry) => entry.driverLabel === "Sam Driver"));
+});
+
+test("operational history preserves historical assignment resources and never implies recovery success", () => {
+  const reassignedOnly = dsDelivery({
+    id: "d1",
+    reference: "DEL-R",
+    status: "FAILED",
+    riskLevel: "HIGH",
+    createdAt: new Date("2026-11-17T15:00:00.000Z"),
+    assignments: recoveredPair("r"),
+  });
+  const history = ohHistory({ deliveries: [reassignedOnly] });
+  const recovery = history.entries.find(
+    (entry) => entry.type === "RECOVERY_ACTION",
+  );
+  assert.ok(recovery);
+  assert.equal(recovery.outcome, "unresolved");
+
+  const created = history.entries.find(
+    (entry) => entry.type === "ASSIGNMENT_CREATED" && entry.truckLabel === "TRK-202",
+  );
+  assert.ok(created);
+
+  const highRiskDelivery = dsDelivery({
+    id: "d2",
+    reference: "DEL-H",
+    stopNumber: 2,
+    status: "IN_TRANSIT",
+    riskLevel: "HIGH",
+    createdAt: new Date("2026-11-17T15:30:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "h1",
+        endedAt: new Date("2026-11-17T16:00:00.000Z"),
+        endReason: "Assignment ended",
+      }),
+      dsAssignment({
+        id: "h2",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-17T16:00:00.000Z"),
+        endedAt: null,
+        truck: { unitNumber: "TRK-202", vin: null, capacityKg: null, status: "AVAILABLE" },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+  });
+  const h2 = ohHistory({ deliveries: [highRiskDelivery] });
+  assert.ok(
+    !h2.entries.some(
+      (entry) => entry.type === "RECOVERY_ACTION" && entry.deliveryId === "d2",
+    ),
+  );
+  assert.ok(
+    h2.entries.some(
+      (entry) => entry.type === "ASSIGNMENT_ENDED" && entry.deliveryId === "d2",
+    ),
+  );
+});
+
+test("operational history has honest empty and filtered-empty states", () => {
+  const history = ohHistory({ deliveries: [] });
+  assert.equal(history.totalEntries, 0);
+  assert.equal(history.entries.length, 0);
+
+  const filtered = ohHistory({
+    deliveries: [
+      dsDelivery({
+        id: "d1",
+        reference: "DEL-1",
+        createdAt: new Date("2026-11-17T15:00:00.000Z"),
+      }),
+    ],
+    filters: { q: "no-such-thing" },
+  });
+  assert.equal(filtered.totalEntries > 0, true);
+  assert.equal(filtered.entries.length, 0);
+});
+
+test("operational history contains no dispatcher feedback or scoring fields", () => {
+  const recovered = dsDelivery({
+    id: "d1",
+    reference: "DEL-101",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T15:00:00.000Z"),
+    assignments: recoveredPair("n"),
+  });
+  const history = ohHistory({ deliveries: [recovered] });
+  const serialized = JSON.stringify(history);
+  const banned = ["rating", "comment", "feedback", "score", "rank"];
+  for (const key of Object.keys(history.entries[0] ?? {})) {
+    assert.ok(!banned.includes(key.toLowerCase()));
+  }
+  assert.ok(!/dispatcherRating|manualScore|performanceScore/i.test(serialized));
+});

@@ -67,7 +67,7 @@ function formatRisk(riskLevel: ChainRiskLevel) {
   return `${riskLevel.toLowerCase()} risk`;
 }
 
-function parseReassignmentEndReason(endReason: string) {
+export function parseReassignmentEndReason(endReason: string) {
   const reasonMatch = /\. Reason: (.*)$/.exec(endReason);
   return {
     dispatcherReason: reasonMatch?.[1]?.trim() || null,

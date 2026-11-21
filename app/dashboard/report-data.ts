@@ -104,6 +104,7 @@ export function buildDailyDeliveryInputs(
       deliveryId,
       list.map((event) => ({
         type: event.type,
+        fromStatus: event.fromStatus,
         toStatus: event.toStatus,
         note: event.note,
         occurredAt: event.occurredAt,
