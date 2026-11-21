@@ -1,4 +1,5 @@
 import type { ChainNode, ImpactStage, RecoveryImpact } from "@/src/dashboard/delivery-chain";
+import { Badge, riskTone } from "../ui";
 
 function formatLabel(value: string) {
   return value.toLowerCase().replaceAll("_", " ");
@@ -17,9 +18,11 @@ export function DeliveryChain({ nodes }: { nodes: ChainNode[] }) {
   return (
     <section
       aria-label="Delivery chain"
-      className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
     >
-      <h2 className="font-semibold">Delivery chain</h2>
+      <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+        Delivery chain
+      </h2>
       <p className="mt-1 text-sm text-slate-500">
         Operational sequence for this load, in stop order.
       </p>
@@ -27,14 +30,14 @@ export function DeliveryChain({ nodes }: { nodes: ChainNode[] }) {
         {nodes.map((node, index) => (
           <li key={node.id} className="flex items-center gap-2">
             {index > 0 && (
-              <span aria-hidden="true" className="text-slate-400">
+              <span aria-hidden="true" className="text-slate-300">
                 →
               </span>
             )}
             <article
-              className={`w-44 rounded-xl border p-3 ${
+              className={`w-44 rounded-lg border p-3 ${
                 node.attention
-                  ? "border-amber-400 bg-amber-50"
+                  ? "border-amber-300 bg-amber-50"
                   : node.inProgress
                     ? "border-sky-300 bg-sky-50"
                     : "border-slate-200 bg-white"
@@ -44,13 +47,9 @@ export function DeliveryChain({ nodes }: { nodes: ChainNode[] }) {
                 <p className="text-sm font-semibold text-slate-900">
                   {node.label}
                 </p>
-                {node.attention && (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
-                    Attention
-                  </span>
-                )}
+                {node.attention && <Badge tone="warning">Attention</Badge>}
               </div>
-              <p className="mt-1 truncate text-xs text-slate-600">
+              <p className="mt-1 break-words text-xs text-slate-600">
                 {node.customer}
               </p>
               <dl className="mt-2 space-y-1 text-xs text-slate-600">
@@ -60,12 +59,16 @@ export function DeliveryChain({ nodes }: { nodes: ChainNode[] }) {
                     {formatLabel(node.status)}
                   </dd>
                 </div>
-                <div className="flex justify-between gap-2">
+                <div className="flex items-center justify-between gap-2">
                   <dt className="text-slate-400">Risk</dt>
-                  <dd className="font-medium">
-                    {node.riskLevel
-                      ? `${formatLabel(node.riskLevel)} risk`
-                      : "Insufficient data"}
+                  <dd>
+                    {node.riskLevel ? (
+                      <Badge tone={riskTone(node.riskLevel)}>
+                        {formatLabel(node.riskLevel)} risk
+                      </Badge>
+                    ) : (
+                      <span className="font-medium">Insufficient data</span>
+                    )}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-2">

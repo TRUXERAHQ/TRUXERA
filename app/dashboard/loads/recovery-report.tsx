@@ -1,12 +1,6 @@
 import type { RecoveryReport } from "@/src/dashboard/recovery-report";
 import type { ImpactMetricState } from "@/src/dashboard/measure-impact";
-
-const outcomeBadge: Record<string, string> = {
-  successful: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  monitoring: "border-sky-300 bg-sky-50 text-sky-900",
-  unresolved: "border-red-300 bg-red-50 text-red-900",
-  insufficientData: "border-slate-300 bg-slate-50 text-slate-700",
-};
+import { Badge, dataQualityTone, recoveryTone } from "../ui";
 
 const outcomeTitle: Record<string, string> = {
   successful: "Successful",
@@ -15,7 +9,7 @@ const outcomeTitle: Record<string, string> = {
   insufficientData: "Insufficient data",
 };
 
-const metricBadge: Record<ImpactMetricState, string> = {
+const metricBadgeLabel: Record<ImpactMetricState, string> = {
   actual: "Actual",
   estimated: "Estimated",
   insufficient: "Insufficient data",
@@ -40,17 +34,15 @@ function Section({
 
 export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
   return (
-    <div className="mt-5 rounded-lg border border-slate-300 bg-white p-4">
+    <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-800">
           Automatic recovery report
         </h3>
         {report.header.outcome && (
-          <span
-            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${outcomeBadge[report.header.outcome] ?? outcomeBadge.insufficientData}`}
-          >
+          <Badge tone={recoveryTone(report.header.outcome)}>
             {outcomeTitle[report.header.outcome] ?? report.header.outcome}
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -235,9 +227,12 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
                     <p className="text-[11px] font-medium text-slate-600">
                       {metric.label}
                     </p>
-                    <span className="rounded-full border border-slate-300 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500">
-                      {metricBadge[metric.state]}
-                    </span>
+                    <Badge
+                      tone={dataQualityTone(metric.state)}
+                      className="shrink-0"
+                    >
+                      {metricBadgeLabel[metric.state]}
+                    </Badge>
                   </div>
                   <p
                     className={`mt-0.5 text-xs font-semibold ${

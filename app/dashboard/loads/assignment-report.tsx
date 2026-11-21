@@ -1,4 +1,5 @@
 import type { AssignmentVehicleReport } from "@/src/dashboard/assignment-report";
+import { Badge } from "../ui";
 
 export function AssignmentVehicleReportPanel({
   report,
@@ -115,13 +116,13 @@ export function AssignmentVehicleReportPanel({
             <div className="mt-1.5 overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-400">
-                    <th className="py-1 pr-3 font-medium">#</th>
-                    <th className="py-1 pr-3 font-medium">Truck</th>
-                    <th className="py-1 pr-3 font-medium">Driver</th>
-                    <th className="py-1 pr-3 font-medium">Assigned</th>
-                    <th className="py-1 pr-3 font-medium">Ended</th>
-                    <th className="py-1 font-medium">Status</th>
+                  <tr className="border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <th className="py-2 pr-3 font-medium">#</th>
+                    <th className="py-2 pr-3 font-medium">Truck</th>
+                    <th className="py-2 pr-3 font-medium">Driver</th>
+                    <th className="py-2 pr-3 font-medium">Assigned</th>
+                    <th className="py-2 pr-3 font-medium">Ended</th>
+                    <th className="py-2 font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -130,31 +131,29 @@ export function AssignmentVehicleReportPanel({
                       key={row.id}
                       className="border-b border-slate-100"
                     >
-                      <td className="py-1.5 pr-3 text-slate-400">
+                      <td className="py-2 pr-3 text-slate-400">
                         {row.sequence}
                       </td>
-                      <td className="py-1.5 pr-3 font-medium text-slate-700">
+                      <td className="py-2 pr-3 font-medium text-slate-700">
                         {row.truck}
                       </td>
-                      <td className="py-1.5 pr-3 text-slate-600">
+                      <td className="py-2 pr-3 text-slate-600">
                         {row.driver}
                       </td>
-                      <td className="py-1.5 pr-3 text-slate-600">
+                      <td className="py-2 pr-3 text-slate-600">
                         {row.assignedAtLabel}
                       </td>
-                      <td className="py-1.5 pr-3 text-slate-600">
+                      <td className="py-2 pr-3 text-slate-600">
                         {row.endedAtLabel ?? "—"}
                       </td>
-                      <td className="py-1.5">
+                      <td className="py-2 pr-3">
                         {row.state === "current" ? (
-                          <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                            Current
-                          </span>
+                          <Badge tone="success">Current</Badge>
                         ) : (
-                          <span className="text-slate-500">
+                          <Badge tone="neutral">
                             Ended
                             {row.endReason ? ` — ${row.endReason}` : ""}
-                          </span>
+                          </Badge>
                         )}
                       </td>
                     </tr>

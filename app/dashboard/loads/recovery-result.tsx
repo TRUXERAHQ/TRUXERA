@@ -1,14 +1,5 @@
 import type { RecoveryResult } from "@/src/dashboard/recovery-result";
-
-const outcomeStyles: Record<
-  NonNullable<RecoveryResult["recovery"]>["outcome"],
-  string
-> = {
-  successful: "border-emerald-300 bg-emerald-50 text-emerald-900",
-  monitoring: "border-sky-300 bg-sky-50 text-sky-900",
-  unresolved: "border-red-300 bg-red-50 text-red-900",
-  insufficientData: "border-slate-300 bg-slate-50 text-slate-700",
-};
+import { Badge, recoveryTone } from "../ui";
 
 const outcomeTitles: Record<
   NonNullable<RecoveryResult["recovery"]>["outcome"],
@@ -41,11 +32,9 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
         <h3 className="text-sm font-semibold text-slate-800">
           Recovery result
         </h3>
-        <span
-          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${outcomeStyles[recovery.outcome]}`}
-        >
+        <Badge tone={recoveryTone(recovery.outcome)}>
           {outcomeTitles[recovery.outcome]}
-        </span>
+        </Badge>
       </div>
       <p className="mt-2 text-xs text-slate-600">{recovery.outcomeLabel}</p>
 
@@ -54,7 +43,7 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             Before recovery
           </p>
-          <p className="mt-1 text-sm font-medium text-slate-800">
+          <p className="mt-1 break-words text-sm font-medium text-slate-800">
             {recovery.before.truck} · {recovery.before.driver}
           </p>
           <p className="mt-1 text-xs text-slate-500">
@@ -66,13 +55,13 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             Recovery action
           </p>
-          <p className="mt-1 text-sm font-medium text-slate-800">
+          <p className="mt-1 break-words text-sm font-medium text-slate-800">
             {recovery.action.fromLabel}
           </p>
           <p className="mt-0.5 text-slate-400" aria-hidden="true">
             ↓
           </p>
-          <p className="text-sm font-medium text-slate-800">
+          <p className="break-words text-sm font-medium text-slate-800">
             {recovery.action.toLabel}
           </p>
           <p className="mt-1 text-xs text-slate-500">
@@ -89,7 +78,7 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
           <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             After recovery
           </p>
-          <p className="mt-1 text-sm font-medium text-slate-800">
+          <p className="mt-1 break-words text-sm font-medium text-slate-800">
             {recovery.after.truck ?? "Not recorded"}
             {recovery.after.driver ? ` · ${recovery.after.driver}` : ""}
           </p>
@@ -104,15 +93,15 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-200 text-slate-400">
-              <th className="py-1 pr-4 font-medium">Metric</th>
-              <th className="py-1 pr-4 font-medium">Before</th>
-              <th className="py-1 font-medium">After</th>
+            <tr className="border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-500">
+              <th className="py-1.5 pr-4 font-medium">Metric</th>
+              <th className="py-1.5 pr-4 font-medium">Before</th>
+              <th className="py-1.5 font-medium">After</th>
             </tr>
           </thead>
           <tbody>
             {recovery.comparison.map((row) => (
-              <tr key={row.metric} className="border-b border-slate-100">
+              <tr key={row.metric} className="border-b border-slate-100 last:border-0">
                 <td className="py-1.5 pr-4 font-medium text-slate-600">
                   {row.metric}
                 </td>

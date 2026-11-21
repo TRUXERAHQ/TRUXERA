@@ -38,6 +38,16 @@ import {
   type OperationsSearchParams,
 } from "../../operations-page-data";
 import TruckShell from "../../trucks/truck-shell";
+import {
+  BackLink,
+  Badge,
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  labelClass,
+  Notice,
+  riskTone,
+  statusTone,
+} from "../../ui";
 
 type Props = {
   params: Promise<{ loadId: string }>;
@@ -194,44 +204,70 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="loads">
       <div className="mx-auto max-w-5xl">
-        <Link href={`/dashboard/loads?${organizationQuery(context.organization.id)}`} className="text-sm font-medium text-slate-600 hover:text-slate-950">
-          ← Back to loads
-        </Link>
+        <BackLink href={`/dashboard/loads?${organizationQuery(context.organization.id)}`}>
+          Back to loads
+        </BackLink>
         {(context.created || context.updated || context.statusUpdated) && (
-          <p role="status" className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            {context.created
-              ? "Load and delivery stops created."
-              : context.statusUpdated
-                ? "Delivery status updated and recorded in event history."
-                : "Load details updated."}
-          </p>
+          <div className="mt-5">
+            <Notice tone="success">
+              {context.created
+                ? "Load and delivery stops created."
+                : context.statusUpdated
+                  ? "Delivery status updated and recorded in event history."
+                  : "Load details updated."}
+            </Notice>
+          </div>
         )}
 
-        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
-            <div>
+        <section className="mt-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+            <div className="min-w-0">
               <p className="text-sm font-medium text-slate-500">Load details</p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight">{details.load.reference}</h1>
-              <p className="mt-2 text-sm text-slate-600">{details.load.customerName}</p>
+              <h1 className="mt-1 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                {details.load.reference}
+              </h1>
+              <p className="mt-1.5 text-sm text-slate-600">
+                {details.load.customerName}
+              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               {context.canManage && (
                 <Link
                   href={`/dashboard/loads/${encodeURIComponent(loadId)}/edit?${organizationQuery(context.organization.id)}`}
-                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className={buttonSecondaryClass}
                 >
                   Edit safe details
                 </Link>
               )}
-              <Link href={`/dashboard/dispatch?${organizationQuery(context.organization.id)}`} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">
+              <Link
+                href={`/dashboard/dispatch?${organizationQuery(context.organization.id)}`}
+                className={buttonPrimaryClass}
+              >
                 Open dispatch
               </Link>
             </div>
           </div>
-          <dl className="mt-8 grid gap-5 border-t border-slate-100 pt-6 sm:grid-cols-2">
-            <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Pickup address</dt><dd className="mt-1 text-sm font-medium">{details.load.pickupAddress}</dd></div>
-            <div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Load weight</dt><dd className="mt-1 text-sm font-medium">{details.load.weightKg === null ? "Not recorded" : `${Number(details.load.weightKg).toLocaleString()} kg`}</dd></div>
-            <div className="sm:col-span-2"><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Cargo</dt><dd className="mt-1 text-sm font-medium">{details.load.cargoDescription ?? "Not recorded"}</dd></div>
+          <dl className="mt-6 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
+            <div>
+              <dt className={labelClass}>Pickup address</dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-800">
+                {details.load.pickupAddress}
+              </dd>
+            </div>
+            <div>
+              <dt className={labelClass}>Load weight</dt>
+              <dd className="mt-1 text-sm font-medium text-slate-800">
+                {details.load.weightKg === null
+                  ? "Not recorded"
+                  : `${Number(details.load.weightKg).toLocaleString()} kg`}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className={labelClass}>Cargo</dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-800">
+                {details.load.cargoDescription ?? "Not recorded"}
+              </dd>
+            </div>
           </dl>
         </section>
 
@@ -244,13 +280,20 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
           hasOperationalDisruption={whatHappened.hasDisruption}
         />
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-5">
-            <h2 className="font-semibold">Delivery stops</h2>
-            <p className="mt-1 text-sm text-slate-500">Status, risk, ETA, and assignments come from the stored delivery and dispatch records.</p>
+        <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-5 py-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+              Delivery stops
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Status, risk, ETA, and assignments come from the stored delivery
+              and dispatch records.
+            </p>
           </div>
           {details.deliveries.length === 0 ? (
-            <p className="px-6 py-8 text-sm text-slate-600">This load has no delivery stops.</p>
+            <p className="px-5 py-8 text-sm text-slate-600">
+              This load has no delivery stops.
+            </p>
           ) : (
             <ol className="divide-y divide-slate-100">
               {details.deliveries.map((delivery) => {
@@ -263,12 +306,57 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                 const statusTransitions =
                   getAllowedDeliveryStatusTransitions(delivery.status);
                 return (
-                  <li key={delivery.id} className="px-6 py-5">
+                  <li key={delivery.id} className="px-5 py-5">
                     <div className="grid gap-4 md:grid-cols-4">
-                      <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Stop {delivery.stopNumber}</p><p className="mt-1 text-sm font-semibold">{delivery.reference ?? details.load.reference}</p><p className="mt-1 text-xs text-slate-500">{delivery.recipientName ?? "Recipient not recorded"}</p></div>
-                      <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Destination</p><p className="mt-1 text-sm">{delivery.destinationAddress}</p></div>
-                      <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Status / risk</p><p className="mt-1 text-sm font-medium capitalize">{formatLabel(delivery.status)} · {formatLabel(delivery.riskLevel)} risk</p><p className="mt-1 text-xs text-slate-500">ETA: {delivery.eta ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: context.organization.timezone }).format(delivery.eta) : "Not set"}</p><p className="mt-1 text-xs text-slate-500">Load weight: {details.load.weightKg === null ? "Not recorded" : `${Number(details.load.weightKg).toLocaleString()} kg`}</p></div>
-                      <div><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current assignment</p><p className="mt-1 text-sm font-medium">{assignment ? `Truck ${assignment.truck.unitNumber} · ${assignment.driver.name}` : "Unassigned"}</p></div>
+                      <div className="min-w-0">
+                        <p className={labelClass}>Stop {delivery.stopNumber}</p>
+                        <p className="mt-1 break-words text-sm font-semibold text-slate-900">
+                          {delivery.reference ?? details.load.reference}
+                        </p>
+                        <p className="mt-1 break-words text-xs text-slate-500">
+                          {delivery.recipientName ?? "Recipient not recorded"}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={labelClass}>Destination</p>
+                        <p className="mt-1 break-words text-sm text-slate-700">
+                          {delivery.destinationAddress}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={labelClass}>Status / risk</p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          <Badge tone={statusTone(delivery.status)}>
+                            {formatLabel(delivery.status)}
+                          </Badge>
+                          <Badge tone={riskTone(delivery.riskLevel)}>
+                            {formatLabel(delivery.riskLevel)} risk
+                          </Badge>
+                        </div>
+                        <p className="mt-2 text-xs text-slate-500">
+                          ETA:{" "}
+                          {delivery.eta
+                            ? new Intl.DateTimeFormat("en-US", {
+                                dateStyle: "medium",
+                                timeZone: context.organization.timezone,
+                              }).format(delivery.eta)
+                            : "Not set"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Load weight:{" "}
+                          {details.load.weightKg === null
+                            ? "Not recorded"
+                            : `${Number(details.load.weightKg).toLocaleString()} kg`}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className={labelClass}>Current assignment</p>
+                        <p className="mt-1 break-words text-sm font-medium text-slate-800">
+                          {assignment
+                            ? `Truck ${assignment.truck.unitNumber} · ${assignment.driver.name}`
+                            : "Unassigned"}
+                        </p>
+                      </div>
                     </div>
 
                     {risk && (
