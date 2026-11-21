@@ -21,9 +21,10 @@ export const labelClass =
 
 export const tableClass = "w-full text-left text-sm";
 export const tableHeadClass =
-  "border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-500";
+  "border-b border-slate-200 bg-slate-50/60 text-xs font-medium uppercase tracking-wide text-slate-600";
 export const tableCellClass = "py-2.5 pr-4 align-top text-slate-700";
-export const tableRowClass = "border-b border-slate-100 last:border-0";
+export const tableRowClass =
+  "border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/60";
 
 export type BadgeTone =
   | "neutral"

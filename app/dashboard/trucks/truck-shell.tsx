@@ -124,7 +124,7 @@ export default function TruckShell({
     activeSection === "dashboard" ? "/" : `/dashboard/${activeSection}`;
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <main className="min-h-screen bg-slate-100 text-slate-900">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between gap-4">
@@ -134,57 +134,13 @@ export default function TruckShell({
                 className="flex shrink-0 items-center gap-2"
                 aria-label="TRUXERA dashboard"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-900 text-xs font-bold text-white">
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">
                   T
                 </span>
                 <span className="text-base font-bold tracking-tight text-slate-950">
                   TRUXERA
                 </span>
               </Link>
-              <nav
-                aria-label="Primary navigation"
-                className="hidden items-center gap-1 overflow-x-auto lg:flex"
-              >
-                <Link
-                  href={`/?${orgQuery}`}
-                  aria-current={activeSection === "dashboard" ? "page" : undefined}
-                  className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
-                    activeSection === "dashboard"
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                {navGroups.map((group, groupIndex) => (
-                  <div key={group.label} className="flex items-center gap-1">
-                    {groupIndex > 0 && (
-                      <span
-                        className="mx-1 h-5 w-px bg-slate-200"
-                        aria-hidden="true"
-                      />
-                    )}
-                    {group.items.map((section) => {
-                      const active = activeSection === section.id;
-                      return (
-                        <Link
-                          key={section.id}
-                          href={section.href}
-                          aria-current={active ? "page" : undefined}
-                          className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
-                            active
-                              ? "bg-slate-900 text-white"
-                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                          }`}
-                        >
-                          <NavIcon name={section.icon} />
-                          {section.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                ))}
-              </nav>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
@@ -208,7 +164,7 @@ export default function TruckShell({
                   <button className={buttonSecondaryClass}>Switch</button>
                 </form>
               )}
-              <span className="hidden max-w-40 truncate text-sm text-slate-500 xl:block">
+              <span className="hidden max-w-40 truncate text-sm text-slate-600 xl:block">
                 {organization.name}
               </span>
               <form action={signOutUser}>
@@ -218,14 +174,60 @@ export default function TruckShell({
           </div>
           <nav
             aria-label="Primary navigation"
-            className="flex gap-1 overflow-x-auto pb-2 lg:hidden"
+            className="hidden flex-wrap items-center gap-x-1 gap-y-1 border-t border-slate-100 px-1 py-2 lg:flex"
+          >
+            <Link
+              href={`/?${orgQuery}`}
+              aria-current={activeSection === "dashboard" ? "page" : undefined}
+              className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                activeSection === "dashboard"
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              Dashboard
+            </Link>
+            {navGroups.map((group, groupIndex) => (
+              <div key={group.label} className="flex items-center gap-1">
+                {groupIndex > 0 && (
+                  <span
+                    className="mx-1 h-5 w-px bg-slate-200"
+                    aria-hidden="true"
+                  />
+                )}
+                {group.items.map((section) => {
+                  const active = activeSection === section.id;
+                  return (
+                    <Link
+                      key={section.id}
+                      href={section.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                        active
+                          ? "bg-indigo-600 text-white"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
+                    >
+                      <span className="hidden min-[1400px]:inline-flex">
+                        <NavIcon name={section.icon} />
+                      </span>
+                      {section.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+          <nav
+            aria-label="Primary navigation"
+            className="flex gap-1 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
           >
             <Link
               href={`/?${orgQuery}`}
               aria-current={activeSection === "dashboard" ? "page" : undefined}
               className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium ${
                 activeSection === "dashboard"
-                  ? "bg-slate-900 text-white"
+                  ? "bg-indigo-600 text-white"
                   : "text-slate-600"
               }`}
             >
@@ -242,7 +244,7 @@ export default function TruckShell({
                     aria-current={active ? "page" : undefined}
                     className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium ${
                       active
-                        ? "bg-slate-900 text-white"
+                        ? "bg-indigo-600 text-white"
                         : "text-slate-600"
                     }`}
                   >

@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { auth } from "@/auth";
 import { getDashboardData } from "@/src/prisma/dashboard-data";
 import { getDispatchBoardForOrganization } from "@/src/prisma/operations-data";
@@ -98,6 +98,104 @@ function RiskBadge({ risk }: { risk: string }) {
           ? "success"
           : "neutral";
   return <Badge tone={tone}>{risk}</Badge>;
+}
+
+function KpiIcon({
+  name,
+}: {
+  name: "truck" | "users" | "package" | "layers" | "alert" | "pulse";
+}) {
+  const paths: Record<string, ReactNode> = {
+    truck: (
+      <>
+        <path d="M1 8h13v9H1zM14 11h4l3 3v3h-7" />
+        <circle cx="6" cy="19" r="2" />
+        <circle cx="17" cy="19" r="2" />
+      </>
+    ),
+    users: (
+      <>
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5" />
+      </>
+    ),
+    package: (
+      <>
+        <path d="M21 8l-9-5-9 5v8l9 5 9-5z" />
+        <path d="M3 8l9 5 9-5M12 13v8" />
+      </>
+    ),
+    layers: (
+      <>
+        <path d="m12 2 10 5-10 5L2 7l10-5z" />
+        <path d="m2 12 10 5 10-5" />
+        <path d="m2 17 10 5 10-5" />
+      </>
+    ),
+    alert: (
+      <>
+        <path d="M12 3 2 20h20L12 3z" />
+        <path d="M12 10v4" />
+        <path d="M12 17.5v.5" />
+      </>
+    ),
+    pulse: <path d="M3 12h4l3-8 4 16 3-8h4" />,
+  };
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-[18px] w-[18px]"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
+function KpiCard({
+  icon,
+  label,
+  iconClass,
+  children,
+  hint,
+  danger = false,
+}: {
+  icon: Parameters<typeof KpiIcon>[0]["name"];
+  label: string;
+  iconClass: string;
+  children: ReactNode;
+  hint?: ReactNode;
+  danger?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border bg-white p-5 shadow-sm ${
+        danger ? "border-red-200" : "border-slate-200"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
+        >
+          <KpiIcon name={icon} />
+        </span>
+        <p className="text-sm font-medium text-slate-600">{label}</p>
+      </div>
+      <div
+        className={`mt-3 text-3xl font-bold tracking-tight ${
+          danger ? "text-red-600" : "text-slate-950"
+        }`}
+      >
+        {children}
+      </div>
+      {hint && <div className="mt-2 text-xs leading-5 text-slate-600">{hint}</div>}
+    </div>
+  );
 }
 
 export default function Home({ searchParams }: HomeProps) {
@@ -284,106 +382,84 @@ async function Dashboard({ searchParams }: HomeProps) {
 
       {/* KPI cards */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Active Trucks
-          </p>
-          <div className="mt-2 text-3xl font-bold">
-            {data.trucks.length}
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            {metrics.availableTrucks} available · {metrics.onRouteTrucks}{" "}
-            on route · {metrics.maintenanceTrucks} maintenance ·{" "}
-            {metrics.outOfServiceTrucks} out of service
-          </p>
-        </div>
+        <KpiCard
+          icon="truck"
+          label="Active Trucks"
+          iconClass="bg-indigo-50 text-indigo-600"
+          hint={`${metrics.availableTrucks} available · ${metrics.onRouteTrucks} on route · ${metrics.maintenanceTrucks} maintenance · ${metrics.outOfServiceTrucks} out of service`}
+        >
+          {data.trucks.length}
+        </KpiCard>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Active Drivers
-          </p>
-          <div className="mt-2 text-3xl font-bold">
-            {metrics.activeDrivers}
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            Available or on duty
-          </p>
-        </div>
+        <KpiCard
+          icon="users"
+          label="Active Drivers"
+          iconClass="bg-violet-50 text-violet-600"
+          hint="Available or on duty"
+        >
+          {metrics.activeDrivers}
+        </KpiCard>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Total Deliveries
-          </p>
-          <div className="mt-2 text-3xl font-bold">
-            {data.deliveries.length}
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            {activeDeliveries.length} open ·{" "}
-            {metrics.deliveryStatusCounts.DELIVERED} delivered
-          </p>
-        </div>
+        <KpiCard
+          icon="package"
+          label="Total Deliveries"
+          iconClass="bg-cyan-50 text-cyan-600"
+          hint={`${activeDeliveries.length} open · ${metrics.deliveryStatusCounts.DELIVERED} delivered`}
+        >
+          {data.deliveries.length}
+        </KpiCard>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Active Loads
-          </p>
-          <div className="mt-2 text-3xl font-bold">
-            {metrics.activeLoads}
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            Loads with at least one open delivery
-          </p>
-        </div>
+        <KpiCard
+          icon="layers"
+          label="Active Loads"
+          iconClass="bg-blue-50 text-blue-600"
+          hint="Loads with at least one open delivery"
+        >
+          {metrics.activeLoads}
+        </KpiCard>
 
-        <div className="rounded-xl border border-red-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-500">
-            At-Risk Deliveries
-          </p>
-          <div className="mt-2 text-3xl font-bold text-red-600">
-            {highRiskDeliveries.length}
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            High {activeRiskSummary.HIGH} · Medium{" "}
-            {activeRiskSummary.MEDIUM} · Low {activeRiskSummary.LOW} ·
-            Insufficient data {activeRiskSummary.insufficientData}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {activeRiskSummary.requiringIntervention} need review ·{" "}
-            {activeRiskSummary.withEligibleReassignment} have an eligible replacement
-          </p>
-        </div>
+        <KpiCard
+          icon="alert"
+          label="At-Risk Deliveries"
+          iconClass="bg-red-50 text-red-600"
+          danger
+          hint={`High ${activeRiskSummary.HIGH} · Medium ${activeRiskSummary.MEDIUM} · Low ${activeRiskSummary.LOW} · Insufficient data ${activeRiskSummary.insufficientData} · ${activeRiskSummary.requiringIntervention} need review · ${activeRiskSummary.withEligibleReassignment} have an eligible replacement`}
+        >
+          {highRiskDeliveries.length}
+        </KpiCard>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-500">
-            Fleet Availability
-          </p>
-          <div className="mt-2 text-3xl font-bold">
-            {metrics.fleetAvailability === null
-              ? "—"
-              : `${metrics.fleetAvailability}%`}
-          </div>
-          <p className="mt-2 text-xs text-blue-600">
-            {metrics.fleetAvailability === null
-              ? "No active trucks to calculate"
-              : `${metrics.availableTrucks} of ${data.trucks.length} trucks available`}
-          </p>
-          <Badge tone={fleetAttention.tone} className="mt-2">
-            {fleetAttention.label}
-          </Badge>
-        </div>
+        <KpiCard
+          icon="pulse"
+          label="Fleet Availability"
+          iconClass="bg-emerald-50 text-emerald-600"
+          hint={
+            <>
+              {metrics.fleetAvailability === null
+                ? "No active trucks to calculate"
+                : `${metrics.availableTrucks} of ${data.trucks.length} trucks available`}
+              <Badge tone={fleetAttention.tone} className="ml-2">
+                {fleetAttention.label}
+              </Badge>
+            </>
+          }
+        >
+          {metrics.fleetAvailability === null
+            ? "—"
+            : `${metrics.fleetAvailability}%`}
+        </KpiCard>
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white px-5 py-4">
-        <div className="text-sm font-semibold">Delivery status</div>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <div className="text-sm font-semibold text-slate-800">Delivery status</div>
         <div className="mt-3 flex flex-wrap gap-2">
           {Object.entries(metrics.deliveryStatusCounts).map(
             ([status, count]) => (
-              <span
+              <Badge
                 key={status}
-                className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600"
+                tone={statusTones[formatLabel(status)] ?? "neutral"}
               >
                 {formatLabel(status)}: {count}
-              </span>
+              </Badge>
             ),
           )}
         </div>
@@ -455,11 +531,11 @@ async function Dashboard({ searchParams }: HomeProps) {
       {/* Main grid */}
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         {/* Fleet */}
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <div>
-              <h2 className="font-semibold">Fleet Overview</h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <h2 className="font-semibold text-slate-800">Fleet Overview</h2>
+              <p className="mt-1 text-xs text-slate-600">
                 Current truck operations
               </p>
             </div>
@@ -474,7 +550,7 @@ async function Dashboard({ searchParams }: HomeProps) {
 
           <div className="divide-y divide-slate-100">
             {data.trucks.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-slate-500">
+              <p className="px-5 py-6 text-sm text-slate-600">
                 No trucks are registered for this organization.
               </p>
             ) : (
@@ -521,7 +597,7 @@ async function Dashboard({ searchParams }: HomeProps) {
                         </span>
                         <StatusBadge status={status} />
                       </div>
-                      <p className="mt-1 break-words text-sm text-slate-500">
+                      <p className="mt-1 break-words text-sm text-slate-600">
                         {assignedDriver
                           ? `${assignedDriver.name} · ${formatLabel(
                               assignedDriver.status,
@@ -530,7 +606,7 @@ async function Dashboard({ searchParams }: HomeProps) {
                         {" · "}
                         {truck.currentLocation ?? "Location unavailable"}
                       </p>
-                      <p className="mt-1 break-words text-xs text-slate-500">
+                      <p className="mt-1 break-words text-xs text-slate-600">
                         {loadReferences.length
                           ? `Current load${loadReferences.length > 1 ? "s" : ""}: ${loadReferences.join(", ")}`
                           : "No active load"}
@@ -538,17 +614,30 @@ async function Dashboard({ searchParams }: HomeProps) {
                     </div>
 
                     <div className="shrink-0 text-right">
-                      <p className="text-sm font-semibold">
+                      <p className="text-sm font-semibold text-slate-800">
                         {formatCapacity(truck.capacityKg)}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-600">
                         {truckAssignments.length} active deliveries
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-600">
                         {utilization === null
                           ? "Utilization unavailable"
                           : `Estimated utilization ${utilization}%`}
                       </p>
+                      {utilization !== null && (
+                        <div
+                          className="ml-auto mt-1.5 h-1 w-24 overflow-hidden rounded-full bg-slate-100"
+                          role="presentation"
+                        >
+                          <div
+                            className="h-full rounded-full bg-indigo-500"
+                            style={{
+                              width: `${Math.min(100, Math.max(0, utilization))}%`,
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -558,11 +647,11 @@ async function Dashboard({ searchParams }: HomeProps) {
         </div>
 
         {/* Deliveries */}
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <div>
-              <h2 className="font-semibold">Delivery Monitor</h2>
-              <p className="mt-1 text-xs text-slate-500">
+              <h2 className="font-semibold text-slate-800">Delivery Monitor</h2>
+              <p className="mt-1 text-xs text-slate-600">
                 Status, ETA and current assignments
               </p>
             </div>
@@ -592,7 +681,7 @@ async function Dashboard({ searchParams }: HomeProps) {
                   <tr className={tableRowClass}>
                     <td
                       colSpan={5}
-                      className={`${tableCellClass} px-5 py-6 text-slate-500`}
+                      className={`${tableCellClass} px-5 py-6`}
                     >
                       No current deliveries for this organization.
                     </td>
@@ -609,7 +698,7 @@ async function Dashboard({ searchParams }: HomeProps) {
                           <div className="font-medium break-words">
                             {getDeliveryLabel(delivery)}
                           </div>
-                          <div className="mt-1 break-words text-xs text-slate-500">
+                          <div className="mt-1 break-words text-xs text-slate-600">
                             {delivery.recipientName ??
                               delivery.load.customerName}
                           </div>
@@ -619,7 +708,7 @@ async function Dashboard({ searchParams }: HomeProps) {
                           {assignment ? (
                             <>
                               <div className="break-words">{assignment.truck.unitNumber}</div>
-                              <div className="mt-1 break-words text-xs text-slate-500">
+                              <div className="mt-1 break-words text-xs text-slate-600">
                                 {assignment.driver.name}
                               </div>
                             </>
@@ -657,7 +746,7 @@ async function Dashboard({ searchParams }: HomeProps) {
       </div>
 
       {/* Recovery review */}
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
