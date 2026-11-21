@@ -30,7 +30,7 @@ async function OnboardingContent() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12 text-slate-900">
-      <section className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <section className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
           TRUXERA
         </p>

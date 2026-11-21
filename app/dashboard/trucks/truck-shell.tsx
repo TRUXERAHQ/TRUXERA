@@ -8,7 +8,7 @@ type Props = {
   organizations: Models.public_Organization[];
   organization: Models.public_Organization;
   children: ReactNode;
-  activeSection?: "command-center" | "daily-summary" | "executive-report" | "operational-history" | "trucks" | "drivers" | "loads" | "dispatch";
+  activeSection?: "dashboard" | "command-center" | "daily-summary" | "executive-report" | "operational-history" | "trucks" | "drivers" | "loads" | "dispatch";
 };
 
 type IconName =
@@ -120,7 +120,8 @@ export default function TruckShell({
       ],
     },
   ];
-  const sectionPath = `/dashboard/${activeSection}`;
+  const sectionPath =
+    activeSection === "dashboard" ? "/" : `/dashboard/${activeSection}`;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -146,7 +147,12 @@ export default function TruckShell({
               >
                 <Link
                   href={`/?${orgQuery}`}
-                  className="whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                  aria-current={activeSection === "dashboard" ? "page" : undefined}
+                  className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                    activeSection === "dashboard"
+                      ? "bg-slate-900 text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
                 >
                   Dashboard
                 </Link>
@@ -216,7 +222,12 @@ export default function TruckShell({
           >
             <Link
               href={`/?${orgQuery}`}
-              className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600"
+              aria-current={activeSection === "dashboard" ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium ${
+                activeSection === "dashboard"
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-600"
+              }`}
             >
               <NavIcon name="grid" />
               Dashboard

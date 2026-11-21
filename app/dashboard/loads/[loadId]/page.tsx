@@ -373,7 +373,7 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                           {risk.intervention.action && (
                             <Link
                               href={`/dashboard/dispatch?${organizationQuery(context.organization.id)}`}
-                              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                              className={`${buttonSecondaryClass} px-3 py-1.5 text-xs`}
                             >
                               {risk.intervention.action}
                             </Link>

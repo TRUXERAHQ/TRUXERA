@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "../auth-actions";
+import { buttonPrimaryClass, Notice } from "../dashboard/ui";
 
 type LoginPageProps = {
   searchParams: Promise<{ error?: string | string[] }>;
@@ -51,17 +52,10 @@ async function LoginContent({ searchParams }: LoginPageProps) {
           fleet dashboard.
         </p>
 
-        {message && (
-          <p
-            role="alert"
-            className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800"
-          >
-            {message}
-          </p>
-        )}
+        {message && <div className="mt-5"><Notice tone="danger">{message}</Notice></div>}
 
         <form action={signInWithGoogle} className="mt-8">
-          <button className="w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
+          <button className={`${buttonPrimaryClass} w-full py-3`}>
             Continue with Google
           </button>
         </form>

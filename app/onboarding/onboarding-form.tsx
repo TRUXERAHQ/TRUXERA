@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createOrganizationAction } from "../organization-actions";
+import { buttonPrimaryClass, inputClass, labelClass } from "../dashboard/ui";
 
 export default function OnboardingForm() {
   const [state, action, pending] = useActionState(createOrganizationAction, {});
@@ -11,7 +12,7 @@ export default function OnboardingForm() {
       <div>
         <label
           htmlFor="organization-name"
-          className="block text-sm font-medium text-slate-700"
+          className={labelClass}
         >
           Organization name
         </label>
@@ -24,7 +25,7 @@ export default function OnboardingForm() {
           maxLength={100}
           aria-invalid={Boolean(state.error)}
           aria-describedby={state.error ? "organization-error" : undefined}
-          className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+          className={inputClass}
           placeholder="Acme Logistics"
         />
         {state.error && (
@@ -41,7 +42,7 @@ export default function OnboardingForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+        className={`${buttonPrimaryClass} w-full disabled:cursor-wait disabled:opacity-60`}
       >
         {pending ? "Creating organization..." : "Create organization"}
       </button>
