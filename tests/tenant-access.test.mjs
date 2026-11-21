@@ -3376,7 +3376,9 @@ function dsDelivery(overrides = {}) {
     eta: overrides.eta ?? null,
     deliveredAt: overrides.deliveredAt ?? null,
     createdAt:
-      overrides.createdAt ?? new Date("2026-11-17T15:00:00.000Z"),
+      "createdAt" in overrides
+        ? overrides.createdAt
+        : new Date("2026-11-17T15:00:00.000Z"),
     deliveryWindowStart: overrides.deliveryWindowStart ?? null,
     deliveryWindowEnd: overrides.deliveryWindowEnd ?? null,
   };
@@ -3839,4 +3841,366 @@ test("daily summary reports an honest empty-day state", () => {
   assert.equal(summary.assignmentActivity.transitions, 0);
   assert.match(summary.narrative, /No deliveries with recorded activity/);
   assert.ok(summary.impact.metrics.every((m) => m.state === "insufficient"));
+});
+
+import {
+  buildExecutiveReport,
+  previousPeriodAnchor,
+  resolvePeriodBounds,
+} from "../src/dashboard/executive-report.ts";
+
+test("executive report resolves weekly and monthly period bounds", () => {
+  const week = resolvePeriodBounds("week", "2026-11-18", "UTC");
+  assert.equal(week.startDate, "2026-11-16");
+  assert.equal(week.endDateExclusive, "2026-11-23");
+  assert.equal(week.label, "Week: Nov 16 – Nov 22, 2026");
+
+  const month = resolvePeriodBounds("month", "2026-11", "UTC");
+  assert.equal(month.startDate, "2026-11-01");
+  assert.equal(month.endDateExclusive, "2026-12-01");
+  assert.equal(month.label, "Month: November 2026");
+
+  assert.equal(previousPeriodAnchor("week", "2026-11-18"), "2026-11-11");
+  assert.equal(previousPeriodAnchor("month", "2026-11"), "2026-10");
+  assert.equal(previousPeriodAnchor("month", "2026-01"), "2025-12");
+});
+
+test("executive report handles DST week boundaries in the operational timezone", () => {
+  const bounds = resolvePeriodBounds("week", "2025-11-01", "America/New_York");
+  assert.equal(bounds.startDate, "2025-10-27");
+  assert.equal(bounds.endDateExclusive, "2025-11-03");
+  assert.equal(bounds.start.toISOString(), "2025-10-27T04:00:00.000Z");
+  assert.equal(bounds.end.toISOString(), "2025-11-03T05:00:00.000Z");
+});
+
+test("executive report aggregates a full week of activity", () => {
+  const monday = dsDelivery({
+    id: "w1",
+    reference: "DEL-W1",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-16T09:00:00.000Z"),
+    assignments: [
+      dsAssignment({
+        id: "w1a",
+        endedAt: new Date("2026-11-16T10:00:00.000Z"),
+        endReason:
+          "Reassigned from truck TRK-101 / driver James Carter to truck TRK-202 / driver Michael Brooks. Reason: Dispatcher approved reassignment",
+      }),
+      dsAssignment({
+        id: "w1b",
+        truckId: "t2",
+        driverId: "dr2",
+        assignedAt: new Date("2026-11-16T10:00:00.000Z"),
+        endedAt: null,
+        truck: {
+          unitNumber: "TRK-202",
+          vin: null,
+          capacityKg: null,
+          status: "AVAILABLE",
+        },
+        driver: { name: "Michael Brooks", status: "AVAILABLE" },
+      }),
+    ],
+  });
+  const friday = dsDelivery({
+    id: "w2",
+    reference: "DEL-W2",
+    stopNumber: 2,
+    status: "IN_TRANSIT",
+    riskLevel: "MEDIUM",
+    createdAt: new Date("2026-11-20T09:00:00.000Z"),
+    assignments: recoveredPair("w"),
+  });
+  const outside = dsDelivery({
+    id: "w3",
+    reference: "DEL-W3",
+    stopNumber: 3,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-24T09:00:00.000Z"),
+  });
+
+  const report = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [monday, friday, outside],
+  });
+
+  assert.equal(report.scopeCount, 2);
+  assert.equal(report.periodLabel, "Week: Nov 16 – Nov 22, 2026");
+  assert.equal(report.recovery.actionsExecuted, 2);
+  assert.equal(report.recovery.outcomes.successful, 1);
+  assert.equal(report.recovery.outcomes.monitoring, 1);
+  assert.equal(report.riskSummary.medium, 1);
+  assert.equal(report.riskSummary.low, 1);
+  assert.equal(report.assignmentActivity.transitions, 2);
+  assert.equal(report.assignmentActivity.deliveriesWithChanges, 2);
+  assert.equal(report.assignmentActivity.assignmentsCreated, 4);
+  assert.equal(report.deliveries.length, 2);
+  assert.match(report.narrative, /2 deliveries in scope/);
+});
+
+test("executive report aggregates a full month", () => {
+  const early = dsDelivery({
+    id: "m1",
+    reference: "DEL-M1",
+    status: "DELIVERED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-02T09:00:00.000Z"),
+    deliveredAt: new Date("2026-11-02T18:00:00.000Z"),
+    events: [
+      {
+        type: "STATUS_CHANGED",
+        toStatus: "DELIVERED",
+        note: null,
+        occurredAt: new Date("2026-11-02T18:00:00.000Z"),
+      },
+    ],
+  });
+  const late = dsDelivery({
+    id: "m2",
+    reference: "DEL-M2",
+    stopNumber: 2,
+    status: "FAILED",
+    riskLevel: "HIGH",
+    createdAt: new Date("2026-11-28T09:00:00.000Z"),
+    assignments: recoveredPair("m"),
+  });
+  const december = dsDelivery({
+    id: "m3",
+    reference: "DEL-M3",
+    stopNumber: 3,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-12-01T09:00:00.000Z"),
+  });
+
+  const report = buildExecutiveReport({
+    kind: "month",
+    anchor: "2026-11",
+    timezone: "UTC",
+    deliveries: [early, late, december],
+  });
+
+  assert.equal(report.scopeCount, 2);
+  assert.equal(report.snapshot.completed, 1);
+  assert.equal(report.snapshot.failed, 1);
+  assert.equal(report.recovery.outcomes.unresolved, 1);
+  assert.equal(report.riskSummary.high, 1);
+});
+
+test("executive report respects operational timezone week boundaries", () => {
+  const delivery = dsDelivery({
+    id: "tz1",
+    reference: "DEL-TZ",
+    createdAt: new Date("2026-11-10T00:00:00.000Z"),
+    events: [
+      {
+        type: "EXCEPTION_REPORTED",
+        toStatus: null,
+        note: "Delay",
+        occurredAt: new Date("2026-11-23T02:00:00.000Z"),
+      },
+    ],
+  });
+
+  const ny = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "America/New_York",
+    deliveries: [delivery],
+  });
+  const utc = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [delivery],
+  });
+
+  assert.equal(ny.scopeCount, 1);
+  assert.equal(utc.scopeCount, 0);
+});
+
+test("executive report compares against the previous equivalent period", () => {
+  const currentWeek = dsDelivery({
+    id: "c1",
+    reference: "DEL-C1",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T09:00:00.000Z"),
+  });
+  const prevA = dsDelivery({
+    id: "p1",
+    reference: "DEL-P1",
+    stopNumber: 2,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-10T09:00:00.000Z"),
+  });
+  const prevB = dsDelivery({
+    id: "p2",
+    reference: "DEL-P2",
+    stopNumber: 3,
+    status: "DELIVERED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-11T09:00:00.000Z"),
+    deliveredAt: new Date("2026-11-11T18:00:00.000Z"),
+  });
+
+  const report = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [currentWeek, prevA, prevB],
+  });
+
+  assert.equal(report.comparison.available, true);
+  assert.equal(report.comparison.previousLabel, "Week: Nov 9 – Nov 15, 2026");
+  const scopeRow = report.comparison.rows.find(
+    (row) => row.label === "Deliveries in scope",
+  );
+  assert.equal(scopeRow.current, 1);
+  assert.equal(scopeRow.previous, 2);
+  assert.equal(scopeRow.delta, -1);
+  const completed = report.comparison.rows.find(
+    (row) => row.label === "No recovery action",
+  );
+  assert.ok(completed);
+});
+
+test("executive report handles an empty period honestly", () => {
+  const report = buildExecutiveReport({
+    kind: "month",
+    anchor: "2030-01",
+    timezone: "UTC",
+    deliveries: [
+      dsDelivery({
+        id: "old",
+        createdAt: new Date("2026-11-10T09:00:00.000Z"),
+      }),
+    ],
+  });
+  assert.equal(report.scopeCount, 0);
+  assert.match(report.narrative, /No operational activity/);
+  assert.equal(report.comparison.available, true);
+});
+
+test("executive report flags deliveries without timestamps as partial coverage", () => {
+  const untimestamped = dsDelivery({
+    id: "u1",
+    reference: "DEL-U1",
+    createdAt: null,
+    assignments: [],
+    events: [],
+  });
+  const normal = dsDelivery({
+    id: "n1",
+    reference: "DEL-N1",
+    createdAt: new Date("2026-11-17T09:00:00.000Z"),
+  });
+  const report = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [untimestamped, normal],
+  });
+  assert.equal(report.scopeCount, 1);
+  assert.equal(report.recordsWithoutTimestamps, 1);
+});
+
+test("executive report preserves impact classification and never fabricates values", () => {
+  const entry = {
+    deliveryId: "t1",
+    label: "DEL-T1",
+    stopNumber: 2,
+    customer: null,
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    truck: null,
+    driver: null,
+    etaLabel: null,
+    projectedDelayLabel: null,
+    state: "resolved",
+    reasons: [],
+    sourceDeliveryIds: ["d1"],
+  };
+  const recovered = dsDelivery({
+    id: "d1",
+    reference: "DEL-101",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T10:00:00.000Z"),
+    downstreamEntries: [entry],
+    assignments: recoveredPair("x"),
+  });
+  const report = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [recovered],
+  });
+  const protectedMetric = report.impact.metrics.find(
+    (metric) => metric.key === "deliveriesProtected",
+  );
+  assert.equal(protectedMetric.state, "actual");
+  const fuel = report.impact.metrics.find(
+    (metric) => metric.key === "fuelImpact",
+  );
+  assert.equal(fuel.state, "insufficient");
+  assert.equal(fuel.display, "Insufficient data");
+  const benefit = report.impact.metrics.find(
+    (metric) => metric.key === "operationalBenefit",
+  );
+  assert.equal(benefit.state, "insufficient");
+  assert.ok(!JSON.stringify(report.impact).includes("$"));
+});
+
+test("executive report contains no scoring, ranking, or dispatcher feedback", () => {
+  const delivery = dsDelivery({
+    id: "s1",
+    status: "ASSIGNED",
+    riskLevel: "LOW",
+    createdAt: new Date("2026-11-17T09:00:00.000Z"),
+    assignments: recoveredPair("s"),
+  });
+  const report = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [delivery],
+  });
+  const serialized = JSON.stringify(report).toLowerCase();
+  for (const key of [
+    '"feedback"',
+    '"rating"',
+    '"score"',
+    '"rank"',
+    '"comment"',
+    '"best truck"',
+    '"best driver"',
+  ]) {
+    assert.ok(!serialized.includes(key), key);
+  }
+  assert.ok(!serialized.includes("saved $"));
+});
+
+test("executive report scopes strictly to provided organization deliveries", () => {
+  const mine = dsDelivery({
+    id: "org-a-1",
+    reference: "DEL-A1",
+    createdAt: new Date("2026-11-17T09:00:00.000Z"),
+  });
+  const report = buildExecutiveReport({
+    kind: "week",
+    anchor: "2026-11-18",
+    timezone: "UTC",
+    deliveries: [mine],
+  });
+  assert.equal(report.scopeCount, 1);
+  assert.deepEqual(
+    report.deliveries.map((row) => row.label),
+    ["DEL-A1"],
+  );
 });

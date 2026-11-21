@@ -40,6 +40,8 @@ export type AggregatedImpactMetric = {
   state: "actual" | "estimated" | "insufficient";
   display: string;
   coverage: string | null;
+  total: number | null;
+  unit: string | null;
 };
 
 export type DailyDeliveryRow = {
@@ -142,6 +144,19 @@ function zonedMidnightUtc(
   day: number,
   timezone: string,
 ): Date | null {
+  try {
+    return zonedMidnightUtcUnsafe(year, month, day, timezone);
+  } catch {
+    return null;
+  }
+}
+
+function zonedMidnightUtcUnsafe(
+  year: number,
+  month: number,
+  day: number,
+  timezone: string,
+): Date | null {
   const target = Date.UTC(year, month - 1, day);
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
@@ -194,6 +209,25 @@ export function operationalDayBounds(
   return { start, end };
 }
 
+export function operationalDayStart(
+  date: string,
+  timezone: string,
+): Date | null {
+  const parts = dayParts(date);
+  if (!parts) return null;
+  const start = zonedMidnightUtc(parts.year, parts.month, parts.day, timezone);
+  return start && !Number.isNaN(start.getTime()) ? start : null;
+}
+
+export function addDaysToDateString(date: string, days: number): string | null {
+  const parts = dayParts(date);
+  if (!parts) return null;
+  const shifted = new Date(
+    Date.UTC(parts.year, parts.month - 1, parts.day + days),
+  );
+  return shifted.toISOString().slice(0, 10);
+}
+
 function deliveryLabel(delivery: { reference: string | null; stopNumber: number }) {
   return delivery.reference ?? `Stop ${delivery.stopNumber}`;
 }
@@ -222,10 +256,9 @@ function eventKind(event: ImpactEventInput): string {
   return humanize(event.type);
 }
 
-type PerDelivery = {
+export type PreparedDelivery = {
   input: DailyDeliveryInput;
   label: string;
-  inScope: boolean;
   recovery: RecoveryResult;
   impact: MeasureImpact;
 };
@@ -246,6 +279,8 @@ function aggregateMetric(
       state: "insufficient",
       display: "Insufficient data",
       coverage: null,
+      total: null,
+      unit: null,
     };
   }
   const units = new Set(calculated.map((metric) => metric.unit));
@@ -256,6 +291,8 @@ function aggregateMetric(
       state: "insufficient",
       display: "Insufficient data",
       coverage: "Recorded values use mixed units and cannot be aggregated.",
+      total: null,
+      unit: null,
     };
   }
   const unit = calculated[0].unit ?? "";
@@ -281,6 +318,8 @@ function aggregateMetric(
       partial > 0
         ? `${calculated.length} of ${measurableCount} recovered deliveries measurable.`
         : null,
+    total,
+    unit,
   };
 }
 
@@ -306,7 +345,143 @@ export function buildDailyOperationsSummary(input: {
     }
   })();
 
-  const processed: PerDelivery[] = input.deliveries.map((item) => {
+  const prepared = prepareDailyDeliveries(input.deliveries, input.timezone);
+  const activity = collectDayActivity(prepared, start, end, input.timezone);
+  const scoped = activity.scoped;
+  const {
+    snapshot,
+    riskSummary,
+    outcomes,
+    outcomeCounts,
+    deliveryRows,
+    downstreamAffected,
+    impactMetrics,
+  } = summarizeScopedDeliveries(scoped, prepared);
+  const events = activity.events
+    .sort((left, right) => (left.time ?? Infinity) - (right.time ?? Infinity))
+    .map((event) => ({
+      timeLabel: event.timeLabel,
+      deliveryLabel: event.deliveryLabel,
+      kind: event.kind,
+      description: event.description,
+    }));
+
+  const narrative = buildNarrative({
+    dateLabel,
+    timezone: input.timezone,
+    timezoneAvailable,
+    scopeCount: scoped.length,
+    snapshot,
+    outcomes,
+    outcomeCounts,
+    reassignmentsInDay: activity.reassignmentsInDay,
+    assignmentStats: activity.assignmentStats,
+    impactMetrics,
+    downstreamCount: downstreamAffected.length,
+  });
+
+  return {
+    date: input.date,
+    dateLabel,
+    timezone: input.timezone,
+    timezoneAvailable,
+    dayStart: start,
+    dayEnd: end,
+    scopeCount: scoped.length,
+    snapshot,
+    riskSummary,
+    recovery: {
+      actionsExecuted: activity.reassignmentsInDay,
+      deliveriesWithRecovery: scoped.filter((item) => item.recovery.hasRecovery).length,
+      outcomes: outcomeCounts,
+      noAction: scoped.filter((item) => !item.recovery.hasRecovery).length,
+    },
+    assignmentActivity: activity.assignmentStats,
+    impact: { metrics: impactMetrics },
+    outcomes,
+    downstreamAffected,
+    events,
+    deliveries: deliveryRows,
+    narrative,
+  };
+}
+
+function buildNarrative(parts: {
+  dateLabel: string;
+  timezone: string;
+  timezoneAvailable: boolean;
+  scopeCount: number;
+  snapshot: DailyOperationsSummary["snapshot"];
+  outcomes: DailyOperationsSummary["outcomes"];
+  outcomeCounts: Record<RecoveryOutcome, number>;
+  reassignmentsInDay: number;
+  assignmentStats: DailyOperationsSummary["assignmentActivity"];
+  impactMetrics: AggregatedImpactMetric[];
+  downstreamCount: number;
+}) {
+  const lines: string[] = [];
+  if (parts.scopeCount === 0) {
+    lines.push(
+      `No deliveries with recorded activity appear in the operational day of ${parts.dateLabel}${parts.timezoneAvailable ? ` (${parts.timezone})` : ""}.`,
+    );
+    return lines.join(" ");
+  }
+  lines.push(
+    `${parts.scopeCount} ${parts.scopeCount === 1 ? "delivery was" : "deliveries were"} in scope on ${parts.dateLabel}.`,
+  );
+  if (parts.reassignmentsInDay > 0) {
+    lines.push(
+      `${parts.reassignmentsInDay} reassignment ${parts.reassignmentsInDay === 1 ? "action was" : "actions were"} recorded during the day across ${parts.snapshot.withRecoveryAction} ${parts.snapshot.withRecoveryAction === 1 ? "delivery" : "deliveries"} with recovery history.`,
+    );
+  }
+  const outcomeBits = (
+    [
+      ["successful", "operating normally"],
+      ["monitoring", "under monitoring"],
+      ["unresolved", "unresolved"],
+      ["insufficientData", "with insufficient outcome data"],
+    ] as const
+  )
+    .filter(([key]) => parts.outcomeCounts[key] > 0)
+    .map(([key, phrase]) => `${parts.outcomeCounts[key]} ${phrase}`);
+  if (outcomeBits.length > 0) {
+    lines.push(`Recovery outcomes: ${outcomeBits.join(", ")}.`);
+  }
+  if (parts.snapshot.withoutRecoveryAction > 0) {
+    lines.push(
+      `${parts.snapshot.withoutRecoveryAction} ${parts.snapshot.withoutRecoveryAction === 1 ? "delivery had" : "deliveries had"} no recorded recovery action.`,
+    );
+  }
+  if (parts.assignmentStats.transitions > 0) {
+    lines.push(
+      `${parts.assignmentStats.transitions} assignment ${parts.assignmentStats.transitions === 1 ? "change was" : "changes were"} recorded during the day.`,
+    );
+  }
+  const measured = parts.impactMetrics.filter(
+    (metric) => metric.state !== "insufficient",
+  );
+  if (measured.length === 0) {
+    lines.push(
+      "Measured impact remains insufficient where required source data was not recorded.",
+    );
+  } else {
+    lines.push(
+      `Measured impact: ${measured.map((metric) => `${metric.label.toLowerCase()} ${metric.display}`).join("; ")}.`,
+    );
+  }
+  if (parts.downstreamCount > 0) {
+    lines.push(
+      `${parts.downstreamCount} downstream ${parts.downstreamCount === 1 ? "delivery was" : "deliveries were"} recorded as affected.`,
+    );
+  }
+  return lines.join(" ");
+}
+
+export function prepareDailyDeliveries(
+  deliveries: DailyDeliveryInput[],
+  timezone: string,
+): PreparedDelivery[] {
+  return deliveries.map((item) => {
     const recovery = buildRecoveryResult({
       delivery: {
         id: item.delivery.id,
@@ -318,7 +493,7 @@ export function buildDailyOperationsSummary(input: {
       assignments: item.assignments,
       events: item.events,
       riskLevel: item.riskLevel,
-      timezone: input.timezone,
+      timezone,
     });
     const impact = buildMeasureImpact({
       recovery,
@@ -337,41 +512,66 @@ export function buildDailyOperationsSummary(input: {
       mileage: null,
       fuel: null,
       labor: null,
-      timezone: input.timezone,
+      timezone,
     });
-    const hasRecordedActivity =
-      inDay(item.delivery.createdAt, start, end) ||
-      inDay(item.delivery.deliveredAt, start, end) ||
-      item.events.some((event) => inDay(event.occurredAt, start, end)) ||
-      item.assignments.some(
-        (assignment) =>
-          inDay(assignment.assignedAt, start, end) ||
-          inDay(assignment.endedAt, start, end),
-      );
     return {
       input: item,
       label: deliveryLabel(item.delivery),
-      inScope: hasRecordedActivity,
       recovery,
       impact,
     };
   });
-  const scoped = processed.filter((item) => item.inScope);
+}
 
-  const outcomes = {
-    successful: [] as string[],
-    monitoring: [] as string[],
-    unresolved: [] as string[],
-    insufficientData: [] as string[],
-    noRecoveryAction: [] as string[],
+export function deliveryHasRecordedActivity(
+  item: DailyDeliveryInput,
+  start: Date,
+  end: Date,
+) {
+  return (
+    inDay(item.delivery.createdAt, start, end) ||
+    inDay(item.delivery.deliveredAt, start, end) ||
+    item.events.some((event) => inDay(event.occurredAt, start, end)) ||
+    item.assignments.some(
+      (assignment) =>
+        inDay(assignment.assignedAt, start, end) ||
+        inDay(assignment.endedAt, start, end),
+    )
+  );
+}
+
+export type DayActivity = {
+  scoped: PreparedDelivery[];
+  assignmentStats: {
+    assignmentsCreated: number;
+    transitions: number;
+    deliveriesWithChanges: number;
+    truckChanges: number;
+    driverChanges: number;
+    truckAndDriverChanges: number;
+    reRecords: number;
+    unchanged: number;
   };
-  const outcomeCounts: Record<RecoveryOutcome, number> = {
-    successful: 0,
-    monitoring: 0,
-    unresolved: 0,
-    insufficientData: 0,
-  };
-  let reassignmentsInDay = 0;
+  changedDeliveryIds: Set<string>;
+  reassignmentsInDay: number;
+  events: {
+    time: number | null;
+    timeLabel: string | null;
+    deliveryLabel: string;
+    kind: string;
+    description: string;
+  }[];
+};
+
+export function collectDayActivity(
+  prepared: PreparedDelivery[],
+  start: Date,
+  end: Date,
+  timezone: string,
+): DayActivity {
+  const scoped = prepared.filter((item) =>
+    deliveryHasRecordedActivity(item.input, start, end),
+  );
 
   const assignmentStats = {
     assignmentsCreated: 0,
@@ -383,14 +583,9 @@ export function buildDailyOperationsSummary(input: {
     reRecords: 0,
     unchanged: 0,
   };
-
-  const rawEvents: {
-    time: number | null;
-    timeLabel: string | null;
-    deliveryLabel: string;
-    kind: string;
-    description: string;
-  }[] = [];
+  const changedDeliveryIds = new Set<string>();
+  let reassignmentsInDay = 0;
+  const events: DayActivity["events"] = [];
 
   for (const item of scoped) {
     const { delivery, assignments } = item.input;
@@ -422,17 +617,17 @@ export function buildDailyOperationsSummary(input: {
         }
         if (assignment.endReason?.startsWith(reassignmentPrefix)) {
           reassignmentsInDay += 1;
-          rawEvents.push({
+          events.push({
             time: endedAt.getTime(),
-            timeLabel: formatDateTime(endedAt, input.timezone),
+            timeLabel: formatDateTime(endedAt, timezone),
             deliveryLabel: item.label,
             kind: "Recovery reassignment",
             description: `Assignment ended and successor recorded (${assignment.endReason}).`,
           });
         } else {
-          rawEvents.push({
+          events.push({
             time: endedAt.getTime(),
-            timeLabel: formatDateTime(endedAt, input.timezone),
+            timeLabel: formatDateTime(endedAt, timezone),
             deliveryLabel: item.label,
             kind: "Assignment ended",
             description: assignment.endReason ?? "Assignment ended.",
@@ -446,6 +641,7 @@ export function buildDailyOperationsSummary(input: {
     );
     if (changedToday) {
       assignmentStats.deliveriesWithChanges += 1;
+      changedDeliveryIds.add(item.input.delivery.id);
     }
 
     const activeAssignment = sorted.find(
@@ -455,26 +651,11 @@ export function buildDailyOperationsSummary(input: {
       assignmentStats.unchanged += 1;
     }
 
-    if (item.recovery.hasRecovery && item.recovery.recovery) {
-      outcomeCounts[item.recovery.recovery.outcome] += 1;
-      const bucket =
-        item.recovery.recovery.outcome === "successful"
-          ? outcomes.successful
-          : item.recovery.recovery.outcome === "monitoring"
-            ? outcomes.monitoring
-            : item.recovery.recovery.outcome === "unresolved"
-              ? outcomes.unresolved
-              : outcomes.insufficientData;
-      bucket.push(item.label);
-    } else {
-      outcomes.noRecoveryAction.push(item.label);
-    }
-
     for (const event of item.input.events) {
       if (!inDay(event.occurredAt, start, end)) continue;
-      rawEvents.push({
+      events.push({
         time: event.occurredAt.getTime(),
-        timeLabel: formatDateTime(event.occurredAt, input.timezone),
+        timeLabel: formatDateTime(event.occurredAt, timezone),
         deliveryLabel: item.label,
         kind: eventKind(event),
         description: event.note ?? eventKind(event),
@@ -482,7 +663,7 @@ export function buildDailyOperationsSummary(input: {
     }
 
     if (item.input.riskLevel === "HIGH" || item.input.riskLevel === "MEDIUM") {
-      rawEvents.push({
+      events.push({
         time: null,
         timeLabel: null,
         deliveryLabel: item.label,
@@ -491,7 +672,7 @@ export function buildDailyOperationsSummary(input: {
       });
     }
     if (item.input.projectedDelay) {
-      rawEvents.push({
+      events.push({
         time: null,
         timeLabel: null,
         deliveryLabel: item.label,
@@ -508,24 +689,83 @@ export function buildDailyOperationsSummary(input: {
           event.toStatus === delivery.status,
       )
     ) {
-      rawEvents.push({
+      events.push({
         time: null,
         timeLabel: null,
         deliveryLabel: item.label,
-        kind: delivery.status === "FAILED" ? "Currently failed" : "Currently cancelled",
+        kind:
+          delivery.status === "FAILED"
+            ? "Currently failed"
+            : "Currently cancelled",
         description: `Delivery is currently ${humanize(delivery.status).toLowerCase()}.`,
       });
     }
   }
 
+  return {
+    scoped,
+    assignmentStats,
+    changedDeliveryIds,
+    reassignmentsInDay,
+    events,
+  };
+}
+
+export type ScopedSummary = {
+  snapshot: DailyOperationsSummary["snapshot"];
+  riskSummary: DailyOperationsSummary["riskSummary"];
+  outcomes: DailyOperationsSummary["outcomes"];
+  outcomeCounts: Record<RecoveryOutcome, number>;
+  deliveryRows: DailyDeliveryRow[];
+  downstreamAffected: DailyOperationsSummary["downstreamAffected"];
+  impactMetrics: AggregatedImpactMetric[];
+};
+
+export function summarizeScopedDeliveries(
+  scoped: PreparedDelivery[],
+  allPrepared: PreparedDelivery[],
+): ScopedSummary {
+  const outcomes = {
+    successful: [] as string[],
+    monitoring: [] as string[],
+    unresolved: [] as string[],
+    insufficientData: [] as string[],
+    noRecoveryAction: [] as string[],
+  };
+  const outcomeCounts: Record<RecoveryOutcome, number> = {
+    successful: 0,
+    monitoring: 0,
+    unresolved: 0,
+    insufficientData: 0,
+  };
+
+  for (const item of scoped) {
+    if (item.recovery.hasRecovery && item.recovery.recovery) {
+      const outcome = item.recovery.recovery.outcome;
+      outcomeCounts[outcome] += 1;
+      const bucket =
+        outcome === "successful"
+          ? outcomes.successful
+          : outcome === "monitoring"
+            ? outcomes.monitoring
+            : outcome === "unresolved"
+              ? outcomes.unresolved
+              : outcomes.insufficientData;
+      bucket.push(item.label);
+    } else {
+      outcomes.noRecoveryAction.push(item.label);
+    }
+  }
+
   const scopedIds = new Set(scoped.map((item) => item.input.delivery.id));
   const labelById = new Map(
-    processed.map((item) => [item.input.delivery.id, item.label]),
+    allPrepared.map((item) => [item.input.delivery.id, item.label]),
   );
   const downstreamAffected = new Map<
     string,
     { label: string; state: string; sourceLabels: string[] }
   >();
+
   for (const item of scoped) {
     for (const entry of item.input.downstreamEntries) {
       const touchesScope =
@@ -537,7 +777,9 @@ export function buildDailyOperationsSummary(input: {
         (id) => labelById.get(id) ?? "Unknown delivery",
       );
       if (existing) {
-        existing.sourceLabels = [...new Set([...existing.sourceLabels, ...sourceLabels])];
+        existing.sourceLabels = [
+          ...new Set([...existing.sourceLabels, ...sourceLabels]),
+        ];
       } else {
         downstreamAffected.set(entry.deliveryId, {
           label: entry.label,
@@ -623,122 +865,13 @@ export function buildDailyOperationsSummary(input: {
     };
   });
 
-  const events = rawEvents
-    .sort((left, right) => (left.time ?? Infinity) - (right.time ?? Infinity))
-    .map((event) => ({
-      timeLabel: event.timeLabel,
-      deliveryLabel: event.deliveryLabel,
-      kind: event.kind,
-      description: event.description,
-    }));
-
-  const narrative = buildNarrative({
-    dateLabel,
-    timezone: input.timezone,
-    timezoneAvailable,
-    scopeCount: scoped.length,
-    snapshot,
-    outcomes,
-    outcomeCounts,
-    reassignmentsInDay,
-    assignmentStats,
-    impactMetrics,
-    downstreamCount: downstreamAffected.size,
-  });
-
   return {
-    date: input.date,
-    dateLabel,
-    timezone: input.timezone,
-    timezoneAvailable,
-    dayStart: start,
-    dayEnd: end,
-    scopeCount: scoped.length,
     snapshot,
     riskSummary,
-    recovery: {
-      actionsExecuted: reassignmentsInDay,
-      deliveriesWithRecovery: scoped.filter((item) => item.recovery.hasRecovery).length,
-      outcomes: outcomeCounts,
-      noAction: scoped.filter((item) => !item.recovery.hasRecovery).length,
-    },
-    assignmentActivity: assignmentStats,
-    impact: { metrics: impactMetrics },
     outcomes,
+    outcomeCounts,
+    deliveryRows,
     downstreamAffected: [...downstreamAffected.values()],
-    events,
-    deliveries: deliveryRows,
-    narrative,
+    impactMetrics,
   };
-}
-
-function buildNarrative(parts: {
-  dateLabel: string;
-  timezone: string;
-  timezoneAvailable: boolean;
-  scopeCount: number;
-  snapshot: DailyOperationsSummary["snapshot"];
-  outcomes: DailyOperationsSummary["outcomes"];
-  outcomeCounts: Record<RecoveryOutcome, number>;
-  reassignmentsInDay: number;
-  assignmentStats: DailyOperationsSummary["assignmentActivity"];
-  impactMetrics: AggregatedImpactMetric[];
-  downstreamCount: number;
-}) {
-  const lines: string[] = [];
-  if (parts.scopeCount === 0) {
-    lines.push(
-      `No deliveries with recorded activity appear in the operational day of ${parts.dateLabel}${parts.timezoneAvailable ? ` (${parts.timezone})` : ""}.`,
-    );
-    return lines.join(" ");
-  }
-  lines.push(
-    `${parts.scopeCount} ${parts.scopeCount === 1 ? "delivery was" : "deliveries were"} in scope on ${parts.dateLabel}.`,
-  );
-  if (parts.reassignmentsInDay > 0) {
-    lines.push(
-      `${parts.reassignmentsInDay} reassignment ${parts.reassignmentsInDay === 1 ? "action was" : "actions were"} recorded during the day across ${parts.snapshot.withRecoveryAction} ${parts.snapshot.withRecoveryAction === 1 ? "delivery" : "deliveries"} with recovery history.`,
-    );
-  }
-  const outcomeBits = (
-    [
-      ["successful", "operating normally"],
-      ["monitoring", "under monitoring"],
-      ["unresolved", "unresolved"],
-      ["insufficientData", "with insufficient outcome data"],
-    ] as const
-  )
-    .filter(([key]) => parts.outcomeCounts[key] > 0)
-    .map(([key, phrase]) => `${parts.outcomeCounts[key]} ${phrase}`);
-  if (outcomeBits.length > 0) {
-    lines.push(`Recovery outcomes: ${outcomeBits.join(", ")}.`);
-  }
-  if (parts.snapshot.withoutRecoveryAction > 0) {
-    lines.push(
-      `${parts.snapshot.withoutRecoveryAction} ${parts.snapshot.withoutRecoveryAction === 1 ? "delivery had" : "deliveries had"} no recorded recovery action.`,
-    );
-  }
-  if (parts.assignmentStats.transitions > 0) {
-    lines.push(
-      `${parts.assignmentStats.transitions} assignment ${parts.assignmentStats.transitions === 1 ? "change was" : "changes were"} recorded during the day.`,
-    );
-  }
-  const measured = parts.impactMetrics.filter(
-    (metric) => metric.state !== "insufficient",
-  );
-  if (measured.length === 0) {
-    lines.push(
-      "Measured impact remains insufficient where required source data was not recorded.",
-    );
-  } else {
-    lines.push(
-      `Measured impact: ${measured.map((metric) => `${metric.label.toLowerCase()} ${metric.display}`).join("; ")}.`,
-    );
-  }
-  if (parts.downstreamCount > 0) {
-    lines.push(
-      `${parts.downstreamCount} downstream ${parts.downstreamCount === 1 ? "delivery was" : "deliveries were"} recorded as affected.`,
-    );
-  }
-  return lines.join(" ");
 }
