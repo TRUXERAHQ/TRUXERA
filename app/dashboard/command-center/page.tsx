@@ -26,6 +26,7 @@ import {
   buttonPrimaryClass,
   buttonSecondaryClass,
   inputClass,
+  labelClass,
   riskTone,
   statusTone,
 } from "../ui";
@@ -218,7 +219,7 @@ async function CommandCenterContent({ searchParams }: Props) {
             name="organizationId"
             value={organizationId}
           />
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Search delivery, load, or customer
             <input
               name="q"
@@ -227,7 +228,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               className={inputClass}
             />
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Risk
             <select
               name="risk"
@@ -241,7 +242,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               <option value="INSUFFICIENT_DATA">Insufficient data</option>
             </select>
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Delivery status
             <select
               name="status"
@@ -256,7 +257,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Assignment
             <select
               name="assignmentState"
@@ -268,7 +269,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               <option value="UNASSIGNED">Unassigned</option>
             </select>
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Truck
             <select
               name="truckId"
@@ -283,7 +284,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Driver
             <select
               name="driverId"
@@ -298,7 +299,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Load
             <select
               name="loadId"
@@ -313,7 +314,7 @@ async function CommandCenterContent({ searchParams }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className={labelClass}>
             Attention
             <select
               name="attention"
@@ -368,20 +369,26 @@ async function CommandCenterContent({ searchParams }: Props) {
                     entry.truckId === recommendation?.truckId &&
                     entry.driverId === recommendation?.driverId,
                 );
+                const attentionAccent =
+                  item.risk.riskLevel === "HIGH"
+                    ? "border-l-rose-400"
+                    : item.risk.riskLevel === "MEDIUM"
+                      ? "border-l-amber-400"
+                      : "border-l-slate-200";
                 return (
                   <article
                     key={item.deliveryId}
-                    className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    className={`rounded-xl border border-slate-200 border-l-4 bg-white p-5 shadow-sm ${attentionAccent}`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                           {item.loadReference} · {item.deliveryReference}
                         </p>
-                        <h3 className="mt-1 text-lg font-semibold">
+                        <h3 className="mt-1 break-words text-lg font-semibold">
                           {item.customerName}
                         </h3>
-                        <p className="mt-1 text-sm text-slate-600">
+                        <p className="mt-1 break-words text-sm text-slate-600">
                           {item.destinationAddress}
                         </p>
                       </div>
@@ -394,6 +401,9 @@ async function CommandCenterContent({ searchParams }: Props) {
                             ? `${formatLabel(item.risk.riskLevel)} risk`
                             : "Insufficient risk data"}
                         </Badge>
+                        {item.requiresAttention && (
+                          <Badge tone="warning">Requires attention</Badge>
+                        )}
                       </div>
                     </div>
 

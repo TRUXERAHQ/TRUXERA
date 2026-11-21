@@ -14,7 +14,15 @@ import {
 } from "./assignment-forms";
 import { analyzeDeliveryRisksForOrganization } from "@/src/fleet/delivery-risk";
 import TruckShell from "../trucks/truck-shell";
-import { Badge, riskTone, statusTone } from "../ui";
+import {
+  Badge,
+  buttonPrimaryClass,
+  EmptyState,
+  Notice,
+  PageHeader,
+  riskTone,
+  statusTone,
+} from "../ui";
 
 type Props = { searchParams: Promise<OperationsSearchParams> };
 
@@ -119,29 +127,48 @@ async function DispatchContent({ searchParams }: Props) {
 
   return (
     <TruckShell organizations={context.organizations} organization={context.organization} activeSection="dispatch">
-      <div>
-        <p className="text-sm font-medium text-slate-500">Fleet operations</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">Dispatch</h1>
-        <p className="mt-2 text-sm text-slate-600">Assign planned deliveries and review deterministic, dispatcher-approved alternatives for active assignments. Changes are retained in history.</p>
-      </div>
+      <PageHeader
+        eyebrow="Fleet operations"
+        title="Dispatch"
+        description="Assign planned deliveries and review deterministic, dispatcher-approved alternatives for active assignments. Changes are retained in history."
+      />
 
       {(context.assigned || context.ended || context.reassigned) && (
-        <p role="status" className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {context.reassigned
-            ? "Delivery reassigned. The previous assignment remains in history."
-            : context.assigned
-              ? "Delivery assigned."
-              : "Assignment ended and retained in history."}
-        </p>
+        <div className="mt-5">
+          <Notice tone="success">
+            {context.reassigned
+              ? "Delivery reassigned. The previous assignment remains in history."
+              : context.assigned
+                ? "Delivery assigned."
+                : "Assignment ended and retained in history."}
+          </Notice>
+        </div>
       )}
-      {context.hasError && <p role="alert" className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">The dispatch operation could not be completed.</p>}
+      {context.hasError && (
+        <div className="mt-5">
+          <Notice tone="danger">
+            The dispatch operation could not be completed.
+          </Notice>
+        </div>
+      )}
 
       {board.deliveries.length === 0 ? (
-        <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
-          <h2 className="text-xl font-semibold">No deliveries to dispatch</h2>
-          <p className="mt-2 text-sm text-slate-600">Create a load with one or more delivery stops first.</p>
-          {context.canManage && <Link href={`/dashboard/loads/new?${organizationQuery(context.organization.id)}`} className="mt-6 inline-flex rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">Create a load</Link>}
-        </section>
+        <div className="mt-8">
+          <EmptyState
+            title="No deliveries to dispatch"
+            description="Create a load with one or more delivery stops first."
+            action={
+              context.canManage ? (
+                <Link
+                  href={`/dashboard/loads/new?${organizationQuery(context.organization.id)}`}
+                  className={buttonPrimaryClass}
+                >
+                  Create a load
+                </Link>
+              ) : undefined
+            }
+          />
+        </div>
       ) : (
         <section aria-label="Deliveries for dispatch" className="mt-8 space-y-4">
           {board.deliveries.map((delivery) => {
@@ -177,17 +204,21 @@ async function DispatchContent({ searchParams }: Props) {
               !assignment;
 
             return (
-              <article id={`delivery-${delivery.id}`} key={delivery.id} className="grid gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_18rem]">
-                <div>
+              <article id={`delivery-${delivery.id}`} key={delivery.id} className="grid scroll-mt-24 gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_18rem]">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-semibold">{delivery.reference ?? `${delivery.load.reference} · Stop ${delivery.stopNumber}`}</h2>
+                    <h2 className="break-words text-lg font-semibold">{delivery.reference ?? `${delivery.load.reference} · Stop ${delivery.stopNumber}`}</h2>
                     <Badge tone={statusTone(delivery.status)}>{formatLabel(delivery.status)}</Badge>
+                    <Badge tone={riskTone(risk?.riskLevel ?? null)}>
+                      {risk?.riskLevel
+                        ? `analyzed ${formatLabel(risk.riskLevel)} risk`
+                        : "analyzed risk: insufficient data"}
+                    </Badge>
                   </div>
-                  <p className="mt-1 text-sm text-slate-500">{delivery.load.customerName} · {delivery.destinationAddress}</p>
-                  <p className="mt-2 text-xs text-slate-500">Analyzed risk {risk?.riskLevel ? formatLabel(risk.riskLevel) : "insufficient data"} · Stored risk {formatLabel(delivery.riskLevel)} · ETA {delivery.eta ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: context.organization.timezone }).format(delivery.eta) : "not set"}</p>
-                  <p className="mt-1 text-xs text-slate-500">Load weight {delivery.load.weightKg === null ? "not recorded" : `${Number(delivery.load.weightKg).toLocaleString()} kg`}</p>
+                  <p className="mt-1 break-words text-sm text-slate-500">{delivery.load.customerName} · {delivery.destinationAddress}</p>
+                  <p className="mt-2 text-xs text-slate-500">Stored risk {formatLabel(delivery.riskLevel)} · ETA {delivery.eta ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: context.organization.timezone }).format(delivery.eta) : "not set"} · Load weight {delivery.load.weightKg === null ? "not recorded" : `${Number(delivery.load.weightKg).toLocaleString()} kg`}</p>
                   {risk && (
-                    <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
                       <p className="text-xs font-semibold text-slate-700">
                         Deterministic operational analysis, not an AI prediction
                       </p>
@@ -200,7 +231,7 @@ async function DispatchContent({ searchParams }: Props) {
                         </ul>
                       )}
                       {risk.intervention.action && (
-                        <p className="mt-2 text-xs font-medium text-red-800">
+                        <p className="mt-2 text-xs font-medium text-amber-800">
                           Recommended action: {risk.intervention.action}
                         </p>
                       )}
@@ -209,8 +240,12 @@ async function DispatchContent({ searchParams }: Props) {
                   {assignment ? (
                     <div className="mt-4 rounded-lg bg-slate-50 p-4">
                       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current assignment</p>
-                      <p className="mt-1 text-sm font-semibold">{assignment.truck.unitNumber} · {assignment.driver.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">Assigned {new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.assignedAt)}</p>
+                      <p className="mt-1 break-words text-sm font-semibold">{assignment.truck.unitNumber} · {assignment.driver.name}</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        <Badge tone="neutral">Truck {formatLabel(assignment.truck.status)}</Badge>
+                        <Badge tone="neutral">Driver {formatLabel(assignment.driver.status)}</Badge>
+                      </div>
+                      <p className="mt-1.5 text-xs text-slate-500">Assigned {new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.assignedAt)}</p>
                       {context.canManage && <EndAssignmentForm organizationId={context.organization.id} assignmentId={assignment.id} />}
                       {risk &&
                         ["ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(
@@ -221,9 +256,6 @@ async function DispatchContent({ searchParams }: Props) {
                             <div>
                               <p className="text-sm font-semibold text-emerald-800">
                                 <Badge tone="success" className="mr-1">Low risk</Badge>
-                                No recovery action required.
-                              </p>
-                              <p className="mt-1 text-sm font-medium text-slate-800">
                                 No recovery action required.
                               </p>
                               <p className="mt-1 text-xs text-slate-500">
@@ -332,7 +364,7 @@ async function DispatchContent({ searchParams }: Props) {
                   )}
                 </div>
 
-                <div className="self-start rounded-lg border border-slate-100 p-4">
+                <div className="self-start rounded-lg border border-slate-200 bg-slate-50 p-4">
                   {context.canManage && canAssign ? (
                     <AssignDeliveryForm
                       organizationId={context.organization.id}
@@ -352,22 +384,22 @@ async function DispatchContent({ searchParams }: Props) {
         </section>
       )}
 
-      <section className="mt-8 rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-6 py-5">
-          <h2 className="font-semibold">Recent assignment history</h2>
+      <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Recent assignment history</h2>
           <p className="mt-1 text-sm text-slate-500">Ended assignments remain as records and are never overwritten when a delivery is assigned again.</p>
         </div>
         {assignmentHistory.length === 0 ? (
-          <p className="px-6 py-7 text-sm text-slate-600">No ended assignments recorded.</p>
+          <p className="px-5 py-7 text-sm text-slate-600">No ended assignments recorded.</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {assignmentHistory.map((assignment) => {
               const delivery = deliveryById.get(assignment.deliveryId);
               return (
-                <li key={assignment.id} className="grid gap-3 px-6 py-4 sm:grid-cols-4">
-                  <p className="text-sm font-medium">{delivery ? `${delivery.load.reference} · Stop ${delivery.stopNumber}` : "Delivery record"}</p>
-                  <p className="text-sm text-slate-600">{assignment.truck.unitNumber} · {assignment.driver.name}</p>
-                  <p className="text-sm text-slate-600">{assignment.endReason ?? "Assignment ended"}</p>
+                <li key={assignment.id} className="grid gap-2 px-5 py-4 sm:grid-cols-4">
+                  <p className="break-words text-sm font-medium">{delivery ? `${delivery.load.reference} · Stop ${delivery.stopNumber}` : "Delivery record"}</p>
+                  <p className="break-words text-sm text-slate-600">{assignment.truck.unitNumber} · {assignment.driver.name}</p>
+                  <p className="break-words text-sm text-slate-600">{assignment.endReason ?? "Assignment ended"}</p>
                   <p className="text-xs text-slate-500">{assignment.endedAt ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.endedAt) : ""}</p>
                 </li>
               );

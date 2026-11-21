@@ -6,6 +6,14 @@ import {
   endAssignmentAction,
   reassignDeliveryAction,
 } from "./actions";
+import {
+  Badge,
+  buttonAccentClass,
+  buttonPrimaryClass,
+  buttonSecondaryClass,
+  inputClass,
+  labelClass,
+} from "../ui";
 
 type AssignProps = {
   organizationId: string;
@@ -35,17 +43,17 @@ export function AssignDeliveryForm({
       <input type="hidden" name="organizationId" value={organizationId} />
       <input type="hidden" name="deliveryId" value={deliveryId} />
       <label className="sr-only" htmlFor={`truck-${deliveryId}`}>Truck</label>
-      <select id={`truck-${deliveryId}`} name="truckId" required defaultValue="" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+      <select id={`truck-${deliveryId}`} name="truckId" required defaultValue="" className={inputClass}>
         <option value="" disabled>Select truck</option>
         {trucks.map((truck) => <option key={truck.id} value={truck.id}>{truck.unitNumber}</option>)}
       </select>
       <label className="sr-only" htmlFor={`driver-${deliveryId}`}>Driver</label>
-      <select id={`driver-${deliveryId}`} name="driverId" required defaultValue="" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+      <select id={`driver-${deliveryId}`} name="driverId" required defaultValue="" className={inputClass}>
         <option value="" disabled>Select driver</option>
         {drivers.map((driver) => <option key={driver.id} value={driver.id}>{driver.name}</option>)}
       </select>
       {state.error && <p role="alert" className="text-xs text-red-700">{state.error}</p>}
-      <button type="submit" disabled={pending} className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60">
+      <button type="submit" disabled={pending} className={`${buttonPrimaryClass} w-full disabled:opacity-60`}>
         {pending ? "Assigning..." : "Assign"}
       </button>
     </form>
@@ -67,10 +75,10 @@ export function EndAssignmentForm({
     <form action={action} className="mt-3 space-y-2">
       <input type="hidden" name="organizationId" value={organizationId} />
       <input type="hidden" name="assignmentId" value={assignmentId} />
-      <label className="block text-xs font-medium text-slate-600" htmlFor={`reason-${assignmentId}`}>End reason (optional)</label>
-      <input id={`reason-${assignmentId}`} name="reason" maxLength={250} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+      <label className={labelClass} htmlFor={`reason-${assignmentId}`}>End reason (optional)</label>
+      <input id={`reason-${assignmentId}`} name="reason" maxLength={250} className={inputClass} />
       {state.error && <p role="alert" className="text-xs text-red-700">{state.error}</p>}
-      <button type="submit" disabled={pending} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60">
+      <button type="submit" disabled={pending} className={`${buttonSecondaryClass} disabled:opacity-60`}>
         {pending ? "Ending..." : "End assignment"}
       </button>
     </form>
@@ -125,7 +133,7 @@ export function ReassignDeliveryForm({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="mt-4 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        className={`${buttonSecondaryClass} mt-4`}
       >
         Review recovery
       </button>
@@ -143,9 +151,12 @@ export function ReassignDeliveryForm({
       />
       {recommended && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-          <p className="text-xs font-semibold text-emerald-900">
-            TRUXERA Recommendation
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold text-emerald-900">
+              TRUXERA Recommendation
+            </p>
+            <Badge tone="success">Recommended</Badge>
+          </div>
           <p className="mt-1 text-sm font-medium text-emerald-950">
             {recommended.truckUnitNumber} · {recommended.driverName}
           </p>
@@ -174,7 +185,7 @@ export function ReassignDeliveryForm({
         </div>
       )}
       <label
-        className="block text-xs font-medium text-slate-600"
+        className={labelClass}
         htmlFor={`replacement-${deliveryId}`}
       >
         Eligible replacement
@@ -184,7 +195,7 @@ export function ReassignDeliveryForm({
         name="candidate"
         required
         defaultValue={`${firstChoice.truckId}:${firstChoice.driverId}`}
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+        className={inputClass}
       >
         {choices.map((choice) => (
           <option
@@ -197,7 +208,7 @@ export function ReassignDeliveryForm({
         ))}
       </select>
       <label
-        className="block text-xs font-medium text-slate-600"
+        className={labelClass}
         htmlFor={`reassign-reason-${deliveryId}`}
       >
         Reason (optional)
@@ -206,7 +217,7 @@ export function ReassignDeliveryForm({
         id={`reassign-reason-${deliveryId}`}
         name="reason"
         maxLength={250}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+        className={inputClass}
         placeholder="Why is this delivery being reassigned?"
       />
       {state.error && (
@@ -218,14 +229,14 @@ export function ReassignDeliveryForm({
         <button
           type="button"
           onClick={() => setIsOpen(false)}
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className={`${buttonSecondaryClass} flex-1`}
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
+          className={`${buttonAccentClass} flex-1 disabled:opacity-60`}
         >
           {pending ? "Reassigning..." : "Approve reassignment"}
         </button>
