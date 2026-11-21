@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const buttonPrimaryClass =
-  "inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800";
+  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700";
 
 export const buttonSecondaryClass =
   "inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50";
@@ -14,14 +14,14 @@ export const buttonDangerClass =
   "inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50";
 
 export const inputClass =
-  "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400";
+  "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100";
 
 export const labelClass =
   "block text-xs font-medium uppercase tracking-wide text-slate-500";
 
 export const tableClass = "w-full text-left text-sm";
 export const tableHeadClass =
-  "border-b border-slate-200 bg-slate-50/60 text-xs font-medium uppercase tracking-wide text-slate-600";
+  "border-b border-indigo-100 bg-indigo-50/50 text-xs font-medium uppercase tracking-wide text-slate-600";
 export const tableCellClass = "py-2.5 pr-4 align-top text-slate-700";
 export const tableRowClass =
   "border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/60";
@@ -123,7 +123,7 @@ export function PageHeader({
   return (
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
-        <p className="text-sm font-medium text-slate-500">{eyebrow}</p>
+        <p className="text-sm font-semibold text-indigo-600">{eyebrow}</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
           {title}
         </h1>
@@ -175,7 +175,7 @@ export function Stat({
   hint?: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+    <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 px-4 py-3">
       <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </dt>

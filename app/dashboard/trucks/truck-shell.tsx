@@ -182,7 +182,7 @@ export default function TruckShell({
               className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
                 activeSection === "dashboard"
                   ? "bg-indigo-600 text-white"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
               }`}
             >
               Dashboard
@@ -205,7 +205,7 @@ export default function TruckShell({
                       className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
                         active
                           ? "bg-indigo-600 text-white"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
                       }`}
                     >
                       <span className="hidden min-[1400px]:inline-flex">

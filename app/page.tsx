@@ -385,7 +385,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="truck"
           label="Active Trucks"
-          iconClass="bg-indigo-50 text-indigo-600"
+          iconClass="bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600"
           hint={`${metrics.availableTrucks} available · ${metrics.onRouteTrucks} on route · ${metrics.maintenanceTrucks} maintenance · ${metrics.outOfServiceTrucks} out of service`}
         >
           {data.trucks.length}
@@ -394,7 +394,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="users"
           label="Active Drivers"
-          iconClass="bg-violet-50 text-violet-600"
+          iconClass="bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600"
           hint="Available or on duty"
         >
           {metrics.activeDrivers}
@@ -403,7 +403,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="package"
           label="Total Deliveries"
-          iconClass="bg-cyan-50 text-cyan-600"
+          iconClass="bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-600"
           hint={`${activeDeliveries.length} open · ${metrics.deliveryStatusCounts.DELIVERED} delivered`}
         >
           {data.deliveries.length}
@@ -412,7 +412,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="layers"
           label="Active Loads"
-          iconClass="bg-blue-50 text-blue-600"
+          iconClass="bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600"
           hint="Loads with at least one open delivery"
         >
           {metrics.activeLoads}
@@ -421,7 +421,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="alert"
           label="At-Risk Deliveries"
-          iconClass="bg-red-50 text-red-600"
+          iconClass="bg-gradient-to-br from-red-50 to-red-100 text-red-600"
           danger
           hint={`High ${activeRiskSummary.HIGH} · Medium ${activeRiskSummary.MEDIUM} · Low ${activeRiskSummary.LOW} · Insufficient data ${activeRiskSummary.insufficientData} · ${activeRiskSummary.requiringIntervention} need review · ${activeRiskSummary.withEligibleReassignment} have an eligible replacement`}
         >
@@ -431,7 +431,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="pulse"
           label="Fleet Availability"
-          iconClass="bg-emerald-50 text-emerald-600"
+          iconClass="bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600"
           hint={
             <>
               {metrics.fleetAvailability === null
@@ -542,7 +542,7 @@ async function Dashboard({ searchParams }: HomeProps) {
 
             <Link
               href={`/dashboard/trucks?organizationId=${encodeURIComponent(data.organization.id)}`}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
             >
               View all
             </Link>
@@ -658,7 +658,7 @@ async function Dashboard({ searchParams }: HomeProps) {
 
             <Link
               href={`/dashboard/loads?organizationId=${encodeURIComponent(data.organization.id)}`}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
             >
               View all
             </Link>
