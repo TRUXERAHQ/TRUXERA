@@ -3,10 +3,14 @@ import type { ExecutiveReport } from "@/src/dashboard/executive-report";
 import {
   Badge,
   EmptyState,
+  Notice,
   PageHeader,
   Panel,
+  recoveryTone,
+  riskTone,
   Stat,
   StatGrid,
+  statusTone,
   buttonPrimaryClass,
   dataQualityTone,
   inputClass,
@@ -46,25 +50,6 @@ export default function ExecutiveReportView({
         eyebrow="Fleet operations · Executive report"
         title={report.periodLabel}
         description={`Timezone: ${report.timezone}${report.timezoneAvailable ? "" : " (invalid — UTC fallback used)"}`}
-        meta={
-          <>
-            {!periodBoundsValid && (
-              <p className="mt-1 text-amber-700">
-                The selected period could not be resolved in the operational
-                timezone; a fallback window is shown.
-              </p>
-            )}
-            {report.recordsWithoutTimestamps > 0 && (
-              <p className="mt-1 text-amber-700">
-                {report.recordsWithoutTimestamps}{" "}
-                {report.recordsWithoutTimestamps === 1
-                  ? "delivery has"
-                  : "deliveries have"}{" "}
-                no recorded timestamps and cannot be assigned to a period.
-              </p>
-            )}
-          </>
-        }
         actions={
           <form
             method="get"
@@ -110,6 +95,26 @@ export default function ExecutiveReportView({
           </form>
         }
       />
+
+      {(!periodBoundsValid || report.recordsWithoutTimestamps > 0) && (
+        <div className="mt-4 space-y-2">
+          {!periodBoundsValid && (
+            <Notice tone="warning">
+              The selected period could not be resolved in the operational
+              timezone; a fallback window is shown.
+            </Notice>
+          )}
+          {report.recordsWithoutTimestamps > 0 && (
+            <Notice tone="warning">
+              {report.recordsWithoutTimestamps}{" "}
+              {report.recordsWithoutTimestamps === 1
+                ? "delivery has"
+                : "deliveries have"}{" "}
+              no recorded timestamps and cannot be assigned to a period.
+            </Notice>
+          )}
+        </div>
+      )}
 
       {empty ? (
         <div className="mt-6">
@@ -161,7 +166,7 @@ export default function ExecutiveReportView({
               ).map(([label, items]) => (
                 <div
                   key={label}
-                  className="rounded-xl border border-slate-200 px-4 py-3"
+                  className="rounded-lg border border-slate-200 px-4 py-3"
                 >
                   <h3 className="text-sm font-semibold text-slate-800">
                     {label}{" "}
@@ -466,16 +471,24 @@ export default function ExecutiveReportView({
                           </Badge>
                         )}
                       </td>
-                      <td className={tableCellClass}>
-                        {statusLabel(row.status)}
+                      <td className="py-2.5 pr-4">
+                        <Badge tone={statusTone(row.status)}>
+                          {statusLabel(row.status)}
+                        </Badge>
                       </td>
-                      <td className={tableCellClass}>
-                        {row.riskLevel ?? "unassessed"}
+                      <td className="py-2.5 pr-4">
+                        <Badge tone={riskTone(row.riskLevel)}>
+                          {row.riskLevel
+                            ? row.riskLevel.toLowerCase()
+                            : "unassessed"}
+                        </Badge>
                       </td>
-                      <td className={tableCellClass}>
-                        {row.recoveryState === "none"
-                          ? "No recovery action"
-                          : statusLabel(row.recoveryState)}
+                      <td className="py-2.5 pr-4">
+                        <Badge tone={recoveryTone(row.recoveryState)}>
+                          {row.recoveryState === "none"
+                            ? "No recovery action"
+                            : statusLabel(row.recoveryState)}
+                        </Badge>
                       </td>
                       <td className={tableCellClass}>
                         {row.currentAssignmentLabel ?? "Not recorded"}

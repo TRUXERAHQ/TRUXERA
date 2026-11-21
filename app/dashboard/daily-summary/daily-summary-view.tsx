@@ -3,10 +3,14 @@ import type { DailyOperationsSummary } from "@/src/dashboard/daily-summary";
 import {
   Badge,
   EmptyState,
+  Notice,
   PageHeader,
   Panel,
+  recoveryTone,
+  riskTone,
   Stat,
   StatGrid,
+  statusTone,
   buttonPrimaryClass,
   dataQualityTone,
   inputClass,
@@ -71,6 +75,13 @@ export default function DailySummaryView({
           </form>
         }
       />
+
+      {!summary.timezoneAvailable && (
+        <Notice tone="warning">
+          The operational timezone could not be resolved; this summary uses a
+          UTC day boundary instead.
+        </Notice>
+      )}
 
       {summary.scopeCount === 0 ? (
         <div className="mt-6">
@@ -297,26 +308,42 @@ export default function DailySummaryView({
                           </Badge>
                         )}
                       </td>
-                      <td className={tableCellClass}>
-                        {statusLabel(row.status)}
+                      <td className="py-2.5 pr-4">
+                        <Badge tone={statusTone(row.status)}>
+                          {statusLabel(row.status)}
+                        </Badge>
                       </td>
-                      <td className={tableCellClass}>
-                        {row.riskLevel ?? "unassessed"}
+                      <td className="py-2.5 pr-4">
+                        <Badge tone={riskTone(row.riskLevel)}>
+                          {row.riskLevel
+                            ? row.riskLevel.toLowerCase()
+                            : "unassessed"}
+                        </Badge>
                       </td>
-                      <td className={tableCellClass}>
-                        {row.recoveryState === "none"
-                          ? "No recovery action"
-                          : statusLabel(row.recoveryState)}
+                      <td className="py-2.5 pr-4">
+                        <Badge tone={recoveryTone(row.recoveryState)}>
+                          {row.recoveryState === "none"
+                            ? "No recovery action"
+                            : statusLabel(row.recoveryState)}
+                        </Badge>
                       </td>
                       <td className={tableCellClass}>
                         {row.currentAssignmentLabel ?? "Not recorded"}
                       </td>
-                      <td className={tableCellClass}>
-                        {row.impactState === "notApplicable"
-                          ? "Not applicable"
-                          : row.impactState === "insufficient"
-                            ? "Insufficient data"
-                            : "Measured"}
+                      <td className="py-2.5 pr-4">
+                        <Badge
+                          tone={
+                            row.impactState === "measured"
+                              ? "success"
+                              : "neutral"
+                          }
+                        >
+                          {row.impactState === "notApplicable"
+                            ? "Not applicable"
+                            : row.impactState === "insufficient"
+                              ? "Insufficient data"
+                              : "Measured"}
+                        </Badge>
                       </td>
                       <td className="py-2.5 text-slate-500">
                         {row.loadReference}

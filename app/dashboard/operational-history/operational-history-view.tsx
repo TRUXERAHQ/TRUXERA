@@ -8,6 +8,7 @@ import type {
 import type { RecoveryOutcome } from "@/src/dashboard/recovery-result";
 import {
   Badge,
+  type BadgeTone,
   EmptyState,
   PageHeader,
   Panel,
@@ -29,6 +30,17 @@ const outcomeLabels: Record<RecoveryOutcome, string> = {
   monitoring: "Monitoring",
   unresolved: "Unresolved",
   insufficientData: "Insufficient data",
+};
+
+const typeTones: Record<string, BadgeTone> = {
+  LOAD_CREATED: "neutral",
+  DELIVERY_CREATED: "neutral",
+  DELIVERY_DELIVERED: "success",
+  DELIVERY_EVENT: "info",
+  ASSIGNMENT_CREATED: "info",
+  ASSIGNMENT_ENDED: "warning",
+  RECOVERY_ACTION: "danger",
+  IMPACT_MEASURED: "neutral",
 };
 
 function Field({
@@ -54,10 +66,15 @@ function EntryCard({ entry }: { entry: OperationalHistoryEntry }) {
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-slate-500">
+        <time
+          dateTime={entry.timestamp.toISOString()}
+          className="text-sm font-medium text-slate-500"
+        >
           {entry.timeLabel}
-        </span>
-        <Badge tone="neutral">{entry.typeLabel}</Badge>
+        </time>
+        <Badge tone={typeTones[entry.type] ?? "neutral"}>
+          {entry.typeLabel}
+        </Badge>
         {entry.outcome && (
           <Badge tone={recoveryTone(entry.outcome)}>
             {outcomeLabels[entry.outcome]}
@@ -143,7 +160,7 @@ export default function OperationalHistoryView({
         }
       />
 
-      <Panel>
+      <Panel title="Filter operational history">
         <form
           method="get"
           action="/dashboard/operational-history"
