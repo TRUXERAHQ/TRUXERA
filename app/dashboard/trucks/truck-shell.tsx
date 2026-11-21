@@ -124,7 +124,7 @@ export default function TruckShell({
     activeSection === "dashboard" ? "/" : `/dashboard/${activeSection}`;
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900">
+    <main className="min-h-screen bg-background text-slate-900">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between gap-4">
@@ -181,7 +181,7 @@ export default function TruckShell({
               aria-current={activeSection === "dashboard" ? "page" : undefined}
               className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
                 activeSection === "dashboard"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
                   : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
               }`}
             >
@@ -204,7 +204,7 @@ export default function TruckShell({
                       aria-current={active ? "page" : undefined}
                       className={`flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
                         active
-                          ? "bg-indigo-600 text-white"
+                          ? "bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
                           : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
                       }`}
                     >
@@ -227,7 +227,7 @@ export default function TruckShell({
               aria-current={activeSection === "dashboard" ? "page" : undefined}
               className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium ${
                 activeSection === "dashboard"
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
                   : "text-slate-600"
               }`}
             >
@@ -244,7 +244,7 @@ export default function TruckShell({
                     aria-current={active ? "page" : undefined}
                     className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium ${
                       active
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
                         : "text-slate-600"
                     }`}
                   >

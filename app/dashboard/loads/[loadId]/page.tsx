@@ -81,7 +81,7 @@ function getEventTitle(event: {
 
 export default function LoadDetailsPage({ params, searchParams }: Props) {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-slate-50 p-8 text-slate-600">Loading load details...</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-background p-8 text-slate-600">Loading load details...</main>}>
       <LoadDetailsContent params={params} searchParams={searchParams} />
     </Suspense>
   );

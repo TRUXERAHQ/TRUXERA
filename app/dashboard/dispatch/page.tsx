@@ -32,7 +32,7 @@ function formatLabel(value: string) {
 
 export default function DispatchPage({ searchParams }: Props) {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-slate-50 p-8 text-slate-600">Loading dispatch board...</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-background p-8 text-slate-600">Loading dispatch board...</main>}>
       <DispatchContent searchParams={searchParams} />
     </Suspense>
   );

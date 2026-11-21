@@ -33,7 +33,7 @@ function formatDate(value: Date, timeZone: string) {
 
 export default function DriverDetailsPage({ params, searchParams }: Props) {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-slate-50 p-8 text-slate-600">Loading driver details...</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-background p-8 text-slate-600">Loading driver details...</main>}>
       <DriverDetailsContent params={params} searchParams={searchParams} />
     </Suspense>
   );

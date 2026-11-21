@@ -161,6 +161,8 @@ function KpiCard({
   icon,
   label,
   iconClass,
+  accentClass,
+  valueClass = "text-slate-950",
   children,
   hint,
   danger = false,
@@ -168,19 +170,19 @@ function KpiCard({
   icon: Parameters<typeof KpiIcon>[0]["name"];
   label: string;
   iconClass: string;
+  accentClass: string;
+  valueClass?: string;
   children: ReactNode;
   hint?: ReactNode;
   danger?: boolean;
 }) {
   return (
     <div
-      className={`rounded-xl border bg-white p-5 shadow-sm ${
-        danger ? "border-red-200" : "border-slate-200"
-      }`}
+      className={`rounded-xl border border-slate-200 border-t-2 bg-white p-5 shadow-sm ${accentClass}`}
     >
       <div className="flex items-center gap-3">
         <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-black/5 ${iconClass}`}
         >
           <KpiIcon name={icon} />
         </span>
@@ -188,7 +190,7 @@ function KpiCard({
       </div>
       <div
         className={`mt-3 text-3xl font-bold tracking-tight ${
-          danger ? "text-red-600" : "text-slate-950"
+          danger ? "text-red-600" : valueClass
         }`}
       >
         {children}
@@ -202,7 +204,7 @@ export default function Home({ searchParams }: HomeProps) {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-slate-50 p-8 text-slate-600">
+        <main className="min-h-screen bg-background p-8 text-slate-600">
           Loading fleet dashboard...
         </main>
       }
@@ -347,7 +349,7 @@ async function Dashboard({ searchParams }: HomeProps) {
 
   if (!data.organization) {
     return (
-      <main className="min-h-screen bg-slate-50 p-8 text-slate-900">
+      <main className="min-h-screen bg-background p-8 text-slate-900">
         <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <h1 className="text-xl font-bold">No organization selected</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -386,6 +388,8 @@ async function Dashboard({ searchParams }: HomeProps) {
           icon="truck"
           label="Active Trucks"
           iconClass="bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600"
+          accentClass="border-t-indigo-500"
+          valueClass="text-indigo-700"
           hint={`${metrics.availableTrucks} available · ${metrics.onRouteTrucks} on route · ${metrics.maintenanceTrucks} maintenance · ${metrics.outOfServiceTrucks} out of service`}
         >
           {data.trucks.length}
@@ -395,6 +399,8 @@ async function Dashboard({ searchParams }: HomeProps) {
           icon="users"
           label="Active Drivers"
           iconClass="bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600"
+          accentClass="border-t-violet-500"
+          valueClass="text-violet-700"
           hint="Available or on duty"
         >
           {metrics.activeDrivers}
@@ -404,6 +410,8 @@ async function Dashboard({ searchParams }: HomeProps) {
           icon="package"
           label="Total Deliveries"
           iconClass="bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-600"
+          accentClass="border-t-cyan-500"
+          valueClass="text-cyan-700"
           hint={`${activeDeliveries.length} open · ${metrics.deliveryStatusCounts.DELIVERED} delivered`}
         >
           {data.deliveries.length}
@@ -413,6 +421,8 @@ async function Dashboard({ searchParams }: HomeProps) {
           icon="layers"
           label="Active Loads"
           iconClass="bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600"
+          accentClass="border-t-blue-500"
+          valueClass="text-blue-700"
           hint="Loads with at least one open delivery"
         >
           {metrics.activeLoads}
@@ -422,6 +432,7 @@ async function Dashboard({ searchParams }: HomeProps) {
           icon="alert"
           label="At-Risk Deliveries"
           iconClass="bg-gradient-to-br from-red-50 to-red-100 text-red-600"
+          accentClass="border-t-red-500"
           danger
           hint={`High ${activeRiskSummary.HIGH} · Medium ${activeRiskSummary.MEDIUM} · Low ${activeRiskSummary.LOW} · Insufficient data ${activeRiskSummary.insufficientData} · ${activeRiskSummary.requiringIntervention} need review · ${activeRiskSummary.withEligibleReassignment} have an eligible replacement`}
         >
@@ -432,6 +443,8 @@ async function Dashboard({ searchParams }: HomeProps) {
           icon="pulse"
           label="Fleet Availability"
           iconClass="bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600"
+          accentClass="border-t-emerald-500"
+          valueClass="text-emerald-700"
           hint={
             <>
               {metrics.fleetAvailability === null
@@ -449,7 +462,7 @@ async function Dashboard({ searchParams }: HomeProps) {
         </KpiCard>
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+      <div className="mt-4 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50/60 via-white to-cyan-50/40 px-5 py-4 shadow-sm">
         <div className="text-sm font-semibold text-slate-800">Delivery status</div>
         <div className="mt-3 flex flex-wrap gap-2">
           {Object.entries(metrics.deliveryStatusCounts).map(
@@ -534,7 +547,13 @@ async function Dashboard({ searchParams }: HomeProps) {
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <div>
-              <h2 className="font-semibold text-slate-800">Fleet Overview</h2>
+              <h2 className="font-semibold text-slate-800">
+                <span
+                  aria-hidden="true"
+                  className="mr-2 inline-block h-2 w-2 rounded-[3px] bg-indigo-500 align-middle"
+                />
+                Fleet Overview
+              </h2>
               <p className="mt-1 text-xs text-slate-600">
                 Current truck operations
               </p>
@@ -650,7 +669,13 @@ async function Dashboard({ searchParams }: HomeProps) {
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <div>
-              <h2 className="font-semibold text-slate-800">Delivery Monitor</h2>
+              <h2 className="font-semibold text-slate-800">
+                <span
+                  aria-hidden="true"
+                  className="mr-2 inline-block h-2 w-2 rounded-[3px] bg-cyan-500 align-middle"
+                />
+                Delivery Monitor
+              </h2>
               <p className="mt-1 text-xs text-slate-600">
                 Status, ETA and current assignments
               </p>
@@ -749,7 +774,7 @@ async function Dashboard({ searchParams }: HomeProps) {
       <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
               Operations Summary
             </p>
 

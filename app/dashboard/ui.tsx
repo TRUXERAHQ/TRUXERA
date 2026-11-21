@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const buttonPrimaryClass =
-  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700";
+  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700";
 
 export const buttonSecondaryClass =
   "inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50";
@@ -52,7 +52,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${badgeTones[tone]} ${className}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${badgeTones[tone]} ${className}`}
     >
       {children}
     </span>
@@ -175,7 +175,7 @@ export function Stat({
   hint?: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 px-4 py-3">
+    <div className="rounded-lg border border-indigo-100 border-l-2 border-l-indigo-300 bg-indigo-50/40 px-4 py-3">
       <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </dt>
@@ -207,7 +207,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+    <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-6 py-10 text-center">
       <h2 className="text-base font-semibold text-slate-900">{title}</h2>
       {description && (
         <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">
@@ -252,7 +252,7 @@ export function BackLink({
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-slate-500 hover:text-slate-900"
+      className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
     >
       ← {children}
     </Link>

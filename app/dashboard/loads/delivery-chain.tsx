@@ -6,7 +6,7 @@ function formatLabel(value: string) {
 }
 
 const stageToneClasses: Record<ImpactStage["tone"], string> = {
-  neutral: "border-slate-200 bg-white",
+  neutral: "border-indigo-200 bg-indigo-50/60",
   warning: "border-amber-300 bg-amber-50",
   positive: "border-emerald-300 bg-emerald-50",
   muted: "border-slate-200 bg-slate-50",
@@ -100,7 +100,11 @@ export function DeliveryChain({ nodes }: { nodes: ChainNode[] }) {
 export function RecoveryImpactPanel({ impact }: { impact: RecoveryImpact }) {
   return (
     <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-      <h3 className="text-sm font-semibold text-slate-800">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <span
+          aria-hidden="true"
+          className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500"
+        />
         Recovery impact
       </h3>
       <p className="mt-1 text-xs text-slate-500">

@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen bg-background">
       <div
         role="status"
         aria-label="Loading"

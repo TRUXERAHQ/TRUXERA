@@ -13,7 +13,7 @@ type Props = { searchParams: Promise<OperationsSearchParams> };
 
 export default function NewLoadPage({ searchParams }: Props) {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-slate-50 p-8 text-slate-600">Loading load form...</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-background p-8 text-slate-600">Loading load form...</main>}>
       <NewLoadContent searchParams={searchParams} />
     </Suspense>
   );
