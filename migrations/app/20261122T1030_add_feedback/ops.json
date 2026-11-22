@@ -1,0 +1,299 @@
+[
+  {
+    "id": "table.Feedback",
+    "label": "Create table \"Feedback\"",
+    "summary": "Creates table \"Feedback\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Feedback"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Feedback\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Feedback\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Feedback\"",
+        "sql": "CREATE TABLE \"public\".\"Feedback\" (\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"message\" text NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"rating\" int4,\n  \"subject\" text NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  \"userId\" uuid NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Feedback_type_check_6728e517\" CHECK (\"type\" IN ('PRODUCT_SUGGESTION', 'FEATURE_REQUEST', 'UX_UI_FEEDBACK', 'GENERAL_FEEDBACK'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Feedback\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Feedback\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.Feedback.Feedback_organizationId_idx_2e17ef41",
+    "label": "Create index \"Feedback_organizationId_idx_2e17ef41\" on \"Feedback\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Feedback_organizationId_idx_2e17ef41",
+        "table": "Feedback"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Feedback_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Feedback_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Feedback_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"Feedback_organizationId_idx_2e17ef41\" ON \"public\".\"Feedback\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Feedback_organizationId_idx_2e17ef41\" exists on \"Feedback\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"Feedback\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Feedback.Feedback_organizationId_userId_createdAt_idx_c40adf4c",
+    "label": "Create index \"Feedback_organizationId_userId_createdAt_idx_c40adf4c\" on \"Feedback\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Feedback_organizationId_userId_createdAt_idx_c40adf4c",
+        "table": "Feedback"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Feedback_organizationId_userId_createdAt_idx_c40adf4c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback_organizationId_userId_createdAt_idx_c40adf4c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Feedback_organizationId_userId_createdAt_idx_c40adf4c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Feedback_organizationId_userId_createdAt_idx_c40adf4c\"",
+        "sql": "CREATE INDEX \"Feedback_organizationId_userId_createdAt_idx_c40adf4c\" ON \"public\".\"Feedback\" (\"organizationId\", \"userId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Feedback_organizationId_userId_createdAt_idx_c40adf4c\" exists on \"Feedback\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback_organizationId_userId_createdAt_idx_c40adf4c\"",
+          "i",
+          "I",
+          "\"public\".\"Feedback\"",
+          "btree",
+          "[\"organizationId\",\"userId\",\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Feedback.Feedback_userId_idx_a489d58a",
+    "label": "Create index \"Feedback_userId_idx_a489d58a\" on \"Feedback\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Feedback_userId_idx_a489d58a",
+        "table": "Feedback"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Feedback_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback_userId_idx_a489d58a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Feedback_userId_idx_a489d58a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Feedback_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"Feedback_userId_idx_a489d58a\" ON \"public\".\"Feedback\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Feedback_userId_idx_a489d58a\" exists on \"Feedback\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Feedback_userId_idx_a489d58a\"",
+          "i",
+          "I",
+          "\"public\".\"Feedback\"",
+          "btree",
+          "[\"userId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Feedback.Feedback_organizationId_fkey",
+    "label": "Add foreign key \"Feedback_organizationId_fkey\" on \"Feedback\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Feedback_organizationId_fkey",
+        "table": "Feedback"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Feedback_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Feedback_organizationId_fkey",
+          "public",
+          "\"public\".\"Feedback\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Feedback_organizationId_fkey\" on \"Feedback\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Feedback_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Feedback\"\nADD CONSTRAINT \"Feedback_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Feedback_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Feedback_organizationId_fkey",
+          "public",
+          "\"public\".\"Feedback\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Feedback.Feedback_userId_fkey",
+    "label": "Add foreign key \"Feedback_userId_fkey\" on \"Feedback\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Feedback_userId_fkey",
+        "table": "Feedback"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Feedback_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Feedback_userId_fkey",
+          "public",
+          "\"public\".\"Feedback\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Feedback_userId_fkey\" on \"Feedback\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Feedback_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Feedback\"\nADD CONSTRAINT \"Feedback_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Feedback_userId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Feedback_userId_fkey",
+          "public",
+          "\"public\".\"Feedback\"",
+          "f",
+          "[\"userId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  }
+]

@@ -43,6 +43,17 @@ const typeTones: Record<string, BadgeTone> = {
   IMPACT_MEASURED: "neutral",
 };
 
+const typeAccents: Record<string, string> = {
+  LOAD_CREATED: "border-l-slate-300",
+  DELIVERY_CREATED: "border-l-slate-300",
+  DELIVERY_DELIVERED: "border-l-emerald-400",
+  DELIVERY_EVENT: "border-l-blue-400",
+  ASSIGNMENT_CREATED: "border-l-blue-400",
+  ASSIGNMENT_ENDED: "border-l-amber-400",
+  RECOVERY_ACTION: "border-l-indigo-400",
+  IMPACT_MEASURED: "border-l-slate-300",
+};
+
 function Field({
   label,
   htmlFor,
@@ -64,11 +75,15 @@ function Field({
 
 function EntryCard({ entry }: { entry: OperationalHistoryEntry }) {
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-4">
+    <li
+      className={`rounded-xl border border-slate-200 border-l-4 bg-white p-4 shadow-sm ${
+        typeAccents[entry.type] ?? "border-l-slate-300"
+      }`}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <time
           dateTime={entry.timestamp.toISOString()}
-          className="text-sm font-medium text-slate-500"
+          className="text-sm font-semibold text-slate-700"
         >
           {entry.timeLabel}
         </time>
@@ -84,7 +99,7 @@ function EntryCard({ entry }: { entry: OperationalHistoryEntry }) {
       <h3 className="mt-2 text-sm font-semibold text-slate-900">
         {entry.title}
       </h3>
-      <p className="mt-1 text-sm text-slate-600">{entry.description}</p>
+      <p className="mt-1 text-sm leading-6 text-slate-600">{entry.description}</p>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
         {entry.loadReference && <span>Load {entry.loadReference}</span>}
         {entry.deliveryLabel && <span>Delivery {entry.deliveryLabel}</span>}

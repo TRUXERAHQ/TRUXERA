@@ -95,13 +95,30 @@ export default function DailySummaryView({
           <Panel title="Operations Snapshot">
             <StatGrid columns="lg:grid-cols-6">
               <Stat label="In scope" value={summary.scopeCount} />
-              <Stat label="Completed" value={summary.snapshot.completed} />
-              <Stat label="Currently assigned" value={summary.snapshot.currentlyAssigned} />
+              <Stat
+                label="Completed"
+                value={summary.snapshot.completed}
+                tone={summary.snapshot.completed > 0 ? "success" : "default"}
+              />
+              <Stat
+                label="Currently assigned"
+                value={summary.snapshot.currentlyAssigned}
+                tone="info"
+              />
               <Stat label="Cancelled" value={summary.snapshot.cancelled} />
-              <Stat label="Failed" value={summary.snapshot.failed} />
+              <Stat
+                label="Failed"
+                value={summary.snapshot.failed}
+                tone={summary.snapshot.failed > 0 ? "danger" : "default"}
+              />
               <Stat
                 label="With recovery action"
                 value={summary.snapshot.withRecoveryAction}
+                tone={
+                  summary.snapshot.withRecoveryAction > 0
+                    ? "warning"
+                    : "default"
+                }
               />
             </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
@@ -111,13 +128,37 @@ export default function DailySummaryView({
 
           <Panel title="Risk & Disruption Summary">
             <StatGrid columns="lg:grid-cols-7">
-              <Stat label="Low risk" value={summary.riskSummary.low} />
-              <Stat label="Medium risk" value={summary.riskSummary.medium} />
-              <Stat label="High risk" value={summary.riskSummary.high} />
+              <Stat
+                label="Low risk"
+                value={summary.riskSummary.low}
+                tone="success"
+              />
+              <Stat
+                label="Medium risk"
+                value={summary.riskSummary.medium}
+                tone={summary.riskSummary.medium > 0 ? "warning" : "default"}
+              />
+              <Stat
+                label="High risk"
+                value={summary.riskSummary.high}
+                tone={summary.riskSummary.high > 0 ? "danger" : "default"}
+              />
               <Stat label="Risk unassessed" value={summary.riskSummary.unassessed} />
-              <Stat label="Failed" value={summary.riskSummary.failed} />
+              <Stat
+                label="Failed"
+                value={summary.riskSummary.failed}
+                tone={summary.riskSummary.failed > 0 ? "danger" : "default"}
+              />
               <Stat label="Cancelled" value={summary.riskSummary.cancelled} />
-              <Stat label="Projected delay" value={summary.riskSummary.projectedDelay} />
+              <Stat
+                label="Projected delay"
+                value={summary.riskSummary.projectedDelay}
+                tone={
+                  summary.riskSummary.projectedDelay > 0
+                    ? "warning"
+                    : "default"
+                }
+              />
             </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Current risk levels from the existing risk engine. Historical
@@ -127,11 +168,39 @@ export default function DailySummaryView({
 
           <Panel title="Recovery Activity">
             <StatGrid columns="lg:grid-cols-5">
-              <Stat label="Recovery actions executed" value={summary.recovery.actionsExecuted} />
+              <Stat
+                label="Recovery actions executed"
+                value={summary.recovery.actionsExecuted}
+                tone="info"
+              />
               <Stat label="Deliveries with recovery" value={summary.recovery.deliveriesWithRecovery} />
-              <Stat label="Successful" value={summary.recovery.outcomes.successful} />
-              <Stat label="Monitoring" value={summary.recovery.outcomes.monitoring} />
-              <Stat label="Unresolved" value={summary.recovery.outcomes.unresolved} />
+              <Stat
+                label="Successful"
+                value={summary.recovery.outcomes.successful}
+                tone={
+                  summary.recovery.outcomes.successful > 0
+                    ? "success"
+                    : "default"
+                }
+              />
+              <Stat
+                label="Monitoring"
+                value={summary.recovery.outcomes.monitoring}
+                tone={
+                  summary.recovery.outcomes.monitoring > 0
+                    ? "warning"
+                    : "default"
+                }
+              />
+              <Stat
+                label="Unresolved"
+                value={summary.recovery.outcomes.unresolved}
+                tone={
+                  summary.recovery.outcomes.unresolved > 0
+                    ? "danger"
+                    : "default"
+                }
+              />
             </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
               Outcomes use Recovery Result semantics; insufficient-data outcomes:{" "}
@@ -211,7 +280,18 @@ export default function DailySummaryView({
                   ["No recovery action", summary.outcomes.noRecoveryAction],
                 ] as const
               ).map(([label, items]) => (
-                <div key={label}>
+                <div
+                  key={label}
+                  className={`rounded-lg border bg-slate-50/70 px-4 py-3 ${
+                    label === "Successfully recovered"
+                      ? "border-emerald-200 border-l-4 border-l-emerald-500"
+                      : label === "Still monitoring"
+                        ? "border-amber-200 border-l-4 border-l-amber-400"
+                        : label === "Unresolved"
+                          ? "border-rose-200 border-l-4 border-l-rose-500"
+                          : "border-slate-200"
+                  }`}
+                >
                   <h3 className="text-sm font-semibold text-slate-800">
                     {label}{" "}
                     <span className="text-slate-500">({items.length})</span>
@@ -356,9 +436,11 @@ export default function DailySummaryView({
           </Panel>
 
           <Panel title="Daily Automatic Summary">
-            <p className="text-sm leading-6 text-slate-700">
-              {summary.narrative}
-            </p>
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+              <p className="text-sm leading-6 text-slate-700">
+                {summary.narrative}
+              </p>
+            </div>
           </Panel>
         </>
       )}

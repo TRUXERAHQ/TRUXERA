@@ -22,7 +22,6 @@ import {
   Panel,
   Stat,
   StatGrid,
-  buttonAccentClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
   inputClass,
@@ -200,10 +199,26 @@ async function CommandCenterContent({ searchParams }: Props) {
 
       <section aria-label="Operational summary" className="mt-6">
         <StatGrid columns="lg:grid-cols-5">
-          <Stat label="Requires attention" value={result.summary.requiresAttention} />
-          <Stat label="High risk" value={result.summary.highRisk} />
-          <Stat label="Medium risk" value={result.summary.mediumRisk} />
-          <Stat label="Active assignments" value={result.summary.activeAssignments} />
+          <Stat
+            label="Requires attention"
+            value={result.summary.requiresAttention}
+            tone={result.summary.requiresAttention > 0 ? "danger" : "default"}
+          />
+          <Stat
+            label="High risk"
+            value={result.summary.highRisk}
+            tone={result.summary.highRisk > 0 ? "danger" : "default"}
+          />
+          <Stat
+            label="Medium risk"
+            value={result.summary.mediumRisk}
+            tone={result.summary.mediumRisk > 0 ? "warning" : "default"}
+          />
+          <Stat
+            label="Active assignments"
+            value={result.summary.activeAssignments}
+            tone="info"
+          />
           <Stat label="Open deliveries" value={result.summary.openDeliveries} />
         </StatGrid>
       </section>
@@ -371,14 +386,14 @@ async function CommandCenterContent({ searchParams }: Props) {
                 );
                 const attentionAccent =
                   item.risk.riskLevel === "HIGH"
-                    ? "border-l-rose-400"
+                    ? "border-l-rose-500 bg-rose-50/40"
                     : item.risk.riskLevel === "MEDIUM"
-                      ? "border-l-amber-400"
-                      : "border-l-slate-200";
+                      ? "border-l-amber-400 bg-amber-50/30"
+                      : "border-l-slate-200 bg-white";
                 return (
                   <article
                     key={item.deliveryId}
-                    className={`rounded-xl border border-slate-200 border-l-4 bg-white p-5 shadow-sm ${attentionAccent}`}
+                    className={`rounded-xl border border-slate-200 border-l-4 p-5 shadow-sm ${attentionAccent}`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -451,22 +466,27 @@ async function CommandCenterContent({ searchParams }: Props) {
                     {recommendation &&
                       (item.risk.riskLevel === "MEDIUM" ||
                         item.risk.riskLevel === "HIGH") && (
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                        <p className="text-sm text-emerald-900">
-                          {item.risk.riskLevel === "HIGH"
-                            ? "Recovery action recommended. "
-                            : "Recovery action may be required. "}
-                          Recommended: Truck {recommendation.truckUnitNumber} ·{" "}
-                          {recommendation.driverName}
-                          {candidate &&
-                            ` · ${candidate.capacityUtilizationPercent}% capacity utilized`}
-                          {item.risk.intervention.recommendation
-                            ?.reasons[0] &&
-                            ` — ${item.risk.intervention.recommendation.reasons[0]}`}
-                        </p>
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-indigo-200 bg-indigo-50/70 p-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                            TRUXERA recommendation
+                          </p>
+                          <p className="mt-1 text-sm text-indigo-950">
+                            {item.risk.riskLevel === "HIGH"
+                              ? "Recovery action recommended. "
+                              : "Recovery action may be required. "}
+                            Recommended: Truck {recommendation.truckUnitNumber} ·{" "}
+                            {recommendation.driverName}
+                            {candidate &&
+                              ` · ${candidate.capacityUtilizationPercent}% capacity utilized`}
+                            {item.risk.intervention.recommendation
+                              ?.reasons[0] &&
+                              ` — ${item.risk.intervention.recommendation.reasons[0]}`}
+                          </p>
+                        </div>
                         <Link
                           href={`/dashboard/dispatch?${organizationQuery(organizationId)}#delivery-${item.deliveryId}`}
-                          className={buttonAccentClass}
+                          className={buttonPrimaryClass}
                         >
                           Review recovery
                         </Link>

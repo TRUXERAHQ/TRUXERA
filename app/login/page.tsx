@@ -1,8 +1,10 @@
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Suspense } from "react";
 import { auth } from "@/auth";
 import { signInWithGoogle } from "../auth-actions";
+import { AuthShell } from "../auth-shell";
 import { buttonPrimaryClass, Notice } from "../dashboard/ui";
 
 type LoginPageProps = {
@@ -39,13 +41,13 @@ async function LoginContent({ searchParams }: LoginPageProps) {
         : null;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12 text-slate-900">
-      <section className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <AuthShell>
+      <section className="w-full rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
           TRUXERA
         </p>
         <h1 className="mt-3 text-2xl font-bold tracking-tight">
-          Sign in to your account
+          Welcome back to TRUXERA
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-600">
           Use your verified Google account to access your organization&apos;s
@@ -59,7 +61,17 @@ async function LoginContent({ searchParams }: LoginPageProps) {
             Continue with Google
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-slate-600">
+          New to TRUXERA?{" "}
+          <Link
+            href="/signup"
+            className="font-semibold text-indigo-600 hover:text-indigo-700"
+          >
+            Create an account
+          </Link>
+        </p>
       </section>
-    </main>
+    </AuthShell>
   );
 }

@@ -152,13 +152,15 @@ export function LoadEditForm({
           {state.error}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={pending}
-        className={`${buttonPrimaryClass} disabled:cursor-wait disabled:opacity-60`}
-      >
-        {pending ? "Saving..." : "Save load details"}
-      </button>
+      <div className="border-t border-slate-200 pt-5">
+        <button
+          type="submit"
+          disabled={pending}
+          className={`${buttonPrimaryClass} disabled:cursor-wait disabled:opacity-60`}
+        >
+          {pending ? "Saving..." : "Save load details"}
+        </button>
+      </div>
     </form>
   );
 }

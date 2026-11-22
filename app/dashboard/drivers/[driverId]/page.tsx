@@ -120,8 +120,9 @@ async function DriverDetailsContent({ params, searchParams }: Props) {
         </section>
 
         <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+          <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/70 to-white px-5 py-4">
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+              <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
               Current assignments
             </h2>
             <p className="mt-1 text-sm text-slate-500">

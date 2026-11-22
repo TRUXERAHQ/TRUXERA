@@ -15,7 +15,8 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
   if (!result.hasRecovery || !result.recovery) {
     return (
       <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <h3 className="text-sm font-semibold text-slate-800">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
           Recovery result
         </h3>
         <p className="mt-1 text-xs text-slate-600">
@@ -29,7 +30,8 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
   return (
     <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-800">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
           Recovery result
         </h3>
         <Badge tone={recoveryTone(recovery.outcome)}>
@@ -115,7 +117,7 @@ export function RecoveryResultPanel({ result }: { result: RecoveryResult }) {
       <p className="mt-2 text-xs text-slate-500">
         {recovery.etaComparisonLabel}
       </p>
-      <ul className="mt-3 list-disc space-y-1 pl-4 text-[11px] text-slate-400">
+      <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-slate-500">
         {recovery.limitations.map((limitation) => (
           <li key={limitation}>{limitation}</li>
         ))}

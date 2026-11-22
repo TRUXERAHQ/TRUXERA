@@ -20,6 +20,10 @@
       "model": "Driver",
       "namespace": "public"
     },
+    "Feedback": {
+      "model": "Feedback",
+      "namespace": "public"
+    },
     "Load": {
       "model": "Load",
       "namespace": "public"
@@ -30,6 +34,14 @@
     },
     "Organization": {
       "model": "Organization",
+      "namespace": "public"
+    },
+    "SupportMessage": {
+      "model": "SupportMessage",
+      "namespace": "public"
+    },
+    "SupportRequest": {
+      "model": "SupportRequest",
       "namespace": "public"
     },
     "Truck": {
@@ -132,6 +144,27 @@
               }
             ]
           },
+          "FeedbackType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PRODUCT_SUGGESTION",
+                "value": "PRODUCT_SUGGESTION"
+              },
+              {
+                "name": "FEATURE_REQUEST",
+                "value": "FEATURE_REQUEST"
+              },
+              {
+                "name": "UX_UI_FEEDBACK",
+                "value": "UX_UI_FEEDBACK"
+              },
+              {
+                "name": "GENERAL_FEEDBACK",
+                "value": "GENERAL_FEEDBACK"
+              }
+            ]
+          },
           "MembershipRole": {
             "codecId": "pg/text@1",
             "members": [
@@ -171,6 +204,111 @@
               {
                 "name": "HIGH",
                 "value": "HIGH"
+              }
+            ]
+          },
+          "SupportCategory": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "TECHNICAL_ISSUE",
+                "value": "TECHNICAL_ISSUE"
+              },
+              {
+                "name": "DATA_ISSUE",
+                "value": "DATA_ISSUE"
+              },
+              {
+                "name": "ACCOUNT_ACCESS",
+                "value": "ACCOUNT_ACCESS"
+              },
+              {
+                "name": "FLEET_OPERATIONS",
+                "value": "FLEET_OPERATIONS"
+              },
+              {
+                "name": "OTHER",
+                "value": "OTHER"
+              }
+            ]
+          },
+          "SupportMessageAuthor": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CUSTOMER",
+                "value": "CUSTOMER"
+              },
+              {
+                "name": "SUPPORT",
+                "value": "SUPPORT"
+              }
+            ]
+          },
+          "SupportPriority": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "LOW",
+                "value": "LOW"
+              },
+              {
+                "name": "NORMAL",
+                "value": "NORMAL"
+              },
+              {
+                "name": "HIGH",
+                "value": "HIGH"
+              },
+              {
+                "name": "URGENT",
+                "value": "URGENT"
+              }
+            ]
+          },
+          "SupportRelatedKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "LOAD",
+                "value": "LOAD"
+              },
+              {
+                "name": "DELIVERY",
+                "value": "DELIVERY"
+              },
+              {
+                "name": "TRUCK",
+                "value": "TRUCK"
+              },
+              {
+                "name": "DRIVER",
+                "value": "DRIVER"
+              }
+            ]
+          },
+          "SupportStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "OPEN",
+                "value": "OPEN"
+              },
+              {
+                "name": "IN_PROGRESS",
+                "value": "IN_PROGRESS"
+              },
+              {
+                "name": "WAITING_FOR_CUSTOMER",
+                "value": "WAITING_FOR_CUSTOMER"
+              },
+              {
+                "name": "RESOLVED",
+                "value": "RESOLVED"
+              },
+              {
+                "name": "CLOSED",
+                "value": "CLOSED"
               }
             ]
           },
@@ -914,6 +1052,152 @@
               "table": "Driver"
             }
           },
+          "Feedback": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "message": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "rating": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "subject": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "FeedbackType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "message": {
+                  "column": "message"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "rating": {
+                  "column": "rating"
+                },
+                "subject": {
+                  "column": "subject"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Feedback"
+            }
+          },
           "Load": {
             "fields": {
               "cargoDescription": {
@@ -1255,6 +1539,388 @@
               },
               "namespaceId": "public",
               "table": "Organization"
+            }
+          },
+          "SupportMessage": {
+            "fields": {
+              "authorKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SupportMessageAuthor",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "authorUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "body": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "requestId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "author": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "authorUserId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "request": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "requestId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SupportRequest",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "authorKind": {
+                  "column": "authorKind"
+                },
+                "authorUserId": {
+                  "column": "authorUserId"
+                },
+                "body": {
+                  "column": "body"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "requestId": {
+                  "column": "requestId"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "SupportMessage"
+            }
+          },
+          "SupportRequest": {
+            "fields": {
+              "category": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SupportCategory",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "description": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "priority": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SupportPriority",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "reference": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "relatedId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "relatedKind": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SupportRelatedKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "requesterUserId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolutionNote": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "resolvedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SupportStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "subject": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "messages": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "requestId"
+                  ]
+                },
+                "to": {
+                  "model": "SupportMessage",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              },
+              "requester": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "requesterUserId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "category": {
+                  "column": "category"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "priority": {
+                  "column": "priority"
+                },
+                "reference": {
+                  "column": "reference"
+                },
+                "relatedId": {
+                  "column": "relatedId"
+                },
+                "relatedKind": {
+                  "column": "relatedKind"
+                },
+                "requesterUserId": {
+                  "column": "requesterUserId"
+                },
+                "resolutionNote": {
+                  "column": "resolutionNote"
+                },
+                "resolvedAt": {
+                  "column": "resolvedAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "subject": {
+                  "column": "subject"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "SupportRequest"
             }
           },
           "Truck": {
@@ -2300,6 +2966,152 @@
                 }
               ]
             },
+            "Feedback": {
+              "checks": [
+                {
+                  "expression": "\"type\" IN ('PRODUCT_SUGGESTION', 'FEATURE_REQUEST', 'UX_UI_FEEDBACK', 'GENERAL_FEEDBACK')",
+                  "name": "Feedback_type_check_6728e517",
+                  "prefix": "Feedback_type_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "message": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "rating": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "subject": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "FeedbackType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "userId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "Feedback_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Feedback"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "Feedback_userId_idx_a489d58a"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Feedback"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "Feedback_organizationId_idx_2e17ef41",
+                  "prefix": "Feedback_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "userId",
+                    "createdAt"
+                  ],
+                  "name": "Feedback_organizationId_userId_createdAt_idx_c40adf4c",
+                  "prefix": "Feedback_organizationId_userId_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "Feedback_userId_idx_a489d58a",
+                  "prefix": "Feedback_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "Load": {
               "columns": {
                 "cargoDescription": {
@@ -2618,6 +3430,377 @@
                 }
               ]
             },
+            "SupportMessage": {
+              "checks": [
+                {
+                  "expression": "\"authorKind\" IN ('CUSTOMER', 'SUPPORT')",
+                  "name": "SupportMessage_authorKind_check_2c5d0987",
+                  "prefix": "SupportMessage_authorKind_check"
+                }
+              ],
+              "columns": {
+                "authorKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SupportMessageAuthor",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "authorUserId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "body": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "requestId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "SupportMessage_organizationId_requestId_idx_f7ba17fc"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "requestId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "SupportMessage"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "SupportRequest"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "SupportMessage_authorUserId_idx_d1814ea0"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "authorUserId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "SupportMessage"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "authorUserId"
+                  ],
+                  "name": "SupportMessage_authorUserId_idx_d1814ea0",
+                  "prefix": "SupportMessage_authorUserId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "requestId"
+                  ],
+                  "name": "SupportMessage_organizationId_requestId_idx_f7ba17fc",
+                  "prefix": "SupportMessage_organizationId_requestId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "SupportRequest": {
+              "checks": [
+                {
+                  "expression": "\"category\" IN ('TECHNICAL_ISSUE', 'DATA_ISSUE', 'ACCOUNT_ACCESS', 'FLEET_OPERATIONS', 'OTHER')",
+                  "name": "SupportRequest_category_check_bd93be99",
+                  "prefix": "SupportRequest_category_check"
+                },
+                {
+                  "expression": "\"priority\" IN ('LOW', 'NORMAL', 'HIGH', 'URGENT')",
+                  "name": "SupportRequest_priority_check_72dbae57",
+                  "prefix": "SupportRequest_priority_check"
+                },
+                {
+                  "expression": "\"relatedKind\" IN ('LOAD', 'DELIVERY', 'TRUCK', 'DRIVER')",
+                  "name": "SupportRequest_relatedKind_check_a9833ed1",
+                  "prefix": "SupportRequest_relatedKind_check"
+                },
+                {
+                  "expression": "\"status\" IN ('OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'CLOSED')",
+                  "name": "SupportRequest_status_check_0918205c",
+                  "prefix": "SupportRequest_status_check"
+                }
+              ],
+              "columns": {
+                "category": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SupportCategory",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "priority": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SupportPriority",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reference": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "relatedId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "relatedKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SupportRelatedKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "requesterUserId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "resolutionNote": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "resolvedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "OPEN"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SupportStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "subject": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "SupportRequest_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "SupportRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "SupportRequest_requesterUserId_idx_75bb1080"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "requesterUserId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "SupportRequest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "createdAt"
+                  ],
+                  "name": "SupportRequest_organizationId_createdAt_idx_c52d1cc3",
+                  "prefix": "SupportRequest_organizationId_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "SupportRequest_organizationId_idx_2e17ef41",
+                  "prefix": "SupportRequest_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "status"
+                  ],
+                  "name": "SupportRequest_organizationId_status_idx_21af5e82",
+                  "prefix": "SupportRequest_organizationId_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "requesterUserId"
+                  ],
+                  "name": "SupportRequest_requesterUserId_idx_75bb1080",
+                  "prefix": "SupportRequest_requesterUserId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "reference"
+                  ]
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "id"
+                  ]
+                }
+              ]
+            },
             "Truck": {
               "checks": [
                 {
@@ -2851,6 +4034,15 @@
                 "INACTIVE"
               ]
             },
+            "FeedbackType": {
+              "kind": "valueSet",
+              "values": [
+                "PRODUCT_SUGGESTION",
+                "FEATURE_REQUEST",
+                "UX_UI_FEEDBACK",
+                "GENERAL_FEEDBACK"
+              ]
+            },
             "MembershipRole": {
               "kind": "valueSet",
               "values": [
@@ -2869,6 +4061,51 @@
                 "HIGH"
               ]
             },
+            "SupportCategory": {
+              "kind": "valueSet",
+              "values": [
+                "TECHNICAL_ISSUE",
+                "DATA_ISSUE",
+                "ACCOUNT_ACCESS",
+                "FLEET_OPERATIONS",
+                "OTHER"
+              ]
+            },
+            "SupportMessageAuthor": {
+              "kind": "valueSet",
+              "values": [
+                "CUSTOMER",
+                "SUPPORT"
+              ]
+            },
+            "SupportPriority": {
+              "kind": "valueSet",
+              "values": [
+                "LOW",
+                "NORMAL",
+                "HIGH",
+                "URGENT"
+              ]
+            },
+            "SupportRelatedKind": {
+              "kind": "valueSet",
+              "values": [
+                "LOAD",
+                "DELIVERY",
+                "TRUCK",
+                "DRIVER"
+              ]
+            },
+            "SupportStatus": {
+              "kind": "valueSet",
+              "values": [
+                "OPEN",
+                "IN_PROGRESS",
+                "WAITING_FOR_CUSTOMER",
+                "RESOLVED",
+                "CLOSED"
+              ]
+            },
             "TruckStatus": {
               "kind": "valueSet",
               "values": [
@@ -2884,10 +4121,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "cc16f51263ef0ba4a603b035e41f70961c47d63c79335be52624a56e0d504c6c"
+    "storageHash": "0c7fbdb13d046bcf0a03d6153d959cb97a9ca15ec0b67e8564df2a48fc5166d1"
   },
   "execution": {
-    "executionHash": "34c6d9b4c80a60d2108c87482b55a7e236c2ade9a2dc62c51ceb14bebf6e7893",
+    "executionHash": "543ca4765ed419bae3777298a26f40fd1a1c4156040f5473c2dc5412a9d5b5e8",
     "mutations": {
       "defaults": [
         {
@@ -3041,6 +4278,52 @@
             }
           },
           "ref": {
+            "entry": "Feedback",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "Feedback",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "Feedback",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
             "entry": "Load",
             "field": "createdAt",
             "namespace": "public"
@@ -3166,6 +4449,98 @@
           },
           "ref": {
             "entry": "Organization",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "SupportMessage",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "SupportMessage",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "SupportMessage",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "SupportRequest",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "SupportRequest",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "SupportRequest",
             "field": "updatedAt",
             "namespace": "public"
           }

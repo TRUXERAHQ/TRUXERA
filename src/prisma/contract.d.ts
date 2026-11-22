@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'cc16f51263ef0ba4a603b035e41f70961c47d63c79335be52624a56e0d504c6c'>;
+  StorageHashBase<'0c7fbdb13d046bcf0a03d6153d959cb97a9ca15ec0b67e8564df2a48fc5166d1'>;
 export type ExecutionHash =
-  ExecutionHashBase<'34c6d9b4c80a60d2108c87482b55a7e236c2ade9a2dc62c51ceb14bebf6e7893'>;
+  ExecutionHashBase<'543ca4765ed419bae3777298a26f40fd1a1c4156040f5473c2dc5412a9d5b5e8'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -362,10 +362,44 @@ type FieldTypeOverrides = {
           readonly input: 'AVAILABLE' | 'ON_DUTY' | 'OFF_DUTY' | 'ON_LEAVE' | 'INACTIVE';
         };
       };
+      readonly Feedback: {
+        readonly type: {
+          readonly output:
+            'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
+          readonly input:
+            'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
+        };
+      };
       readonly Membership: {
         readonly role: {
           readonly output: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'VIEWER';
           readonly input: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'VIEWER';
+        };
+      };
+      readonly SupportMessage: {
+        readonly authorKind: {
+          readonly output: 'CUSTOMER' | 'SUPPORT';
+          readonly input: 'CUSTOMER' | 'SUPPORT';
+        };
+      };
+      readonly SupportRequest: {
+        readonly category: {
+          readonly output:
+            'TECHNICAL_ISSUE' | 'DATA_ISSUE' | 'ACCOUNT_ACCESS' | 'FLEET_OPERATIONS' | 'OTHER';
+          readonly input:
+            'TECHNICAL_ISSUE' | 'DATA_ISSUE' | 'ACCOUNT_ACCESS' | 'FLEET_OPERATIONS' | 'OTHER';
+        };
+        readonly priority: {
+          readonly output: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+          readonly input: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+        };
+        readonly relatedKind: {
+          readonly output: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER';
+          readonly input: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER';
+        };
+        readonly status: {
+          readonly output: 'OPEN' | 'IN_PROGRESS' | 'WAITING_FOR_CUSTOMER' | 'RESOLVED' | 'CLOSED';
+          readonly input: 'OPEN' | 'IN_PROGRESS' | 'WAITING_FOR_CUSTOMER' | 'RESOLVED' | 'CLOSED';
         };
       };
       readonly Truck: {
@@ -479,10 +513,44 @@ type ColumnTypeOverrides = {
         readonly input: 'AVAILABLE' | 'ON_DUTY' | 'OFF_DUTY' | 'ON_LEAVE' | 'INACTIVE';
       };
     };
+    readonly Feedback: {
+      readonly type: {
+        readonly output:
+          'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
+        readonly input:
+          'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
+      };
+    };
     readonly Membership: {
       readonly role: {
         readonly output: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'VIEWER';
         readonly input: 'OWNER' | 'ADMIN' | 'DISPATCHER' | 'DRIVER' | 'VIEWER';
+      };
+    };
+    readonly SupportMessage: {
+      readonly authorKind: {
+        readonly output: 'CUSTOMER' | 'SUPPORT';
+        readonly input: 'CUSTOMER' | 'SUPPORT';
+      };
+    };
+    readonly SupportRequest: {
+      readonly category: {
+        readonly output:
+          'TECHNICAL_ISSUE' | 'DATA_ISSUE' | 'ACCOUNT_ACCESS' | 'FLEET_OPERATIONS' | 'OTHER';
+        readonly input:
+          'TECHNICAL_ISSUE' | 'DATA_ISSUE' | 'ACCOUNT_ACCESS' | 'FLEET_OPERATIONS' | 'OTHER';
+      };
+      readonly priority: {
+        readonly output: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+        readonly input: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+      };
+      readonly relatedKind: {
+        readonly output: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER';
+        readonly input: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER';
+      };
+      readonly status: {
+        readonly output: 'OPEN' | 'IN_PROGRESS' | 'WAITING_FOR_CUSTOMER' | 'RESOLVED' | 'CLOSED';
+        readonly input: 'OPEN' | 'IN_PROGRESS' | 'WAITING_FOR_CUSTOMER' | 'RESOLVED' | 'CLOSED';
       };
     };
     readonly Truck: {
@@ -574,6 +642,20 @@ export namespace Models {
     user: public_User | null;
     readonly [RelationKeys]?: 'organization' | 'user';
   };
+  export type public_Feedback = {
+    createdAt: FieldOutputTypes['public']['Feedback']['createdAt'];
+    id: FieldOutputTypes['public']['Feedback']['id'];
+    message: FieldOutputTypes['public']['Feedback']['message'];
+    organizationId: FieldOutputTypes['public']['Feedback']['organizationId'];
+    rating: FieldOutputTypes['public']['Feedback']['rating'];
+    subject: FieldOutputTypes['public']['Feedback']['subject'];
+    type: FieldOutputTypes['public']['Feedback']['type'];
+    updatedAt: FieldOutputTypes['public']['Feedback']['updatedAt'];
+    userId: FieldOutputTypes['public']['Feedback']['userId'];
+    organization: public_Organization;
+    user: public_User;
+    readonly [RelationKeys]?: 'organization' | 'user';
+  };
   export type public_Load = {
     cargoDescription: FieldOutputTypes['public']['Load']['cargoDescription'];
     createdAt: FieldOutputTypes['public']['Load']['createdAt'];
@@ -609,6 +691,40 @@ export namespace Models {
     updatedAt: FieldOutputTypes['public']['Organization']['updatedAt'];
     readonly [RelationKeys]?: never;
   };
+  export type public_SupportMessage = {
+    authorKind: FieldOutputTypes['public']['SupportMessage']['authorKind'];
+    authorUserId: FieldOutputTypes['public']['SupportMessage']['authorUserId'];
+    body: FieldOutputTypes['public']['SupportMessage']['body'];
+    createdAt: FieldOutputTypes['public']['SupportMessage']['createdAt'];
+    id: FieldOutputTypes['public']['SupportMessage']['id'];
+    organizationId: FieldOutputTypes['public']['SupportMessage']['organizationId'];
+    requestId: FieldOutputTypes['public']['SupportMessage']['requestId'];
+    updatedAt: FieldOutputTypes['public']['SupportMessage']['updatedAt'];
+    author: public_User | null;
+    request: public_SupportRequest;
+    readonly [RelationKeys]?: 'author' | 'request';
+  };
+  export type public_SupportRequest = {
+    category: FieldOutputTypes['public']['SupportRequest']['category'];
+    createdAt: FieldOutputTypes['public']['SupportRequest']['createdAt'];
+    description: FieldOutputTypes['public']['SupportRequest']['description'];
+    id: FieldOutputTypes['public']['SupportRequest']['id'];
+    organizationId: FieldOutputTypes['public']['SupportRequest']['organizationId'];
+    priority: FieldOutputTypes['public']['SupportRequest']['priority'];
+    reference: FieldOutputTypes['public']['SupportRequest']['reference'];
+    relatedId: FieldOutputTypes['public']['SupportRequest']['relatedId'];
+    relatedKind: FieldOutputTypes['public']['SupportRequest']['relatedKind'];
+    requesterUserId: FieldOutputTypes['public']['SupportRequest']['requesterUserId'];
+    resolutionNote: FieldOutputTypes['public']['SupportRequest']['resolutionNote'];
+    resolvedAt: FieldOutputTypes['public']['SupportRequest']['resolvedAt'];
+    status: FieldOutputTypes['public']['SupportRequest']['status'];
+    subject: FieldOutputTypes['public']['SupportRequest']['subject'];
+    updatedAt: FieldOutputTypes['public']['SupportRequest']['updatedAt'];
+    messages: public_SupportMessage[];
+    organization: public_Organization;
+    requester: public_User;
+    readonly [RelationKeys]?: 'messages' | 'organization' | 'requester';
+  };
   export type public_Truck = {
     capacityKg: FieldOutputTypes['public']['Truck']['capacityKg'];
     createdAt: FieldOutputTypes['public']['Truck']['createdAt'];
@@ -640,9 +756,12 @@ export declare const models: {
     DeliveryEvent: Models.public_DeliveryEvent;
     DispatchAssignment: Models.public_DispatchAssignment;
     Driver: Models.public_Driver;
+    Feedback: Models.public_Feedback;
     Load: Models.public_Load;
     Membership: Models.public_Membership;
     Organization: Models.public_Organization;
+    SupportMessage: Models.public_SupportMessage;
+    SupportRequest: Models.public_SupportRequest;
     Truck: Models.public_Truck;
     User: Models.public_User;
   };
@@ -1225,6 +1344,114 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly Feedback: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly message: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly rating: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly subject: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly userId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Feedback_organizationId_idx_2e17ef41';
+                  readonly prefix: 'Feedback_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Feedback_organizationId_userId_createdAt_idx_c40adf4c';
+                  readonly prefix: 'Feedback_organizationId_userId_createdAt_idx';
+                  readonly columns: readonly ['organizationId', 'userId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Feedback_userId_idx_a489d58a';
+                  readonly prefix: 'Feedback_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Feedback';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Feedback';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly Load: {
               columns: {
                 readonly cargoDescription: {
@@ -1466,6 +1693,260 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
+            readonly SupportMessage: {
+              columns: {
+                readonly authorKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly authorUserId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly body: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly requestId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'SupportMessage_authorUserId_idx_d1814ea0';
+                  readonly prefix: 'SupportMessage_authorUserId_idx';
+                  readonly columns: readonly ['authorUserId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'SupportMessage_organizationId_requestId_idx_f7ba17fc';
+                  readonly prefix: 'SupportMessage_organizationId_requestId_idx';
+                  readonly columns: readonly ['organizationId', 'requestId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'SupportMessage';
+                    readonly columns: readonly ['organizationId', 'requestId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'SupportRequest';
+                    readonly columns: readonly ['organizationId', 'id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'SupportMessage';
+                    readonly columns: readonly ['authorUserId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly SupportRequest: {
+              columns: {
+                readonly category: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly description: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly priority: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly reference: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly relatedId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly relatedKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly requesterUserId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly resolutionNote: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly resolvedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'OPEN'>;
+                  };
+                  readonly many: false;
+                };
+                readonly subject: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['organizationId', 'reference'] },
+                { readonly columns: readonly ['organizationId', 'id'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'SupportRequest_organizationId_createdAt_idx_c52d1cc3';
+                  readonly prefix: 'SupportRequest_organizationId_createdAt_idx';
+                  readonly columns: readonly ['organizationId', 'createdAt'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'SupportRequest_organizationId_idx_2e17ef41';
+                  readonly prefix: 'SupportRequest_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'SupportRequest_organizationId_status_idx_21af5e82';
+                  readonly prefix: 'SupportRequest_organizationId_status_idx';
+                  readonly columns: readonly ['organizationId', 'status'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'SupportRequest_requesterUserId_idx_75bb1080';
+                  readonly prefix: 'SupportRequest_requesterUserId_idx';
+                  readonly columns: readonly ['requesterUserId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'SupportRequest';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'SupportRequest';
+                    readonly columns: readonly ['requesterUserId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly Truck: {
               columns: {
                 readonly capacityKg: {
@@ -1652,6 +2133,15 @@ type ContractBase = Omit<
                 'INACTIVE',
               ];
             };
+            readonly FeedbackType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'PRODUCT_SUGGESTION',
+                'FEATURE_REQUEST',
+                'UX_UI_FEEDBACK',
+                'GENERAL_FEEDBACK',
+              ];
+            };
             readonly MembershipRole: {
               readonly kind: 'valueSet';
               readonly values: readonly ['OWNER', 'ADMIN', 'DISPATCHER', 'DRIVER', 'VIEWER'];
@@ -1659,6 +2149,38 @@ type ContractBase = Omit<
             readonly RiskLevel: {
               readonly kind: 'valueSet';
               readonly values: readonly ['LOW', 'MEDIUM', 'HIGH'];
+            };
+            readonly SupportCategory: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'TECHNICAL_ISSUE',
+                'DATA_ISSUE',
+                'ACCOUNT_ACCESS',
+                'FLEET_OPERATIONS',
+                'OTHER',
+              ];
+            };
+            readonly SupportMessageAuthor: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['CUSTOMER', 'SUPPORT'];
+            };
+            readonly SupportPriority: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
+            };
+            readonly SupportRelatedKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['LOAD', 'DELIVERY', 'TRUCK', 'DRIVER'];
+            };
+            readonly SupportStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'OPEN',
+                'IN_PROGRESS',
+                'WAITING_FOR_CUSTOMER',
+                'RESOLVED',
+                'CLOSED',
+              ];
             };
             readonly TruckStatus: {
               readonly kind: 'valueSet';
@@ -1685,6 +2207,7 @@ type ContractBase = Omit<
       readonly model: 'DispatchAssignment';
     };
     readonly Driver: { readonly namespace: 'public' & NamespaceId; readonly model: 'Driver' };
+    readonly Feedback: { readonly namespace: 'public' & NamespaceId; readonly model: 'Feedback' };
     readonly Load: { readonly namespace: 'public' & NamespaceId; readonly model: 'Load' };
     readonly Membership: {
       readonly namespace: 'public' & NamespaceId;
@@ -1693,6 +2216,14 @@ type ContractBase = Omit<
     readonly Organization: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'Organization';
+    };
+    readonly SupportMessage: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'SupportMessage';
+    };
+    readonly SupportRequest: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'SupportRequest';
     };
     readonly Truck: { readonly namespace: 'public' & NamespaceId; readonly model: 'Truck' };
     readonly User: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
@@ -2116,6 +2647,92 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly Feedback: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly message: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly rating: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly subject: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+            };
+            readonly relations: {
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Feedback';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly message: { readonly column: 'message' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly rating: { readonly column: 'rating' };
+                readonly subject: { readonly column: 'subject' };
+                readonly type: { readonly column: 'type' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
           readonly Load: {
             readonly fields: {
               readonly cargoDescription: {
@@ -2331,6 +2948,218 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly SupportMessage: {
+            readonly fields: {
+              readonly authorKind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly authorUserId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly body: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly requestId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly author: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['authorUserId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly request: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'SupportRequest';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'requestId'];
+                  readonly targetFields: readonly ['organizationId', 'id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'SupportMessage';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly authorKind: { readonly column: 'authorKind' };
+                readonly authorUserId: { readonly column: 'authorUserId' };
+                readonly body: { readonly column: 'body' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly requestId: { readonly column: 'requestId' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly SupportRequest: {
+            readonly fields: {
+              readonly category: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly description: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly priority: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly reference: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly relatedId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly relatedKind: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly requesterUserId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly resolutionNote: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly resolvedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly subject: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly messages: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'SupportMessage';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'id'];
+                  readonly targetFields: readonly ['organizationId', 'requestId'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly requester: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['requesterUserId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'SupportRequest';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly category: { readonly column: 'category' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly id: { readonly column: 'id' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly priority: { readonly column: 'priority' };
+                readonly reference: { readonly column: 'reference' };
+                readonly relatedId: { readonly column: 'relatedId' };
+                readonly relatedKind: { readonly column: 'relatedKind' };
+                readonly requesterUserId: { readonly column: 'requesterUserId' };
+                readonly resolutionNote: { readonly column: 'resolutionNote' };
+                readonly resolvedAt: { readonly column: 'resolvedAt' };
+                readonly status: { readonly column: 'status' };
+                readonly subject: { readonly column: 'subject' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly Truck: {
             readonly fields: {
               readonly capacityKg: {
@@ -2505,6 +3334,15 @@ type ContractBase = Omit<
               { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
             ];
           };
+          readonly FeedbackType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'PRODUCT_SUGGESTION'; readonly value: 'PRODUCT_SUGGESTION' },
+              { readonly name: 'FEATURE_REQUEST'; readonly value: 'FEATURE_REQUEST' },
+              { readonly name: 'UX_UI_FEEDBACK'; readonly value: 'UX_UI_FEEDBACK' },
+              { readonly name: 'GENERAL_FEEDBACK'; readonly value: 'GENERAL_FEEDBACK' },
+            ];
+          };
           readonly MembershipRole: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -2521,6 +3359,51 @@ type ContractBase = Omit<
               { readonly name: 'LOW'; readonly value: 'LOW' },
               { readonly name: 'MEDIUM'; readonly value: 'MEDIUM' },
               { readonly name: 'HIGH'; readonly value: 'HIGH' },
+            ];
+          };
+          readonly SupportCategory: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'TECHNICAL_ISSUE'; readonly value: 'TECHNICAL_ISSUE' },
+              { readonly name: 'DATA_ISSUE'; readonly value: 'DATA_ISSUE' },
+              { readonly name: 'ACCOUNT_ACCESS'; readonly value: 'ACCOUNT_ACCESS' },
+              { readonly name: 'FLEET_OPERATIONS'; readonly value: 'FLEET_OPERATIONS' },
+              { readonly name: 'OTHER'; readonly value: 'OTHER' },
+            ];
+          };
+          readonly SupportMessageAuthor: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CUSTOMER'; readonly value: 'CUSTOMER' },
+              { readonly name: 'SUPPORT'; readonly value: 'SUPPORT' },
+            ];
+          };
+          readonly SupportPriority: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'LOW'; readonly value: 'LOW' },
+              { readonly name: 'NORMAL'; readonly value: 'NORMAL' },
+              { readonly name: 'HIGH'; readonly value: 'HIGH' },
+              { readonly name: 'URGENT'; readonly value: 'URGENT' },
+            ];
+          };
+          readonly SupportRelatedKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'LOAD'; readonly value: 'LOAD' },
+              { readonly name: 'DELIVERY'; readonly value: 'DELIVERY' },
+              { readonly name: 'TRUCK'; readonly value: 'TRUCK' },
+              { readonly name: 'DRIVER'; readonly value: 'DRIVER' },
+            ];
+          };
+          readonly SupportStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'OPEN'; readonly value: 'OPEN' },
+              { readonly name: 'IN_PROGRESS'; readonly value: 'IN_PROGRESS' },
+              { readonly name: 'WAITING_FOR_CUSTOMER'; readonly value: 'WAITING_FOR_CUSTOMER' },
+              { readonly name: 'RESOLVED'; readonly value: 'RESOLVED' },
+              { readonly name: 'CLOSED'; readonly value: 'CLOSED' },
             ];
           };
           readonly TruckStatus: {
@@ -2558,6 +3441,12 @@ type ContractBase = Omit<
             { readonly name: 'ON_LEAVE'; readonly value: 'ON_LEAVE' },
             { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
           ];
+          readonly FeedbackType: readonly [
+            { readonly name: 'PRODUCT_SUGGESTION'; readonly value: 'PRODUCT_SUGGESTION' },
+            { readonly name: 'FEATURE_REQUEST'; readonly value: 'FEATURE_REQUEST' },
+            { readonly name: 'UX_UI_FEEDBACK'; readonly value: 'UX_UI_FEEDBACK' },
+            { readonly name: 'GENERAL_FEEDBACK'; readonly value: 'GENERAL_FEEDBACK' },
+          ];
           readonly MembershipRole: readonly [
             { readonly name: 'OWNER'; readonly value: 'OWNER' },
             { readonly name: 'ADMIN'; readonly value: 'ADMIN' },
@@ -2569,6 +3458,36 @@ type ContractBase = Omit<
             { readonly name: 'LOW'; readonly value: 'LOW' },
             { readonly name: 'MEDIUM'; readonly value: 'MEDIUM' },
             { readonly name: 'HIGH'; readonly value: 'HIGH' },
+          ];
+          readonly SupportCategory: readonly [
+            { readonly name: 'TECHNICAL_ISSUE'; readonly value: 'TECHNICAL_ISSUE' },
+            { readonly name: 'DATA_ISSUE'; readonly value: 'DATA_ISSUE' },
+            { readonly name: 'ACCOUNT_ACCESS'; readonly value: 'ACCOUNT_ACCESS' },
+            { readonly name: 'FLEET_OPERATIONS'; readonly value: 'FLEET_OPERATIONS' },
+            { readonly name: 'OTHER'; readonly value: 'OTHER' },
+          ];
+          readonly SupportMessageAuthor: readonly [
+            { readonly name: 'CUSTOMER'; readonly value: 'CUSTOMER' },
+            { readonly name: 'SUPPORT'; readonly value: 'SUPPORT' },
+          ];
+          readonly SupportPriority: readonly [
+            { readonly name: 'LOW'; readonly value: 'LOW' },
+            { readonly name: 'NORMAL'; readonly value: 'NORMAL' },
+            { readonly name: 'HIGH'; readonly value: 'HIGH' },
+            { readonly name: 'URGENT'; readonly value: 'URGENT' },
+          ];
+          readonly SupportRelatedKind: readonly [
+            { readonly name: 'LOAD'; readonly value: 'LOAD' },
+            { readonly name: 'DELIVERY'; readonly value: 'DELIVERY' },
+            { readonly name: 'TRUCK'; readonly value: 'TRUCK' },
+            { readonly name: 'DRIVER'; readonly value: 'DRIVER' },
+          ];
+          readonly SupportStatus: readonly [
+            { readonly name: 'OPEN'; readonly value: 'OPEN' },
+            { readonly name: 'IN_PROGRESS'; readonly value: 'IN_PROGRESS' },
+            { readonly name: 'WAITING_FOR_CUSTOMER'; readonly value: 'WAITING_FOR_CUSTOMER' },
+            { readonly name: 'RESOLVED'; readonly value: 'RESOLVED' },
+            { readonly name: 'CLOSED'; readonly value: 'CLOSED' },
           ];
           readonly TruckStatus: readonly [
             { readonly name: 'AVAILABLE'; readonly value: 'AVAILABLE' },
@@ -2734,6 +3653,43 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
+            readonly entry: 'Feedback';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Feedback';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'Feedback';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
             readonly entry: 'Load';
             readonly field: 'createdAt';
             readonly namespace: 'public';
@@ -2834,6 +3790,80 @@ type ContractBase = Omit<
           };
           readonly ref: {
             readonly entry: 'Organization';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'SupportMessage';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'SupportMessage';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'SupportMessage';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'SupportRequest';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'SupportRequest';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'SupportRequest';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

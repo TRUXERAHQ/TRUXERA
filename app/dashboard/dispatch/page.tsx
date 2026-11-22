@@ -202,9 +202,17 @@ async function DispatchContent({ searchParams }: Props) {
             const canAssign =
               (delivery.status === "PLANNED" || delivery.status === "ASSIGNED") &&
               !assignment;
+            const riskAccent =
+              risk?.riskLevel === "HIGH"
+                ? "border-l-rose-500"
+                : risk?.riskLevel === "MEDIUM"
+                  ? "border-l-amber-400"
+                  : risk?.riskLevel === "LOW"
+                    ? "border-l-emerald-400"
+                    : "border-l-slate-200";
 
             return (
-              <article id={`delivery-${delivery.id}`} key={delivery.id} className="grid scroll-mt-24 gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <article id={`delivery-${delivery.id}`} key={delivery.id} className={`grid scroll-mt-24 gap-5 rounded-xl border border-slate-200 border-l-4 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_18rem] ${riskAccent}`}>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="break-words text-lg font-semibold">{delivery.reference ?? `${delivery.load.reference} · Stop ${delivery.stopNumber}`}</h2>
@@ -216,36 +224,36 @@ async function DispatchContent({ searchParams }: Props) {
                     </Badge>
                   </div>
                   <p className="mt-1 break-words text-sm text-slate-500">{delivery.load.customerName} · {delivery.destinationAddress}</p>
-                  <p className="mt-2 text-xs text-slate-500">Stored risk {formatLabel(delivery.riskLevel)} · ETA {delivery.eta ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: context.organization.timezone }).format(delivery.eta) : "not set"} · Load weight {delivery.load.weightKg === null ? "not recorded" : `${Number(delivery.load.weightKg).toLocaleString()} kg`}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Stored risk {formatLabel(delivery.riskLevel)} · ETA {delivery.eta ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: context.organization.timezone }).format(delivery.eta) : "not set"} · Load weight {delivery.load.weightKg === null ? "not recorded" : `${Number(delivery.load.weightKg).toLocaleString()} kg`}</p>
                   {risk && (
                     <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                      <p className="text-xs font-semibold text-slate-700">
+                      <p className="text-sm leading-6 font-semibold text-slate-700">
                         Deterministic operational analysis, not an AI prediction
                       </p>
-                      <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-600">
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-sm leading-6 text-slate-600">
                         {risk.reasons.map((reason) => <li key={reason}>{reason}</li>)}
                       </ul>
                       {risk.limitations.length > 0 && (
-                        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-amber-800">
+                        <ul className="mt-2 list-disc space-y-1 pl-4 text-sm leading-6 text-amber-800">
                           {risk.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
                         </ul>
                       )}
                       {risk.intervention.action && (
-                        <p className="mt-2 text-xs font-medium text-amber-800">
+                        <p className="mt-2 text-sm leading-6 font-medium text-amber-800">
                           Recommended action: {risk.intervention.action}
                         </p>
                       )}
                     </div>
                   )}
                   {assignment ? (
-                    <div className="mt-4 rounded-lg bg-slate-50 p-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Current assignment</p>
+                    <div className="mt-4 rounded-lg border border-slate-200 border-l-4 border-l-blue-400 bg-slate-50 p-4">
+                      <p className="text-sm leading-6 font-medium uppercase tracking-wide text-blue-800">Current assignment</p>
                       <p className="mt-1 break-words text-sm font-semibold">{assignment.truck.unitNumber} · {assignment.driver.name}</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         <Badge tone="neutral">Truck {formatLabel(assignment.truck.status)}</Badge>
                         <Badge tone="neutral">Driver {formatLabel(assignment.driver.status)}</Badge>
                       </div>
-                      <p className="mt-1.5 text-xs text-slate-500">Assigned {new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.assignedAt)}</p>
+                      <p className="mt-1.5 text-sm leading-6 text-slate-500">Assigned {new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.assignedAt)}</p>
                       {context.canManage && <EndAssignmentForm organizationId={context.organization.id} assignmentId={assignment.id} />}
                       {risk &&
                         ["ASSIGNED", "PICKED_UP", "IN_TRANSIT"].includes(
@@ -258,7 +266,7 @@ async function DispatchContent({ searchParams }: Props) {
                                 <Badge tone="success" className="mr-1">Low risk</Badge>
                                 No recovery action required.
                               </p>
-                              <p className="mt-1 text-xs text-slate-500">
+                              <p className="mt-1 text-sm leading-6 text-slate-500">
                                 Delivery is operating normally. No unresolved
                                 operational issue requires dispatcher
                                 intervention.
@@ -275,7 +283,7 @@ async function DispatchContent({ searchParams }: Props) {
                                   ? "Recovery action recommended."
                                   : "Recovery action may be required."}
                               </p>
-                              <p className="mt-1 text-xs text-slate-500">
+                              <p className="mt-1 text-sm leading-6 text-slate-500">
                                 {risk.intervention
                                   .eligibleReassignmentCount}{" "}
                                 eligible replacement combination
@@ -300,25 +308,25 @@ async function DispatchContent({ searchParams }: Props) {
                                     recommended={recommendation}
                                   />
                                 ) : (
-                                  <p className="mt-3 text-xs text-slate-500">
+                                  <p className="mt-3 text-sm leading-6 text-slate-500">
                                     Your role allows dispatch viewing only.
                                   </p>
                                 )
                               ) : risk.intervention
                                   .insufficientReassignmentDataCount > 0 ? (
-                                <p className="mt-2 text-xs text-amber-800">
+                                <p className="mt-2 text-sm leading-6 text-amber-800">
                                   Insufficient data to verify capacity for an
                                   alternative; no reassignment is offered.
                                 </p>
                               ) : (
-                                <p className="mt-2 text-xs text-slate-500">
+                                <p className="mt-2 text-sm leading-6 text-slate-500">
                                   No eligible alternative truck and driver are
                                   currently available.
                                 </p>
                               )}
                               {risk.intervention
                                 .insufficientReassignmentDataCount > 0 && (
-                                <p className="mt-2 text-xs text-amber-800">
+                                <p className="mt-2 text-sm leading-6 text-amber-800">
                                   Capacity fit could not be verified for{" "}
                                   {risk.intervention
                                     .insufficientReassignmentDataCount}{" "}
@@ -333,13 +341,13 @@ async function DispatchContent({ searchParams }: Props) {
                             </div>
                           ) : (
                             <div>
-                              <p className="text-xs font-medium text-slate-600">
+                              <p className="text-sm leading-6 font-medium text-slate-600">
                                 Recovery review is unavailable because risk data
                                 is insufficient.
                               </p>
                               {risk.intervention
                                 .insufficientReassignmentDataCount > 0 && (
-                                <p className="mt-2 text-xs text-amber-800">
+                                <p className="mt-2 text-sm leading-6 text-amber-800">
                                   Capacity fit could not be verified for{" "}
                                   {risk.intervention
                                     .insufficientReassignmentDataCount}{" "}
@@ -360,18 +368,23 @@ async function DispatchContent({ searchParams }: Props) {
                     <p className="mt-4 text-sm text-slate-500">No current assignment.</p>
                   )}
                   {delivery.status !== "PLANNED" && delivery.status !== "ASSIGNED" && (
-                    <p className="mt-3 text-xs text-slate-500">This delivery status is not eligible for a new assignment.</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-500">This delivery status is not eligible for a new assignment.</p>
                   )}
                 </div>
 
                 <div className="self-start rounded-lg border border-slate-200 bg-slate-50 p-4">
                   {context.canManage && canAssign ? (
-                    <AssignDeliveryForm
-                      organizationId={context.organization.id}
-                      deliveryId={delivery.id}
-                      trucks={trucksForDelivery}
-                      drivers={driversForDelivery}
-                    />
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        New assignment
+                      </p>
+                      <AssignDeliveryForm
+                        organizationId={context.organization.id}
+                        deliveryId={delivery.id}
+                        trucks={trucksForDelivery}
+                        drivers={driversForDelivery}
+                      />
+                    </div>
                   ) : assignment ? (
                     !context.canManage && <p className="text-sm text-slate-500">Your role allows dispatch viewing only.</p>
                   ) : (
@@ -385,8 +398,11 @@ async function DispatchContent({ searchParams }: Props) {
       )}
 
       <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Recent assignment history</h2>
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/70 to-white px-5 py-4">
+          <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+            <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
+            Recent assignment history
+          </h2>
           <p className="mt-1 text-sm text-slate-500">Ended assignments remain as records and are never overwritten when a delivery is assigned again.</p>
         </div>
         {assignmentHistory.length === 0 ? (
@@ -396,11 +412,11 @@ async function DispatchContent({ searchParams }: Props) {
             {assignmentHistory.map((assignment) => {
               const delivery = deliveryById.get(assignment.deliveryId);
               return (
-                <li key={assignment.id} className="grid gap-2 px-5 py-4 sm:grid-cols-4">
+                <li key={assignment.id} className="grid gap-2 px-5 py-4 transition-colors hover:bg-slate-50/60 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_auto] sm:gap-4">
                   <p className="break-words text-sm font-medium">{delivery ? `${delivery.load.reference} · Stop ${delivery.stopNumber}` : "Delivery record"}</p>
                   <p className="break-words text-sm text-slate-600">{assignment.truck.unitNumber} · {assignment.driver.name}</p>
-                  <p className="break-words text-sm text-slate-600">{assignment.endReason ?? "Assignment ended"}</p>
-                  <p className="text-xs text-slate-500">{assignment.endedAt ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.endedAt) : ""}</p>
+                  <p className="break-words text-sm leading-6 text-slate-700">{assignment.endReason ?? "Assignment ended"}</p>
+                  <p className="whitespace-nowrap text-xs leading-5 text-slate-500">{assignment.endedAt ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: context.organization.timezone }).format(assignment.endedAt) : ""}</p>
                 </li>
               );
             })}
@@ -408,7 +424,7 @@ async function DispatchContent({ searchParams }: Props) {
         )}
       </section>
 
-      {!context.canManage && <p className="mt-6 text-xs text-slate-500">Your organization role allows dispatch viewing but not assignment changes.</p>}
+      {!context.canManage && <p className="mt-6 text-sm leading-6 text-slate-500">Your organization role allows dispatch viewing but not assignment changes.</p>}
     </TruckShell>
   );
 }

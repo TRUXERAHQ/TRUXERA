@@ -3,12 +3,13 @@ import { auth } from "@/auth";
 
 export default auth((request) => {
   const { pathname } = request.nextUrl;
+  const publicAuthPaths = ["/login", "/signup"];
 
-  if (!request.auth && pathname !== "/login") {
+  if (!request.auth && !publicAuthPaths.includes(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (request.auth && pathname === "/login") {
+  if (request.auth && publicAuthPaths.includes(pathname)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

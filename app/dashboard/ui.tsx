@@ -2,16 +2,16 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const buttonPrimaryClass =
-  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700";
+  "inline-flex items-center justify-center rounded-lg bg-gradient-to-b from-indigo-600 to-indigo-700 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-600/25 transition-colors hover:from-indigo-700 hover:to-indigo-800";
 
 export const buttonSecondaryClass =
-  "inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50";
+  "inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm transition-colors hover:border-indigo-300 hover:bg-indigo-100";
 
 export const buttonAccentClass =
-  "inline-flex items-center justify-center rounded-lg bg-emerald-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700";
+  "inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-600";
 
 export const buttonDangerClass =
-  "inline-flex items-center justify-center rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50";
+  "inline-flex items-center justify-center rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition-colors hover:border-red-400 hover:bg-red-100";
 
 export const inputClass =
   "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100";
@@ -21,7 +21,7 @@ export const labelClass =
 
 export const tableClass = "w-full text-left text-sm";
 export const tableHeadClass =
-  "border-b border-indigo-100 bg-indigo-50/50 text-xs font-medium uppercase tracking-wide text-slate-600";
+  "border-b border-indigo-200 bg-indigo-100/60 text-xs font-semibold uppercase tracking-wide text-indigo-900";
 export const tableCellClass = "py-2.5 pr-4 align-top text-slate-700";
 export const tableRowClass =
   "border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/60";
@@ -114,7 +114,7 @@ export function PageHeader({
   meta,
   actions,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: ReactNode;
   meta?: ReactNode;
@@ -123,8 +123,10 @@ export function PageHeader({
   return (
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
-        <p className="text-sm font-semibold text-indigo-600">{eyebrow}</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
+        {eyebrow && (
+          <p className="text-sm font-semibold text-indigo-600">{eyebrow}</p>
+        )}
+        <h1 className="mt-1 text-4xl font-bold tracking-tight text-slate-950">
           {title}
         </h1>
         {description && (
@@ -150,36 +152,54 @@ export function Panel({
 }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}
+      className={`overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
     >
-      {title && (
-        <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-          {title}
-        </h2>
-      )}
-      {description && (
-        <p className="mt-1 text-xs text-slate-500">{description}</p>
-      )}
-      <div className={title || description ? "mt-4" : ""}>{children}</div>
+      {title || description ? (
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-cyan-50/50 px-5 py-4">
+          {title && (
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+              <span
+                aria-hidden="true"
+                className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500"
+              />
+              {title}
+            </h2>
+          )}
+          {description && (
+            <p className="mt-1 text-xs text-slate-600">{description}</p>
+          )}
+        </div>
+      ) : null}
+      <div className="p-5">{children}</div>
     </section>
   );
 }
+
+const statTones = {
+  default: "border-indigo-100 border-l-indigo-300 bg-indigo-50/40",
+  info: "border-blue-200 border-l-blue-400 bg-blue-50/40",
+  success: "border-emerald-200 border-l-emerald-400 bg-emerald-50/40",
+  warning: "border-amber-200 border-l-amber-400 bg-amber-50/40",
+  danger: "border-rose-200 border-l-rose-400 bg-rose-50/40",
+} as const;
 
 export function Stat({
   label,
   value,
   hint,
+  tone = "default",
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
+  tone?: keyof typeof statTones;
 }) {
   return (
-    <div className="rounded-lg border border-indigo-100 border-l-2 border-l-indigo-300 bg-indigo-50/40 px-4 py-3">
+    <div className={`rounded-lg border border-l-2 px-4 py-3 ${statTones[tone]}`}>
       <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </dt>
-      <dd className="mt-1 text-lg font-semibold text-slate-900">{value}</dd>
+      <dd className="mt-1 text-xl font-bold text-slate-900">{value}</dd>
       {hint && <dd className="mt-0.5 text-xs text-slate-500">{hint}</dd>}
     </div>
   );
@@ -207,7 +227,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-6 py-10 text-center">
+    <div className="rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 to-cyan-50/40 px-6 py-10 text-center">
       <h2 className="text-base font-semibold text-slate-900">{title}</h2>
       {description && (
         <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">

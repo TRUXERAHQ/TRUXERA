@@ -29,7 +29,8 @@ export function WhatHappenedPanel({ statements }: { statements: string[] }) {
       aria-label="What happened"
       className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
     >
-      <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+      <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+        <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
         What happened
       </h2>
       <p className="mt-1 text-sm text-slate-500">
@@ -135,7 +136,8 @@ export function DownstreamImpactPanel({
       aria-label="Downstream impact"
       className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
     >
-      <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+      <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+        <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
         Downstream impact
       </h2>
       <p className="mt-1 text-sm text-slate-500">

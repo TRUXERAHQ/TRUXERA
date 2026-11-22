@@ -36,7 +36,8 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
   return (
     <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-800">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
           Automatic recovery report
         </h3>
         {report.header.outcome && (
@@ -126,7 +127,7 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
             </p>
             {report.recommendation.current && (
               <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Current TRUXERA recommendation — computed now, not the
                   historical recommendation
                 </p>
@@ -134,7 +135,7 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
                   {report.recommendation.current.truckUnitNumber} ·{" "}
                   {report.recommendation.current.driverName}
                 </p>
-                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-slate-500">
+                <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-slate-500">
                   {report.recommendation.current.reasons.map((reason) => (
                     <li key={reason}>{reason}</li>
                   ))}
@@ -149,7 +150,7 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
                 <p className="text-xs text-slate-700">
                   {report.action.fromLabel} → {report.action.toLabel}
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-500">
+                <p className="mt-0.5 text-xs text-slate-500">
                   {report.action.occurredAtLabel}
                   {report.action.dispatcherReason
                     ? ` · ${report.action.dispatcherReason}`
@@ -160,19 +161,19 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
               <Section title="Recovery result">
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="rounded-md border border-slate-200 bg-slate-50 p-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                       Before
                     </p>
                     <p className="mt-0.5 text-xs font-medium text-slate-700">
                       {report.result.before.truck} ·{" "}
                       {report.result.before.driver}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-xs text-slate-500">
                       Status: {report.result.before.status}
                     </p>
                   </div>
                   <div className="rounded-md border border-slate-200 bg-slate-50 p-2.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                       After
                     </p>
                     <p className="mt-0.5 text-xs font-medium text-slate-700">
@@ -181,7 +182,7 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
                         ? ` · ${report.result.after.driver}`
                         : ""}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-xs text-slate-500">
                       Status: {report.result.after.status}
                       {report.result.after.riskLabel
                         ? ` · ${report.result.after.riskLabel} risk`
@@ -192,7 +193,7 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
                 <p className="mt-2 text-xs font-medium text-slate-700">
                   {report.result.outcomeLabel}
                 </p>
-                <table className="mt-2 w-full text-left text-[11px]">
+                <table className="mt-2 w-full text-left text-xs">
                   <tbody>
                     {report.result.comparison.map((row) => (
                       <tr
@@ -224,7 +225,7 @@ export function RecoveryReportPanel({ report }: { report: RecoveryReport }) {
                   className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[11px] font-medium text-slate-600">
+                    <p className="text-xs font-medium text-slate-600">
                       {metric.label}
                     </p>
                     <Badge

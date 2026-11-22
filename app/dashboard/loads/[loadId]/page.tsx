@@ -281,8 +281,9 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
         />
 
         <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+          <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/70 to-white px-5 py-4">
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+              <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
               Delivery stops
             </h2>
             <p className="mt-1 text-sm text-slate-500">
@@ -363,7 +364,8 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                       <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
-                            <h3 className="text-sm font-semibold text-slate-800">
+                            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                              <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
                               Deterministic risk analysis
                             </h3>
                             <p className="mt-1 text-xs text-slate-600">
@@ -547,7 +549,8 @@ async function LoadDetailsContent({ params, searchParams }: Props) {
                     )}
 
                     <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-                      <h3 className="text-sm font-semibold text-slate-800">
+                      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                        <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
                         Operational history
                       </h3>
                       {events.length === 0 ? (

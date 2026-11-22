@@ -54,6 +54,12 @@ import {
   buildDownstreamImpact,
   buildWhatHappened,
 } from "../src/dashboard/load-impact.ts";
+import {
+  getOwnFeedback,
+  listOwnFeedback,
+  parseFeedbackInput,
+  submitFeedback,
+} from "../src/feedback/feedback-service.ts";
 
 test("driver records can be created and updated through the validated workflow", async () => {
   const drivers = [];
@@ -4512,4 +4518,253 @@ test("operational history contains no dispatcher feedback or scoring fields", ()
     assert.ok(!banned.includes(key.toLowerCase()));
   }
   assert.ok(!/dispatcherRating|manualScore|performanceScore/i.test(serialized));
+});
+
+function makeFeedbackRows() {
+  return [];
+}
+
+function makeFeedbackRepository(rows) {
+  return {
+    async createFeedback(scope, input) {
+      const record = {
+        id: `feedback-${rows.length + 1}`,
+        organizationId: scope.organizationId,
+        userId: scope.userId,
+        type: input.type,
+        subject: input.subject,
+        message: input.message,
+        rating: input.rating,
+        createdAt: new Date("2026-11-22T12:00:00.000Z"),
+        updatedAt: new Date("2026-11-22T12:00:00.000Z"),
+      };
+      rows.push(record);
+      return record;
+    },
+    async listFeedbackForUser(scope) {
+      return rows.filter(
+        (row) =>
+          row.organizationId === scope.organizationId &&
+          row.userId === scope.userId,
+      );
+    },
+    async findFeedbackForUser(scope, feedbackId) {
+      return (
+        rows.find(
+          (row) =>
+            row.organizationId === scope.organizationId &&
+            row.userId === scope.userId &&
+            row.id === feedbackId,
+        ) ?? null
+      );
+    },
+  };
+}
+
+function feedbackForm(fields) {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.set(key, value);
+  return form;
+}
+
+test("feedback submission creates a scoped record through the validated workflow", async () => {
+  const rows = makeFeedbackRows();
+  const repository = makeFeedbackRepository(rows);
+  const form = feedbackForm({
+    type: "FEATURE_REQUEST",
+    subject: "Export loads to CSV",
+    message: "It would help to export the load list for weekly reviews.",
+    rating: "4",
+  });
+  const parsed = parseFeedbackInput(form);
+  assert.equal("error" in parsed, false);
+
+  const result = await submitFeedback(
+    { userId: "user-1", organizationId: "org-a" },
+    parsed.input,
+    repository,
+  );
+  assert.deepEqual(result, { ok: true, value: { id: "feedback-1" } });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].organizationId, "org-a");
+  assert.equal(rows[0].userId, "user-1");
+  assert.equal(rows[0].type, "FEATURE_REQUEST");
+  assert.equal(rows[0].rating, 4);
+});
+
+test("feedback input requires type, subject, and message", () => {
+  assert.ok("error" in parseFeedbackInput(feedbackForm({ subject: "x", message: "y" })));
+  assert.ok("error" in parseFeedbackInput(feedbackForm({ type: "GENERAL_FEEDBACK", message: "y" })));
+  assert.ok("error" in parseFeedbackInput(feedbackForm({ type: "GENERAL_FEEDBACK", subject: "x" })));
+  assert.ok(
+    "error" in
+      parseFeedbackInput(
+        feedbackForm({
+          type: "GENERAL_FEEDBACK",
+          subject: "x".repeat(201),
+          message: "y",
+        }),
+      ),
+  );
+});
+
+test("feedback rating is optional and bounded to 1 through 5", () => {
+  const base = { type: "GENERAL_FEEDBACK", subject: "s", message: "m" };
+  const unrated = parseFeedbackInput(feedbackForm(base));
+  assert.equal("error" in unrated, false);
+  assert.equal(unrated.input.rating, null);
+
+  const rated = parseFeedbackInput(feedbackForm({ ...base, rating: "5" }));
+  assert.equal("error" in rated, false);
+  assert.equal(rated.input.rating, 5);
+
+  for (const rating of ["0", "6", "2.5", "abc"]) {
+    assert.ok(
+      "error" in parseFeedbackInput(feedbackForm({ ...base, rating })),
+      `rating ${rating} should be rejected`,
+    );
+  }
+});
+
+test("feedback type must be one of the supported categories", () => {
+  assert.equal(
+    "error" in
+      parseFeedbackInput(
+        feedbackForm({
+          type: "SUPPORT_TICKET",
+          subject: "s",
+          message: "m",
+        }),
+      ),
+    true,
+  );
+  for (const type of [
+    "PRODUCT_SUGGESTION",
+    "FEATURE_REQUEST",
+    "UX_UI_FEEDBACK",
+    "GENERAL_FEEDBACK",
+  ]) {
+    assert.equal(
+      "error" in parseFeedbackInput(feedbackForm({ type, subject: "s", message: "m" })),
+      false,
+      `${type} should be accepted`,
+    );
+  }
+});
+
+test("feedback history returns only the requesting user's own records", async () => {
+  const rows = makeFeedbackRows();
+  const repository = makeFeedbackRepository(rows);
+  const scopeA = { userId: "user-1", organizationId: "org-a" };
+  const scopeB = { userId: "user-2", organizationId: "org-a" };
+
+  await submitFeedback(scopeA, {
+    type: "GENERAL_FEEDBACK",
+    subject: "mine",
+    message: "my feedback",
+    rating: null,
+  }, repository);
+  await submitFeedback(scopeB, {
+    type: "GENERAL_FEEDBACK",
+    subject: "theirs",
+    message: "their feedback",
+    rating: null,
+  }, repository);
+
+  const mine = await listOwnFeedback(scopeA, repository);
+  assert.equal(mine.ok, true);
+  assert.equal(mine.value.length, 1);
+  assert.equal(mine.value[0].subject, "mine");
+});
+
+test("feedback detail cannot be read across users or organizations", async () => {
+  const rows = makeFeedbackRows();
+  const repository = makeFeedbackRepository(rows);
+  const owner = { userId: "user-1", organizationId: "org-a" };
+  const otherUser = { userId: "user-2", organizationId: "org-a" };
+  const otherOrg = { userId: "user-1", organizationId: "org-b" };
+
+  const created = await submitFeedback(owner, {
+    type: "GENERAL_FEEDBACK",
+    subject: "private",
+    message: "only mine",
+    rating: null,
+  }, repository);
+  const id = created.value.id;
+
+  const own = await getOwnFeedback(owner, id, repository);
+  assert.equal(own.ok, true);
+  assert.equal(own.value.subject, "private");
+
+  const other = await getOwnFeedback(otherUser, id, repository);
+  assert.equal(other.ok, true);
+  assert.equal(other.value, null);
+
+  const crossOrg = await getOwnFeedback(otherOrg, id, repository);
+  assert.equal(crossOrg.ok, true);
+  assert.equal(crossOrg.value, null);
+});
+
+test("feedback operations reject missing user or organization scope", async () => {
+  const repository = makeFeedbackRepository(makeFeedbackRows());
+  const emptyScope = { userId: "", organizationId: "" };
+
+  const submitted = await submitFeedback(emptyScope, {
+    type: "GENERAL_FEEDBACK",
+    subject: "s",
+    message: "m",
+    rating: null,
+  }, repository);
+  assert.equal(submitted.ok, false);
+
+  const listed = await listOwnFeedback(emptyScope, repository);
+  assert.equal(listed.ok, false);
+
+  const detail = await getOwnFeedback(emptyScope, "feedback-1", repository);
+  assert.equal(detail.ok, false);
+});
+
+import {
+  canAdministerOrganizationSettings,
+  isSupportedTimeZone,
+  parseOrganizationSettingsInput,
+} from "../src/settings/organization-settings.ts";
+
+test("organization settings input validates name and timezone", () => {
+  const valid = parseOrganizationSettingsInput({
+    name: "  Acme Freight  ",
+    timezone: "America/Chicago",
+  });
+  assert.equal(valid.ok, true);
+  assert.equal(valid.input.name, "Acme Freight");
+  assert.equal(valid.input.timezone, "America/Chicago");
+
+  for (const name of ["", "x", "a".repeat(101), 42, null]) {
+    const result = parseOrganizationSettingsInput({
+      name,
+      timezone: "UTC",
+    });
+    assert.equal(result.ok, false);
+  }
+
+  for (const timezone of ["", "Mars/Olympus", "not-a-zone", 7, null]) {
+    const result = parseOrganizationSettingsInput({
+      name: "Acme Freight",
+      timezone,
+    });
+    assert.equal(result.ok, false);
+  }
+});
+
+test("organization settings timezone and admin role checks", () => {
+  assert.equal(isSupportedTimeZone("UTC"), true);
+  assert.equal(isSupportedTimeZone("Europe/London"), true);
+  assert.equal(isSupportedTimeZone("Fake/Zone"), false);
+
+  assert.equal(canAdministerOrganizationSettings("OWNER"), true);
+  assert.equal(canAdministerOrganizationSettings("ADMIN"), true);
+  assert.equal(canAdministerOrganizationSettings("DISPATCHER"), false);
+  assert.equal(canAdministerOrganizationSettings("DRIVER"), false);
+  assert.equal(canAdministerOrganizationSettings("VIEWER"), false);
+  assert.equal(canAdministerOrganizationSettings(null), false);
 });

@@ -1,5 +1,9 @@
 import { connectDatabase, db } from "./db";
 import { createOrganizationWithOwner } from "./onboarding-service";
+import {
+  canAdministerOrganizationSettings,
+  type OrganizationSettingsInput,
+} from "@/src/settings/organization-settings";
 
 export async function getOrganizationsForUser(userId: string) {
   await connectDatabase();
@@ -57,5 +61,52 @@ export async function createOrganizationForUser(userId: string, name: string) {
         });
       },
     });
+  });
+}
+
+type SettingsMutationResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export async function updateOrganizationSettingsForUser(
+  userId: string,
+  organizationId: string,
+  input: OrganizationSettingsInput,
+): Promise<SettingsMutationResult> {
+  await connectDatabase();
+
+  return db.transaction(async (tx) => {
+    const membership = await tx.orm.public.Membership.where({
+      userId,
+      organizationId,
+    })
+      .forNoKeyUpdate()
+      .first();
+    if (
+      !membership ||
+      !canAdministerOrganizationSettings(membership.role)
+    ) {
+      return {
+        ok: false,
+        error:
+          "Only organization owners and admins can update these settings.",
+      };
+    }
+
+    const organization = await tx.orm.public.Organization.where({
+      id: organizationId,
+    })
+      .forNoKeyUpdate()
+      .first();
+    if (!organization) {
+      return { ok: false, error: "The selected organization was not found." };
+    }
+
+    await tx.orm.public.Organization.where({ id: organizationId }).update({
+      name: input.name,
+      timezone: input.timezone,
+    });
+
+    return { ok: true };
   });
 }

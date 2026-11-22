@@ -31,10 +31,10 @@ function MetricCard({ metric }: { metric: ImpactMetric }) {
       </p>
       {metric.evidence.length > 0 && (
         <details className="mt-1.5">
-          <summary className="cursor-pointer text-[11px] text-slate-400 hover:text-slate-600">
+          <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700">
             Evidence
           </summary>
-          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-slate-500">
+          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-slate-600">
             {metric.evidence.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -48,7 +48,8 @@ function MetricCard({ metric }: { metric: ImpactMetric }) {
 export function MeasureImpactPanel({ impact }: { impact: MeasureImpact }) {
   return (
     <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <h3 className="text-sm font-semibold text-slate-800">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
         Measure impact
       </h3>
       {!impact.hasRecovery ? (

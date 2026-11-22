@@ -8,7 +8,7 @@ import {
 } from "./actions";
 import {
   Badge,
-  buttonAccentClass,
+  buttonDangerClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
   inputClass,
@@ -52,7 +52,7 @@ export function AssignDeliveryForm({
         <option value="" disabled>Select driver</option>
         {drivers.map((driver) => <option key={driver.id} value={driver.id}>{driver.name}</option>)}
       </select>
-      {state.error && <p role="alert" className="text-xs text-red-700">{state.error}</p>}
+      {state.error && <p role="alert" className="text-sm leading-6 text-red-700">{state.error}</p>}
       <button type="submit" disabled={pending} className={`${buttonPrimaryClass} w-full disabled:opacity-60`}>
         {pending ? "Assigning..." : "Assign"}
       </button>
@@ -77,8 +77,8 @@ export function EndAssignmentForm({
       <input type="hidden" name="assignmentId" value={assignmentId} />
       <label className={labelClass} htmlFor={`reason-${assignmentId}`}>End reason (optional)</label>
       <input id={`reason-${assignmentId}`} name="reason" maxLength={250} className={inputClass} />
-      {state.error && <p role="alert" className="text-xs text-red-700">{state.error}</p>}
-      <button type="submit" disabled={pending} className={`${buttonSecondaryClass} disabled:opacity-60`}>
+      {state.error && <p role="alert" className="text-sm leading-6 text-red-700">{state.error}</p>}
+      <button type="submit" disabled={pending} className={`${buttonDangerClass} disabled:opacity-60`}>
         {pending ? "Ending..." : "End assignment"}
       </button>
     </form>
@@ -150,29 +150,29 @@ export function ReassignDeliveryForm({
         value={currentAssignmentId}
       />
       {recommended && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+        <div className="rounded-lg border border-indigo-200 bg-indigo-50/70 p-3">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold text-emerald-900">
+            <p className="text-sm leading-6 font-semibold text-indigo-900">
               TRUXERA Recommendation
             </p>
-            <Badge tone="success">Recommended</Badge>
+            <Badge tone="info">Recommended</Badge>
           </div>
-          <p className="mt-1 text-sm font-medium text-emerald-950">
+          <p className="mt-1 text-sm font-medium text-indigo-950">
             {recommended.truckUnitNumber} · {recommended.driverName}
           </p>
-          <p className="mt-1 text-xs text-emerald-800">
+          <p className="mt-1 text-sm leading-6 text-indigo-800">
             Capacity fit: {recommended.capacityUtilizationPercent}%
           </p>
-          <p className="mt-2 text-xs font-semibold text-emerald-900">
+          <p className="mt-2 text-sm leading-6 font-semibold text-indigo-900">
             Why TRUXERA recommended this
           </p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-emerald-800">
+          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm leading-6 text-indigo-800">
             {recommended.reasons.map((reason) => (
               <li key={reason}>{reason}</li>
             ))}
           </ul>
           {recommended.alternatives.length > 0 && (
-            <p className="mt-2 text-xs text-emerald-800">
+            <p className="mt-2 text-sm leading-6 text-indigo-800">
               Also eligible:{" "}
               {recommended.alternatives
                 .map(
@@ -221,7 +221,7 @@ export function ReassignDeliveryForm({
         placeholder="Why is this delivery being reassigned?"
       />
       {state.error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="text-sm leading-6 text-red-700">
           {state.error}
         </p>
       )}
@@ -236,7 +236,7 @@ export function ReassignDeliveryForm({
         <button
           type="submit"
           disabled={pending}
-          className={`${buttonAccentClass} flex-1 disabled:opacity-60`}
+          className={`${buttonPrimaryClass} flex-1 disabled:opacity-60`}
         >
           {pending ? "Reassigning..." : "Approve reassignment"}
         </button>

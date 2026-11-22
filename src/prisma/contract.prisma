@@ -48,6 +48,60 @@ enum RiskLevel {
   HIGH = "HIGH"
 }
 
+enum SupportCategory {
+  @@type("pg/text@1")
+
+  TECHNICAL_ISSUE = "TECHNICAL_ISSUE"
+  DATA_ISSUE = "DATA_ISSUE"
+  ACCOUNT_ACCESS = "ACCOUNT_ACCESS"
+  FLEET_OPERATIONS = "FLEET_OPERATIONS"
+  OTHER = "OTHER"
+}
+
+enum SupportPriority {
+  @@type("pg/text@1")
+
+  LOW = "LOW"
+  NORMAL = "NORMAL"
+  HIGH = "HIGH"
+  URGENT = "URGENT"
+}
+
+enum SupportStatus {
+  @@type("pg/text@1")
+
+  OPEN = "OPEN"
+  IN_PROGRESS = "IN_PROGRESS"
+  WAITING_FOR_CUSTOMER = "WAITING_FOR_CUSTOMER"
+  RESOLVED = "RESOLVED"
+  CLOSED = "CLOSED"
+}
+
+enum SupportRelatedKind {
+  @@type("pg/text@1")
+
+  LOAD = "LOAD"
+  DELIVERY = "DELIVERY"
+  TRUCK = "TRUCK"
+  DRIVER = "DRIVER"
+}
+
+enum SupportMessageAuthor {
+  @@type("pg/text@1")
+
+  CUSTOMER = "CUSTOMER"
+  SUPPORT = "SUPPORT"
+}
+
+enum FeedbackType {
+  @@type("pg/text@1")
+
+  PRODUCT_SUGGESTION = "PRODUCT_SUGGESTION"
+  FEATURE_REQUEST = "FEATURE_REQUEST"
+  UX_UI_FEEDBACK = "UX_UI_FEEDBACK"
+  GENERAL_FEEDBACK = "GENERAL_FEEDBACK"
+}
+
 enum DeliveryEventType {
   @@type("pg/text@1")
 
@@ -198,6 +252,67 @@ model DispatchAssignment {
   @@index([organizationId, truckId, endedAt])
   @@index([organizationId, driverId, endedAt])
   @@index([assignedByUserId])
+}
+
+model SupportRequest {
+  id              Uuid               @id @onCreate(uuid(7))
+  organizationId  Uuid
+  requesterUserId Uuid
+  reference       String
+  subject         String
+  category        SupportCategory
+  priority        SupportPriority
+  status          SupportStatus      @default(OPEN)
+  description     String
+  relatedKind     SupportRelatedKind?
+  relatedId       Uuid?
+  resolutionNote  String?
+  resolvedAt      DateTime?
+  createdAt       temporal.CreatedAt
+  updatedAt       temporal.UpdatedAt
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  requester       User               @relation(fields: [requesterUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  messages        SupportMessage[]
+
+  @@unique([organizationId, reference])
+  @@unique([organizationId, id])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status])
+}
+
+model SupportMessage {
+  id             Uuid                 @id @onCreate(uuid(7))
+  organizationId Uuid
+  requestId      Uuid
+  authorUserId   Uuid?
+  authorKind     SupportMessageAuthor
+  body           String
+  createdAt      temporal.CreatedAt
+  updatedAt      temporal.UpdatedAt
+
+  request        SupportRequest       @relation(fields: [organizationId, requestId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+  author         User?                @relation(fields: [authorUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId, requestId])
+  @@index([authorUserId])
+}
+
+model Feedback {
+  id             Uuid               @id @onCreate(uuid(7))
+  organizationId Uuid
+  userId         Uuid
+  type           FeedbackType
+  subject        String
+  message        String
+  rating         Int?
+  createdAt      temporal.CreatedAt
+  updatedAt      temporal.UpdatedAt
+
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId, userId, createdAt])
 }
 
 model DeliveryEvent {

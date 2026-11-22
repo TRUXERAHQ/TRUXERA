@@ -74,7 +74,7 @@ export default function DeliveryStatusForm({
         className={inputClass}
       />
       {state.error && (
-        <p role="alert" className="text-xs text-red-700">
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {state.error}
         </p>
       )}

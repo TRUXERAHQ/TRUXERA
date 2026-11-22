@@ -8,7 +8,8 @@ export function AssignmentVehicleReportPanel({
 }) {
   return (
     <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-      <h3 className="text-sm font-semibold text-slate-800">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <span aria-hidden="true" className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500" />
         Assignment &amp; vehicle report — {report.deliveryLabel}
       </h3>
 
@@ -20,7 +21,7 @@ export function AssignmentVehicleReportPanel({
         <>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Current truck
               </p>
               {report.current ? (
@@ -47,7 +48,7 @@ export function AssignmentVehicleReportPanel({
               )}
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Current driver
               </p>
               {report.current ? (
@@ -74,7 +75,7 @@ export function AssignmentVehicleReportPanel({
           </div>
 
           <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Assignment continuity
             </p>
             <p className="mt-1 text-xs text-slate-600">
@@ -96,7 +97,7 @@ export function AssignmentVehicleReportPanel({
                     <p className="font-medium text-slate-700">
                       {change.fromLabel} → {change.toLabel}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">
+                    <p className="mt-0.5 text-xs text-slate-500">
                       {change.atLabel}
                       {change.sameResources
                         ? " · same truck and driver re-recorded"

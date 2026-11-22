@@ -16,12 +16,11 @@ import {
 } from "@/src/dashboard/dashboard-metrics";
 import { signOutUser } from "./auth-actions";
 import TruckShell from "./dashboard/trucks/truck-shell";
+import { TruckLineArt } from "./truck-line-art";
 import {
   Badge,
-  buttonDangerClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
-  PageHeader,
   tableCellClass,
   tableClass,
   tableHeadClass,
@@ -68,6 +67,45 @@ function getDeliveryLabel(delivery: {
 }) {
   return delivery.reference ?? `${delivery.load.reference} · Stop ${delivery.stopNumber}`;
 }
+
+const intelligenceStages = [
+  "Detect",
+  "Predict",
+  "Recommend",
+  "Recover",
+  "Measure Impact",
+  "Generate Summary",
+] as const;
+
+const deliveryStatusChips: Record<string, string> = {
+  Planned: "border-slate-200 bg-slate-50 text-slate-600",
+  Assigned: "border-blue-200 bg-blue-50 text-blue-700",
+  "Picked Up": "border-cyan-200 bg-cyan-50 text-cyan-700",
+  "In Transit": "border-sky-200 bg-sky-50 text-sky-700",
+  Delivered: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  Failed: "border-red-200 bg-red-50 text-red-700",
+  Cancelled: "border-slate-200 bg-slate-100 text-slate-500",
+  Neutral: "border-slate-200 bg-slate-50 text-slate-600",
+};
+
+const fleetStatusDot: Record<string, string> = {
+  "At Risk": "bg-red-500",
+  Available: "bg-emerald-500",
+  "On Route": "bg-blue-500",
+  Maintenance: "bg-amber-500",
+  "Out Of Service": "bg-red-500",
+};
+
+const deliveryStatusBar: Record<string, string> = {
+  Planned: "bg-slate-300",
+  Assigned: "bg-blue-400",
+  "Picked Up": "bg-cyan-400",
+  "In Transit": "bg-sky-400",
+  Delivered: "bg-emerald-500",
+  Failed: "bg-red-500",
+  Cancelled: "bg-slate-300",
+  Neutral: "bg-slate-300",
+};
 
 const statusTones: Record<string, BadgeTone> = {
   "At Risk": "danger",
@@ -157,45 +195,69 @@ function KpiIcon({
   );
 }
 
+
 function KpiCard({
   icon,
   label,
   iconClass,
   accentClass,
+  surfaceClass = "bg-white",
   valueClass = "text-slate-950",
   children,
   hint,
   danger = false,
+  meter,
 }: {
   icon: Parameters<typeof KpiIcon>[0]["name"];
   label: string;
   iconClass: string;
   accentClass: string;
+  surfaceClass?: string;
   valueClass?: string;
   children: ReactNode;
   hint?: ReactNode;
   danger?: boolean;
+  meter?: { value: number; className: string };
 }) {
   return (
     <div
-      className={`rounded-xl border border-slate-200 border-t-2 bg-white p-5 shadow-sm ${accentClass}`}
+      className={`flex h-full flex-col rounded-xl border border-slate-200 border-t-2 p-5 shadow-md ${surfaceClass} ${accentClass}`}
     >
       <div className="flex items-center gap-3">
         <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-black/5 ${iconClass}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/10 ${iconClass}`}
         >
           <KpiIcon name={icon} />
         </span>
-        <p className="text-sm font-medium text-slate-600">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {label}
+        </p>
       </div>
       <div
-        className={`mt-3 text-3xl font-bold tracking-tight ${
+        className={`mt-3 text-4xl font-bold tracking-tight tabular-nums ${
           danger ? "text-red-600" : valueClass
         }`}
       >
         {children}
       </div>
-      {hint && <div className="mt-2 text-xs leading-5 text-slate-600">{hint}</div>}
+      {meter && (
+        <div
+          className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+          role="presentation"
+        >
+          <div
+            className={`h-full rounded-full ${meter.className}`}
+            style={{
+              width: `${Math.min(100, Math.max(0, meter.value))}%`,
+            }}
+          />
+        </div>
+      )}
+      {hint && (
+        <div className="mt-auto line-clamp-2 pt-2 text-xs leading-5 text-slate-600">
+          {hint}
+        </div>
+      )}
     </div>
   );
 }
@@ -332,6 +394,23 @@ async function Dashboard({ searchParams }: HomeProps) {
       );
     })
     .slice(0, 8);
+  const attentionDeliveries = activeDeliveries
+    .flatMap((delivery) => {
+      const analysis = riskAnalyses.get(delivery.id);
+      return analysis?.riskLevel === "HIGH" || analysis?.riskLevel === "MEDIUM"
+        ? [{ delivery, analysis }]
+        : [];
+    })
+    .sort(
+      (left, right) =>
+        (left.analysis.riskLevel === "HIGH" ? 0 : 1) -
+        (right.analysis.riskLevel === "HIGH" ? 0 : 1),
+    );
+  const highRiskCount = attentionDeliveries.filter(
+    ({ analysis }) => analysis.riskLevel === "HIGH",
+  ).length;
+  const mediumRiskCount = attentionDeliveries.length - highRiskCount;
+  const visibleAttention = attentionDeliveries.slice(0, 4);
   const recoveryDelivery = highRiskDeliveries[0];
   const recoveryAssignment = recoveryDelivery
     ? assignmentByDeliveryId.get(recoveryDelivery.id)
@@ -346,6 +425,11 @@ async function Dashboard({ searchParams }: HomeProps) {
           )
         ? { label: "Needs attention", tone: "warning" }
         : { label: "Operational", tone: "success" };
+  const deliveryStatusEntries = Object.entries(metrics.deliveryStatusCounts);
+  const deliveryStatusTotal = deliveryStatusEntries.reduce(
+    (sum, [, count]) => sum + count,
+    0,
+  );
 
   if (!data.organization) {
     return (
@@ -369,26 +453,22 @@ async function Dashboard({ searchParams }: HomeProps) {
       organizations={data.organizations}
       organization={data.organization}
       activeSection="dashboard"
+      hero={
+        <div className="overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-cyan-50/50 px-4 py-3 shadow-sm sm:px-6">
+          <div className="flex justify-center">
+            <TruckLineArt className="h-auto w-full max-w-[1180px]" />
+          </div>
+        </div>
+      }
     >
-      <PageHeader
-        eyebrow={new Intl.DateTimeFormat("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-          timeZone,
-        }).format(new Date())}
-        title="Fleet Operations"
-        description={data.organization.name}
-      />
-
       {/* KPI cards */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           icon="truck"
           label="Active Trucks"
-          iconClass="bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600"
+          iconClass="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-500/30"
           accentClass="border-t-indigo-500"
+          surfaceClass="bg-gradient-to-br from-indigo-50/80 via-white to-white"
           valueClass="text-indigo-700"
           hint={`${metrics.availableTrucks} available · ${metrics.onRouteTrucks} on route · ${metrics.maintenanceTrucks} maintenance · ${metrics.outOfServiceTrucks} out of service`}
         >
@@ -398,8 +478,9 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="users"
           label="Active Drivers"
-          iconClass="bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600"
+          iconClass="bg-gradient-to-br from-violet-500 to-violet-600 text-white shadow-violet-500/30"
           accentClass="border-t-violet-500"
+          surfaceClass="bg-gradient-to-br from-violet-50/80 via-white to-white"
           valueClass="text-violet-700"
           hint="Available or on duty"
         >
@@ -409,8 +490,9 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="package"
           label="Total Deliveries"
-          iconClass="bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-600"
+          iconClass="bg-gradient-to-br from-cyan-500 to-cyan-600 text-white shadow-cyan-500/30"
           accentClass="border-t-cyan-500"
+          surfaceClass="bg-gradient-to-br from-cyan-50/80 via-white to-white"
           valueClass="text-cyan-700"
           hint={`${activeDeliveries.length} open · ${metrics.deliveryStatusCounts.DELIVERED} delivered`}
         >
@@ -420,8 +502,9 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="layers"
           label="Active Loads"
-          iconClass="bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600"
+          iconClass="bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/30"
           accentClass="border-t-blue-500"
+          surfaceClass="bg-gradient-to-br from-blue-50/80 via-white to-white"
           valueClass="text-blue-700"
           hint="Loads with at least one open delivery"
         >
@@ -431,8 +514,9 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="alert"
           label="At-Risk Deliveries"
-          iconClass="bg-gradient-to-br from-red-50 to-red-100 text-red-600"
+          iconClass="bg-gradient-to-br from-red-500 to-red-600 text-white shadow-red-500/30"
           accentClass="border-t-red-500"
+          surfaceClass="bg-gradient-to-br from-red-50/80 via-white to-white"
           danger
           hint={`High ${activeRiskSummary.HIGH} · Medium ${activeRiskSummary.MEDIUM} · Low ${activeRiskSummary.LOW} · Insufficient data ${activeRiskSummary.insufficientData} · ${activeRiskSummary.requiringIntervention} need review · ${activeRiskSummary.withEligibleReassignment} have an eligible replacement`}
         >
@@ -442,9 +526,19 @@ async function Dashboard({ searchParams }: HomeProps) {
         <KpiCard
           icon="pulse"
           label="Fleet Availability"
-          iconClass="bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600"
+          iconClass="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30"
           accentClass="border-t-emerald-500"
+          surfaceClass="bg-gradient-to-br from-emerald-50/80 via-white to-white"
           valueClass="text-emerald-700"
+          meter={
+            metrics.fleetAvailability === null
+              ? undefined
+              : {
+                  value: metrics.fleetAvailability,
+                  className:
+                    "bg-gradient-to-r from-emerald-500 to-teal-500",
+                }
+          }
           hint={
             <>
               {metrics.fleetAvailability === null
@@ -462,90 +556,59 @@ async function Dashboard({ searchParams }: HomeProps) {
         </KpiCard>
       </div>
 
-      <div className="mt-4 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50/60 via-white to-cyan-50/40 px-5 py-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-800">Delivery status</div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {Object.entries(metrics.deliveryStatusCounts).map(
-            ([status, count]) => (
-              <Badge
-                key={status}
-                tone={statusTones[formatLabel(status)] ?? "neutral"}
-              >
-                {formatLabel(status)}: {count}
-              </Badge>
-            ),
-          )}
-        </div>
-      </div>
-
-      {/* Risk alert */}
-      <div
-        className={`mt-6 rounded-xl border p-5 ${
-          recoveryDelivery
-            ? "border-red-200 bg-red-50"
-            : "border-emerald-200 bg-emerald-50"
-        }`}
-      >
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <div className="flex items-center gap-2">
+      {/* Operational status rail */}
+      <div className="mt-4 rounded-xl border border-indigo-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-indigo-700">
+            <span
+              aria-hidden="true"
+              className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500"
+            />
+            Deliveries
+          </span>
+          {deliveryStatusEntries.map(([status, count]) => {
+            const label = formatLabel(status);
+            const chip = deliveryStatusChips[label] ?? deliveryStatusChips.Neutral;
+            return (
               <span
-                className={`h-2.5 w-2.5 rounded-full ${
-                  recoveryDelivery ? "bg-red-500" : "bg-emerald-500"
-                }`}
-              />
-              <h2
-                className={`font-semibold ${
-                  recoveryDelivery ? "text-red-900" : "text-emerald-900"
-                }`}
+                key={status}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${chip}`}
               >
-                {recoveryDelivery
-                  ? `${getDeliveryLabel(recoveryDelivery)} is at high risk`
-                  : "No active high-risk deliveries"}
-              </h2>
-            </div>
-
-            <p
-              className={`mt-2 text-sm ${
-                recoveryDelivery ? "text-red-800" : "text-emerald-800"
-              }`}
-            >
-              {recoveryDelivery
-                  ? `Status: ${formatLabel(recoveryDelivery.status)}. ${
-                      riskAnalyses.get(recoveryDelivery.id)?.reasons[0] ??
-                      "Review the available operational evidence."
-                    } Current assignment: ${
-                      recoveryAssignment?.truck.unitNumber ??
-                      "No truck assigned"
-                    } · ${
-                      recoveryAssignment?.driver.name ?? "No driver assigned"
-                    }.`
-                : "There are no current high-risk deliveries to review."}
-            </p>
-            {recoveryDelivery && (
-              <p className="mt-2 text-xs text-red-800">
-                Deterministic operational analysis, not an AI prediction.
-              </p>
-            )}
-          </div>
-
-          {recoveryDelivery && (
-            <button
-              disabled
-              title="Dashboard data is currently read-only"
-              className={`${buttonDangerClass} cursor-not-allowed opacity-60`}
-            >
-              Review Recovery
-            </button>
-          )}
+                {label}
+                <span className="font-bold tabular-nums">{count}</span>
+              </span>
+            );
+          })}
+          <span className="ml-auto text-xs font-medium text-slate-500">
+            {deliveryStatusTotal} total
+          </span>
         </div>
+        {deliveryStatusTotal > 0 && (
+          <div
+            className="mt-3 flex h-2 w-full overflow-hidden rounded-full bg-slate-100"
+            role="img"
+            aria-label="Delivery status distribution"
+          >
+            {deliveryStatusEntries.map(([status, count]) => {
+              const label = formatLabel(status);
+              return (
+                <span
+                  key={status}
+                  className={deliveryStatusBar[label] ?? "bg-slate-300"}
+                  style={{ width: `${(count / deliveryStatusTotal) * 100}%` }}
+                  title={`${label}: ${count}`}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Main grid */}
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      {/* Main operations workspace: fleet rail | attention + delivery monitor | recovery intelligence */}
+      <div className="mt-4 grid gap-5 xl:grid-cols-12">
         {/* Fleet */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div className="order-2 min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md xl:order-1 xl:col-span-3">
+          <div className="flex items-center justify-between border-b border-indigo-100 bg-gradient-to-r from-indigo-50/80 to-white px-5 py-4">
             <div>
               <h2 className="font-semibold text-slate-800">
                 <span
@@ -555,7 +618,7 @@ async function Dashboard({ searchParams }: HomeProps) {
                 Fleet Overview
               </h2>
               <p className="mt-1 text-xs text-slate-600">
-                Current truck operations
+                {data.trucks.length} registered · current operations
               </p>
             </div>
 
@@ -607,10 +670,16 @@ async function Dashboard({ searchParams }: HomeProps) {
                 return (
                   <div
                     key={truck.id}
-                    className="flex items-center justify-between gap-4 px-5 py-4"
+                    className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-indigo-50/40"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 shrink-0 rounded-full ${
+                            fleetStatusDot[status] ?? "bg-slate-300"
+                          }`}
+                          aria-hidden="true"
+                        />
                         <span className="font-semibold break-words">
                           {truck.unitNumber}
                         </span>
@@ -646,11 +715,11 @@ async function Dashboard({ searchParams }: HomeProps) {
                       </p>
                       {utilization !== null && (
                         <div
-                          className="ml-auto mt-1.5 h-1 w-24 overflow-hidden rounded-full bg-slate-100"
+                          className="ml-auto mt-1.5 h-1.5 w-36 overflow-hidden rounded-full bg-slate-100"
                           role="presentation"
                         >
                           <div
-                            className="h-full rounded-full bg-indigo-500"
+                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500"
                             style={{
                               width: `${Math.min(100, Math.max(0, utilization))}%`,
                             }}
@@ -665,161 +734,411 @@ async function Dashboard({ searchParams }: HomeProps) {
           </div>
         </div>
 
-        {/* Deliveries */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-            <div>
-              <h2 className="font-semibold text-slate-800">
-                <span
-                  aria-hidden="true"
-                  className="mr-2 inline-block h-2 w-2 rounded-[3px] bg-cyan-500 align-middle"
-                />
-                Delivery Monitor
+        {/* Center column: attention + delivery monitor */}
+        <div className="order-1 flex min-w-0 flex-col gap-5 xl:order-2 xl:col-span-6">
+          {/* Attention required */}
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-gradient-to-r from-red-50/60 via-white to-amber-50/40 px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100 text-red-600">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 3 2 20h20L12 3z" />
+                    <path d="M12 10v4" />
+                    <path d="M12 17.5v.5" />
+                  </svg>
+                </span>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Attention required
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    MEDIUM or HIGH risk deliveries needing review
+                  </p>
+                </div>
+              </div>
+              {attentionDeliveries.length > 0 && (
+                <div className="flex gap-1.5">
+                  {highRiskCount > 0 && (
+                    <Badge tone="danger">{highRiskCount} high</Badge>
+                  )}
+                  {mediumRiskCount > 0 && (
+                    <Badge tone="warning">{mediumRiskCount} medium</Badge>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {attentionDeliveries.length === 0 ? (
+              <div className="flex items-center gap-2.5 px-4 py-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-3.5 w-3.5"
+                    aria-hidden="true"
+                  >
+                    <path d="m4.5 12.5 5 5 10-11" />
+                  </svg>
+                </span>
+                <p className="text-sm font-medium text-emerald-800">
+                  No immediate recovery attention required — no active
+                  deliveries are flagged MEDIUM or HIGH risk.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {visibleAttention.map(({ delivery, analysis }) => {
+                  const assignment = assignmentByDeliveryId.get(delivery.id);
+                  const isHigh = analysis.riskLevel === "HIGH";
+                  const reviewHref = `/dashboard/loads/${encodeURIComponent(
+                    delivery.loadId,
+                  )}?organizationId=${encodeURIComponent(data.organization.id)}`;
+
+                  return (
+                    <li
+                      key={delivery.id}
+                      className={`flex flex-col gap-2.5 border-l-4 px-4 py-3 transition-colors hover:bg-slate-50/70 sm:flex-row sm:items-center sm:justify-between ${
+                        isHigh
+                          ? "border-l-red-400 bg-red-50/40"
+                          : "border-l-amber-400 bg-amber-50/30"
+                      }`}
+                    >
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span
+                          className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
+                            isHigh ? "bg-red-500" : "bg-amber-500"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={reviewHref}
+                              className="font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
+                            >
+                              {getDeliveryLabel(delivery)}
+                            </Link>
+                            <Badge tone={isHigh ? "danger" : "warning"}>
+                              {isHigh ? "High risk" : "Medium risk"}
+                            </Badge>
+                            <Badge
+                              tone={
+                                statusTones[formatLabel(delivery.status)] ??
+                                "neutral"
+                              }
+                            >
+                              {formatLabel(delivery.status)}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 break-words text-sm text-slate-600">
+                            {delivery.recipientName ??
+                              delivery.load.customerName}
+                            {" · "}
+                            {assignment
+                              ? `${assignment.truck.unitNumber} · ${assignment.driver.name}`
+                              : "Unassigned"}
+                            {" · "}
+                            {analysis.reasons[0] ??
+                              "Review the available operational evidence."}
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        href={reviewHref}
+                        className="inline-flex shrink-0 items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-indigo-600/25 transition-colors hover:bg-indigo-700"
+                      >
+                        Review recovery
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {attentionDeliveries.length > visibleAttention.length && (
+              <p className="border-t border-slate-100 px-4 py-2.5 text-xs text-slate-600">
+                +{attentionDeliveries.length - visibleAttention.length} more
+                flagged deliveries — review them in{" "}
+                <Link
+                  href={`/dashboard/loads?organizationId=${encodeURIComponent(data.organization.id)}`}
+                  className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline"
+                >
+                  Loads
+                </Link>
+                .
+              </p>
+            )}
+          </section>
+
+          {/* Deliveries */}
+          <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+            <div className="flex items-center justify-between border-b border-cyan-100 bg-gradient-to-r from-cyan-50/80 to-white px-5 py-4">
+              <div>
+                <h2 className="font-semibold text-slate-800">
+                  <span
+                    aria-hidden="true"
+                    className="mr-2 inline-block h-2 w-2 rounded-[3px] bg-cyan-500 align-middle"
+                  />
+                  Delivery Monitor
+                </h2>
+                <p className="mt-1 text-xs text-slate-600">
+                  Status, ETA and current assignments
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Badge tone="neutral">
+                  {displayedDeliveries.length} shown
+                </Badge>
+                <Link
+                  href={`/dashboard/loads?organizationId=${encodeURIComponent(data.organization.id)}`}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                >
+                  View all
+                </Link>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className={tableClass}>
+                <thead>
+                  <tr>
+                    <th className={`${tableHeadClass} px-5 py-3`}>Delivery</th>
+                    <th className={`${tableHeadClass} px-5 py-3`}>Destination</th>
+                    <th className={`${tableHeadClass} px-5 py-3`}>Assignment</th>
+                    <th className={`${tableHeadClass} px-5 py-3`}>Status</th>
+                    <th className={`${tableHeadClass} px-5 py-3`}>ETA</th>
+                    <th className={`${tableHeadClass} px-5 py-3`}>Risk</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {displayedDeliveries.length === 0 ? (
+                    <tr className={tableRowClass}>
+                      <td
+                        colSpan={6}
+                        className={`${tableCellClass} px-5 py-6`}
+                      >
+                        No current deliveries for this organization.
+                      </td>
+                    </tr>
+                  ) : (
+                    displayedDeliveries.map((delivery) => {
+                      const assignment = assignmentByDeliveryId.get(
+                        delivery.id,
+                      );
+                      const riskLevel =
+                        riskAnalyses.get(delivery.id)?.riskLevel;
+                      const riskEdge =
+                        riskLevel === "HIGH"
+                          ? "border-l-red-500"
+                          : riskLevel === "MEDIUM"
+                            ? "border-l-amber-500"
+                            : riskLevel === "LOW"
+                              ? "border-l-emerald-500"
+                              : "border-l-slate-200";
+                      const riskRowTint =
+                        riskLevel === "HIGH"
+                          ? "bg-red-50/30"
+                          : riskLevel === "MEDIUM"
+                            ? "bg-amber-50/20"
+                            : "";
+
+                      return (
+                        <tr
+                          key={delivery.id}
+                          className={`${tableRowClass} ${riskRowTint}`}
+                        >
+                          <td
+                            className={`${tableCellClass} border-l-4 ${riskEdge} px-5 py-4`}
+                          >
+                            <div className="font-medium break-words">
+                              {getDeliveryLabel(delivery)}
+                            </div>
+                          </td>
+
+                          <td className={`${tableCellClass} px-5 py-4 text-slate-600`}>
+                            <span className="break-words">
+                              {delivery.recipientName ??
+                                delivery.load.customerName}
+                            </span>
+                          </td>
+
+                          <td className={`${tableCellClass} px-5 py-4 text-slate-600`}>
+                            {assignment ? (
+                              <>
+                                <div className="break-words">{assignment.truck.unitNumber}</div>
+                                <div className="mt-1 break-words text-xs text-slate-600">
+                                  {assignment.driver.name}
+                                </div>
+                              </>
+                            ) : (
+                              "Unassigned"
+                            )}
+                          </td>
+
+                          <td className={`${tableCellClass} px-5 py-4`}>
+                            <span className="inline-flex items-center gap-1.5">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  riskLevel === "HIGH"
+                                    ? "bg-red-500"
+                                    : riskLevel === "MEDIUM"
+                                      ? "bg-amber-500"
+                                      : riskLevel === "LOW"
+                                        ? "bg-emerald-500"
+                                        : "bg-slate-300"
+                                }`}
+                                aria-hidden="true"
+                              />
+                              <StatusBadge
+                                status={formatLabel(delivery.status)}
+                              />
+                            </span>
+                          </td>
+
+                          <td className={`${tableCellClass} whitespace-nowrap px-5 py-4 text-slate-600`}>
+                            {formatEta(delivery.eta, timeZone)}
+                          </td>
+
+                          <td className={`${tableCellClass} px-5 py-4`}>
+                            <RiskBadge
+                              risk={formatLabel(
+                                riskAnalyses.get(delivery.id)?.riskLevel ??
+                                  "INSUFFICIENT_DATA",
+                              )}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {/* TRUXERA recovery intelligence */}
+        <div className="order-3 min-w-0 overflow-hidden rounded-xl border border-indigo-200 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/40 p-5 shadow-md xl:col-span-3">
+          <div className="flex flex-col gap-5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-[11px] font-bold text-white">
+                  T
+                </span>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
+                  TRUXERA Recovery Intelligence
+                </p>
+              </div>
+
+              <h2 className="mt-2 text-xl font-bold text-slate-950">
+                {recoveryDelivery
+                  ? "Recovery review"
+                  : "No recovery action to review"}
               </h2>
-              <p className="mt-1 text-xs text-slate-600">
-                Status, ETA and current assignments
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                {recoveryDelivery
+                  ? `${getDeliveryLabel(recoveryDelivery)} is assessed HIGH with status ${formatLabel(
+                      recoveryDelivery.status,
+                    )}. ${
+                      riskAnalyses.get(recoveryDelivery.id)?.reasons[0] ??
+                      "Review the available operational evidence."
+                    } Current assignment: ${
+                      recoveryAssignment?.truck.unitNumber ??
+                      "No truck assigned"
+                    } · ${
+                      recoveryAssignment?.driver.name ?? "No driver assigned"
+                    }.`
+                  : "No active high-risk delivery records are available for recovery review."}
               </p>
             </div>
 
-            <Link
-              href={`/dashboard/loads?organizationId=${encodeURIComponent(data.organization.id)}`}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-            >
-              View all
-            </Link>
+            {recoveryDelivery && (
+              <div className="flex shrink-0 gap-3">
+                <button
+                  disabled
+                  title="Dashboard data is currently read-only"
+                  className={`${buttonSecondaryClass} cursor-not-allowed opacity-60`}
+                >
+                  Ignore
+                </button>
+
+                <button
+                  disabled
+                  title="Dashboard data is currently read-only"
+                  className={`${buttonPrimaryClass} cursor-not-allowed opacity-60`}
+                >
+                  Reassign
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="overflow-x-auto">
-            <table className={tableClass}>
-              <thead>
-                <tr>
-                  <th className={`${tableHeadClass} px-5 py-3`}>Delivery</th>
-                  <th className={`${tableHeadClass} px-5 py-3`}>Assignment</th>
-                  <th className={`${tableHeadClass} px-5 py-3`}>Status</th>
-                  <th className={`${tableHeadClass} px-5 py-3`}>ETA</th>
-                  <th className={`${tableHeadClass} px-5 py-3`}>Risk</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {displayedDeliveries.length === 0 ? (
-                  <tr className={tableRowClass}>
-                    <td
-                      colSpan={5}
-                      className={`${tableCellClass} px-5 py-6`}
-                    >
-                      No current deliveries for this organization.
-                    </td>
-                  </tr>
-                ) : (
-                  displayedDeliveries.map((delivery) => {
-                    const assignment = assignmentByDeliveryId.get(
-                      delivery.id,
-                    );
-
-                    return (
-                      <tr key={delivery.id} className={tableRowClass}>
-                        <td className={`${tableCellClass} px-5 py-4`}>
-                          <div className="font-medium break-words">
-                            {getDeliveryLabel(delivery)}
-                          </div>
-                          <div className="mt-1 break-words text-xs text-slate-600">
-                            {delivery.recipientName ??
-                              delivery.load.customerName}
-                          </div>
-                        </td>
-
-                        <td className={`${tableCellClass} px-5 py-4 text-slate-600`}>
-                          {assignment ? (
-                            <>
-                              <div className="break-words">{assignment.truck.unitNumber}</div>
-                              <div className="mt-1 break-words text-xs text-slate-600">
-                                {assignment.driver.name}
-                              </div>
-                            </>
-                          ) : (
-                            "Unassigned"
-                          )}
-                        </td>
-
-                        <td className={`${tableCellClass} px-5 py-4`}>
-                          <StatusBadge
-                            status={formatLabel(delivery.status)}
-                          />
-                        </td>
-
-                        <td className={`${tableCellClass} px-5 py-4 text-slate-600`}>
-                          {formatEta(delivery.eta, timeZone)}
-                        </td>
-
-                        <td className={`${tableCellClass} px-5 py-4`}>
-                          <RiskBadge
-                            risk={formatLabel(
-                              riskAnalyses.get(delivery.id)?.riskLevel ??
-                                "INSUFFICIENT_DATA",
-                            )}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })
+          <ol className="mt-5 flex flex-wrap items-center gap-y-2">
+            {intelligenceStages.map((stage, index) => (
+              <li key={stage} className="flex items-center">
+                {index > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="mx-1.5 text-indigo-300"
+                  >
+                    →
+                  </span>
                 )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-indigo-200 bg-indigo-50/70 px-2.5 py-1 text-[11px] font-semibold text-indigo-800">
+                  <span className="font-mono text-[9px] text-indigo-400">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {stage}
+                </span>
+              </li>
+            ))}
+          </ol>
 
-      {/* Recovery review */}
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
-              Operations Summary
-            </p>
-
-            <h2 className="mt-2 text-xl font-bold">
-              {recoveryDelivery
-                ? "Recovery review"
-                : "No recovery action to review"}
-            </h2>
-
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              {recoveryDelivery
-                ? `${getDeliveryLabel(recoveryDelivery)} is assessed HIGH with status ${formatLabel(
-                    recoveryDelivery.status,
-                  )}. ${
-                    riskAnalyses.get(recoveryDelivery.id)?.reasons[0] ??
-                    "Review the available operational evidence."
-                  } Current assignment: ${
-                    recoveryAssignment?.truck.unitNumber ??
-                    "No truck assigned"
-                  } · ${
-                    recoveryAssignment?.driver.name ?? "No driver assigned"
-                  }.`
-                : "No active high-risk delivery records are available for recovery review."}
-            </p>
-          </div>
-
-          {recoveryDelivery && (
-            <div className="flex shrink-0 gap-3">
-              <button
-                disabled
-                title="Dashboard data is currently read-only"
-                className={`${buttonSecondaryClass} cursor-not-allowed opacity-60`}
-              >
-                Ignore
-              </button>
-
-              <button
-                disabled
-                title="Dashboard data is currently read-only"
-                className={`${buttonPrimaryClass} cursor-not-allowed opacity-60`}
-              >
-                Reassign
-              </button>
+          <dl className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg border border-indigo-100 bg-white/80 px-2.5 py-2 text-center">
+              <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                High risk
+              </dt>
+              <dd className="mt-0.5 text-lg font-bold tabular-nums text-red-600">
+                {activeRiskSummary.HIGH}
+              </dd>
             </div>
-          )}
+            <div className="rounded-lg border border-indigo-100 bg-white/80 px-2.5 py-2 text-center">
+              <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Medium risk
+              </dt>
+              <dd className="mt-0.5 text-lg font-bold tabular-nums text-amber-600">
+                {activeRiskSummary.MEDIUM}
+              </dd>
+            </div>
+            <div className="rounded-lg border border-indigo-100 bg-white/80 px-2.5 py-2 text-center">
+              <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Eligible swaps
+              </dt>
+              <dd className="mt-0.5 text-lg font-bold tabular-nums text-indigo-700">
+                {activeRiskSummary.withEligibleReassignment}
+              </dd>
+            </div>
+          </dl>
+
+          <p className="mt-3 text-[11px] text-slate-500">
+            TRUXERA workflow stages — shown as the product pipeline; stage
+            state reflects recorded operational data only.
+          </p>
         </div>
       </div>
     </TruckShell>

@@ -128,16 +128,26 @@ export default function ExecutiveReportView({
           <Panel title="Executive Overview">
             <StatGrid columns="lg:grid-cols-6">
               <Stat label="Deliveries in scope" value={report.scopeCount} />
-              <Stat label="Completed" value={report.snapshot.completed} />
+              <Stat
+                label="Completed"
+                value={report.snapshot.completed}
+                tone={report.snapshot.completed > 0 ? "success" : "default"}
+              />
               <Stat
                 label="Currently assigned"
                 value={report.snapshot.currentlyAssigned}
+                tone="info"
               />
-              <Stat label="Failed" value={report.snapshot.failed} />
+              <Stat
+                label="Failed"
+                value={report.snapshot.failed}
+                tone={report.snapshot.failed > 0 ? "danger" : "default"}
+              />
               <Stat label="Cancelled" value={report.snapshot.cancelled} />
               <Stat
                 label="Recovery actions"
                 value={report.recovery.actionsExecuted}
+                tone="info"
               />
             </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
@@ -166,7 +176,15 @@ export default function ExecutiveReportView({
               ).map(([label, items]) => (
                 <div
                   key={label}
-                  className="rounded-lg border border-slate-200 px-4 py-3"
+                  className={`rounded-lg border bg-slate-50/70 px-4 py-3 ${
+                    label === "Successful"
+                      ? "border-emerald-200 border-l-4 border-l-emerald-500"
+                      : label === "Monitoring"
+                        ? "border-amber-200 border-l-4 border-l-amber-400"
+                        : label === "Unresolved"
+                          ? "border-rose-200 border-l-4 border-l-rose-500"
+                          : "border-slate-200"
+                  }`}
                 >
                   <h3 className="text-sm font-semibold text-slate-800">
                     {label}{" "}
@@ -189,17 +207,30 @@ export default function ExecutiveReportView({
 
           <Panel title="Risk & Disruption">
             <StatGrid columns="lg:grid-cols-7">
-              <Stat label="Low risk (current)" value={report.riskSummary.low} />
+              <Stat
+                label="Low risk (current)"
+                value={report.riskSummary.low}
+                tone="success"
+              />
               <Stat
                 label="Medium risk (current)"
                 value={report.riskSummary.medium}
+                tone={report.riskSummary.medium > 0 ? "warning" : "default"}
               />
-              <Stat label="High risk (current)" value={report.riskSummary.high} />
+              <Stat
+                label="High risk (current)"
+                value={report.riskSummary.high}
+                tone={report.riskSummary.high > 0 ? "danger" : "default"}
+              />
               <Stat
                 label="Risk unassessed"
                 value={report.riskSummary.unassessed}
               />
-              <Stat label="Failed events" value={report.riskSummary.failed} />
+              <Stat
+                label="Failed events"
+                value={report.riskSummary.failed}
+                tone={report.riskSummary.failed > 0 ? "danger" : "default"}
+              />
               <Stat
                 label="Cancelled"
                 value={report.riskSummary.cancelled}
@@ -207,6 +238,11 @@ export default function ExecutiveReportView({
               <Stat
                 label="Projected delay"
                 value={report.riskSummary.projectedDelay}
+                tone={
+                  report.riskSummary.projectedDelay > 0
+                    ? "warning"
+                    : "default"
+                }
               />
             </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
@@ -238,6 +274,7 @@ export default function ExecutiveReportView({
               <Stat
                 label="Actions executed"
                 value={report.recovery.actionsExecuted}
+                tone="info"
               />
               <Stat
                 label="Deliveries with recovery"
@@ -246,14 +283,29 @@ export default function ExecutiveReportView({
               <Stat
                 label="Successful"
                 value={report.recovery.outcomes.successful}
+                tone={
+                  report.recovery.outcomes.successful > 0
+                    ? "success"
+                    : "default"
+                }
               />
               <Stat
                 label="Monitoring"
                 value={report.recovery.outcomes.monitoring}
+                tone={
+                  report.recovery.outcomes.monitoring > 0
+                    ? "warning"
+                    : "default"
+                }
               />
               <Stat
                 label="Unresolved"
                 value={report.recovery.outcomes.unresolved}
+                tone={
+                  report.recovery.outcomes.unresolved > 0
+                    ? "danger"
+                    : "default"
+                }
               />
             </StatGrid>
             <p className="mt-3 text-xs text-slate-500">
@@ -346,9 +398,9 @@ export default function ExecutiveReportView({
             title={`Previous Period Comparison${report.comparison.previousLabel ? ` — ${report.comparison.previousLabel}` : ""}`}
           >
             {!report.comparison.available ? (
-              <p className="text-sm text-slate-600">
+              <Notice tone="info">
                 Previous-period comparison unavailable.
-              </p>
+              </Notice>
             ) : (
               <>
                 <div className="overflow-x-auto">
@@ -376,7 +428,7 @@ export default function ExecutiveReportView({
                           <td className={tableCellClass}>
                             {row.previous}
                           </td>
-                          <td className="py-2.5 text-slate-700">
+                          <td className="py-2.5 font-medium tabular-nums text-slate-700">
                             {row.delta > 0
                               ? `+${row.delta}`
                               : row.delta < 0
@@ -504,9 +556,11 @@ export default function ExecutiveReportView({
           </Panel>
 
           <Panel title="Executive Summary">
-            <p className="text-sm leading-6 text-slate-700">
-              {report.narrative}
-            </p>
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+              <p className="text-sm leading-6 text-slate-700">
+                {report.narrative}
+              </p>
+            </div>
           </Panel>
         </>
       )}

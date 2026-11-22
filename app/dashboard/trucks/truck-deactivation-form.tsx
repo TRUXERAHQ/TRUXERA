@@ -60,7 +60,7 @@ export default function TruckDeactivationForm({
         </button>
       </form>
       {state.error && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {state.error}
         </p>
       )}

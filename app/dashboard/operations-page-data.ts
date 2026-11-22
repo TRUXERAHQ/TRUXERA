@@ -18,6 +18,12 @@ export type OperationsSearchParams = {
   reassignedDeliveryId?: string | string[];
   statusUpdated?: string | string[];
   error?: string | string[];
+  status?: string | string[];
+  priority?: string | string[];
+  category?: string | string[];
+  view?: string | string[];
+  replied?: string | string[];
+  resolved?: string | string[];
 };
 
 function firstValue(value?: string | string[]) {

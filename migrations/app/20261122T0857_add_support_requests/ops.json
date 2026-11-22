@@ -1,0 +1,692 @@
+[
+  {
+    "id": "table.SupportMessage",
+    "label": "Create table \"SupportMessage\"",
+    "summary": "Creates table \"SupportMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "SupportMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"SupportMessage\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportMessage\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"SupportMessage\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"SupportMessage\"",
+        "sql": "CREATE TABLE \"public\".\"SupportMessage\" (\n  \"authorKind\" text NOT NULL,\n  \"authorUserId\" uuid,\n  \"body\" text NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"requestId\" uuid NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"SupportMessage_authorKind_check_2c5d0987\" CHECK (\"authorKind\" IN ('CUSTOMER', 'SUPPORT'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"SupportMessage\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportMessage\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"SupportMessage\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.SupportRequest",
+    "label": "Create table \"SupportRequest\"",
+    "summary": "Creates table \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"SupportRequest\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"SupportRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"SupportRequest\"",
+        "sql": "CREATE TABLE \"public\".\"SupportRequest\" (\n  \"category\" text NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"description\" text NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"priority\" text NOT NULL,\n  \"reference\" text NOT NULL,\n  \"relatedId\" uuid,\n  \"relatedKind\" text,\n  \"requesterUserId\" uuid NOT NULL,\n  \"resolutionNote\" text,\n  \"resolvedAt\" timestamptz(3),\n  \"status\" text DEFAULT 'OPEN' NOT NULL,\n  \"subject\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"SupportRequest_category_check_bd93be99\" CHECK (\"category\" IN ('TECHNICAL_ISSUE', 'DATA_ISSUE', 'ACCOUNT_ACCESS', 'FLEET_OPERATIONS', 'OTHER')),\n  CONSTRAINT \"SupportRequest_priority_check_72dbae57\" CHECK (\"priority\" IN ('LOW', 'NORMAL', 'HIGH', 'URGENT')),\n  CONSTRAINT \"SupportRequest_relatedKind_check_a9833ed1\" CHECK (\"relatedKind\" IN ('LOAD', 'DELIVERY', 'TRUCK', 'DRIVER')),\n  CONSTRAINT \"SupportRequest_status_check_0918205c\" CHECK (\"status\" IN ('OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'CLOSED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"SupportRequest\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"SupportRequest\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.SupportRequest.SupportRequest_organizationId_reference_key",
+    "label": "Add unique constraint on \"SupportRequest\" (organizationId, reference)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "SupportRequest_organizationId_reference_key",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"SupportRequest_organizationId_reference_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SupportRequest_organizationId_reference_key",
+          "public",
+          "\"public\".\"SupportRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"SupportRequest_organizationId_reference_key\" on \"SupportRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"SupportRequest_organizationId_reference_key\"",
+        "sql": "ALTER TABLE \"public\".\"SupportRequest\" ADD CONSTRAINT \"SupportRequest_organizationId_reference_key\" UNIQUE (\"organizationId\", \"reference\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"SupportRequest_organizationId_reference_key\" exists on (organizationId, reference)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "SupportRequest_organizationId_reference_key",
+          "public",
+          "\"public\".\"SupportRequest\"",
+          "u",
+          "[\"organizationId\",\"reference\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.SupportRequest.SupportRequest_organizationId_id_key",
+    "label": "Add unique constraint on \"SupportRequest\" (organizationId, id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "SupportRequest_organizationId_id_key",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"SupportRequest_organizationId_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SupportRequest_organizationId_id_key",
+          "public",
+          "\"public\".\"SupportRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"SupportRequest_organizationId_id_key\" on \"SupportRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"SupportRequest_organizationId_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"SupportRequest\" ADD CONSTRAINT \"SupportRequest_organizationId_id_key\" UNIQUE (\"organizationId\", \"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"SupportRequest_organizationId_id_key\" exists on (organizationId, id)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "SupportRequest_organizationId_id_key",
+          "public",
+          "\"public\".\"SupportRequest\"",
+          "u",
+          "[\"organizationId\",\"id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SupportMessage.SupportMessage_authorUserId_idx_d1814ea0",
+    "label": "Create index \"SupportMessage_authorUserId_idx_d1814ea0\" on \"SupportMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SupportMessage_authorUserId_idx_d1814ea0",
+        "table": "SupportMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SupportMessage_authorUserId_idx_d1814ea0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportMessage_authorUserId_idx_d1814ea0\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SupportMessage_authorUserId_idx_d1814ea0\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SupportMessage_authorUserId_idx_d1814ea0\"",
+        "sql": "CREATE INDEX \"SupportMessage_authorUserId_idx_d1814ea0\" ON \"public\".\"SupportMessage\" (\"authorUserId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SupportMessage_authorUserId_idx_d1814ea0\" exists on \"SupportMessage\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportMessage_authorUserId_idx_d1814ea0\"",
+          "i",
+          "I",
+          "\"public\".\"SupportMessage\"",
+          "btree",
+          "[\"authorUserId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SupportMessage.SupportMessage_organizationId_requestId_idx_f7ba17fc",
+    "label": "Create index \"SupportMessage_organizationId_requestId_idx_f7ba17fc\" on \"SupportMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SupportMessage_organizationId_requestId_idx_f7ba17fc",
+        "table": "SupportMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SupportMessage_organizationId_requestId_idx_f7ba17fc\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportMessage_organizationId_requestId_idx_f7ba17fc\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SupportMessage_organizationId_requestId_idx_f7ba17fc\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SupportMessage_organizationId_requestId_idx_f7ba17fc\"",
+        "sql": "CREATE INDEX \"SupportMessage_organizationId_requestId_idx_f7ba17fc\" ON \"public\".\"SupportMessage\" (\"organizationId\", \"requestId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SupportMessage_organizationId_requestId_idx_f7ba17fc\" exists on \"SupportMessage\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportMessage_organizationId_requestId_idx_f7ba17fc\"",
+          "i",
+          "I",
+          "\"public\".\"SupportMessage\"",
+          "btree",
+          "[\"organizationId\",\"requestId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SupportRequest.SupportRequest_organizationId_createdAt_idx_c52d1cc3",
+    "label": "Create index \"SupportRequest_organizationId_createdAt_idx_c52d1cc3\" on \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SupportRequest_organizationId_createdAt_idx_c52d1cc3",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SupportRequest_organizationId_createdAt_idx_c52d1cc3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_organizationId_createdAt_idx_c52d1cc3\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SupportRequest_organizationId_createdAt_idx_c52d1cc3\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SupportRequest_organizationId_createdAt_idx_c52d1cc3\"",
+        "sql": "CREATE INDEX \"SupportRequest_organizationId_createdAt_idx_c52d1cc3\" ON \"public\".\"SupportRequest\" (\"organizationId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SupportRequest_organizationId_createdAt_idx_c52d1cc3\" exists on \"SupportRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_organizationId_createdAt_idx_c52d1cc3\"",
+          "i",
+          "I",
+          "\"public\".\"SupportRequest\"",
+          "btree",
+          "[\"organizationId\",\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SupportRequest.SupportRequest_organizationId_idx_2e17ef41",
+    "label": "Create index \"SupportRequest_organizationId_idx_2e17ef41\" on \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SupportRequest_organizationId_idx_2e17ef41",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SupportRequest_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SupportRequest_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SupportRequest_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"SupportRequest_organizationId_idx_2e17ef41\" ON \"public\".\"SupportRequest\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SupportRequest_organizationId_idx_2e17ef41\" exists on \"SupportRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"SupportRequest\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SupportRequest.SupportRequest_organizationId_status_idx_21af5e82",
+    "label": "Create index \"SupportRequest_organizationId_status_idx_21af5e82\" on \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SupportRequest_organizationId_status_idx_21af5e82",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SupportRequest_organizationId_status_idx_21af5e82\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_organizationId_status_idx_21af5e82\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SupportRequest_organizationId_status_idx_21af5e82\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SupportRequest_organizationId_status_idx_21af5e82\"",
+        "sql": "CREATE INDEX \"SupportRequest_organizationId_status_idx_21af5e82\" ON \"public\".\"SupportRequest\" (\"organizationId\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SupportRequest_organizationId_status_idx_21af5e82\" exists on \"SupportRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_organizationId_status_idx_21af5e82\"",
+          "i",
+          "I",
+          "\"public\".\"SupportRequest\"",
+          "btree",
+          "[\"organizationId\",\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SupportRequest.SupportRequest_requesterUserId_idx_75bb1080",
+    "label": "Create index \"SupportRequest_requesterUserId_idx_75bb1080\" on \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SupportRequest_requesterUserId_idx_75bb1080",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SupportRequest_requesterUserId_idx_75bb1080\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_requesterUserId_idx_75bb1080\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SupportRequest_requesterUserId_idx_75bb1080\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SupportRequest_requesterUserId_idx_75bb1080\"",
+        "sql": "CREATE INDEX \"SupportRequest_requesterUserId_idx_75bb1080\" ON \"public\".\"SupportRequest\" (\"requesterUserId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SupportRequest_requesterUserId_idx_75bb1080\" exists on \"SupportRequest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SupportRequest_requesterUserId_idx_75bb1080\"",
+          "i",
+          "I",
+          "\"public\".\"SupportRequest\"",
+          "btree",
+          "[\"requesterUserId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.SupportMessage.SupportMessage_organizationId_requestId_fkey",
+    "label": "Add foreign key \"SupportMessage_organizationId_requestId_fkey\" on \"SupportMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "SupportMessage_organizationId_requestId_fkey",
+        "table": "SupportMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"SupportMessage_organizationId_requestId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SupportMessage_organizationId_requestId_fkey",
+          "public",
+          "\"public\".\"SupportMessage\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"SupportMessage_organizationId_requestId_fkey\" on \"SupportMessage\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"SupportMessage_organizationId_requestId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"SupportMessage\"\nADD CONSTRAINT \"SupportMessage_organizationId_requestId_fkey\"\nFOREIGN KEY (\"organizationId\", \"requestId\")\nREFERENCES \"public\".\"SupportRequest\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"SupportMessage_organizationId_requestId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "SupportMessage_organizationId_requestId_fkey",
+          "public",
+          "\"public\".\"SupportMessage\"",
+          "f",
+          "[\"organizationId\",\"requestId\"]",
+          "\"public\".\"SupportRequest\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.SupportMessage.SupportMessage_authorUserId_fkey",
+    "label": "Add foreign key \"SupportMessage_authorUserId_fkey\" on \"SupportMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "SupportMessage_authorUserId_fkey",
+        "table": "SupportMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"SupportMessage_authorUserId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SupportMessage_authorUserId_fkey",
+          "public",
+          "\"public\".\"SupportMessage\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"SupportMessage_authorUserId_fkey\" on \"SupportMessage\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"SupportMessage_authorUserId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"SupportMessage\"\nADD CONSTRAINT \"SupportMessage_authorUserId_fkey\"\nFOREIGN KEY (\"authorUserId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"SupportMessage_authorUserId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "SupportMessage_authorUserId_fkey",
+          "public",
+          "\"public\".\"SupportMessage\"",
+          "f",
+          "[\"authorUserId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.SupportRequest.SupportRequest_organizationId_fkey",
+    "label": "Add foreign key \"SupportRequest_organizationId_fkey\" on \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "SupportRequest_organizationId_fkey",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"SupportRequest_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SupportRequest_organizationId_fkey",
+          "public",
+          "\"public\".\"SupportRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"SupportRequest_organizationId_fkey\" on \"SupportRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"SupportRequest_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"SupportRequest\"\nADD CONSTRAINT \"SupportRequest_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"SupportRequest_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "SupportRequest_organizationId_fkey",
+          "public",
+          "\"public\".\"SupportRequest\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.SupportRequest.SupportRequest_requesterUserId_fkey",
+    "label": "Add foreign key \"SupportRequest_requesterUserId_fkey\" on \"SupportRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "SupportRequest_requesterUserId_fkey",
+        "table": "SupportRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"SupportRequest_requesterUserId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SupportRequest_requesterUserId_fkey",
+          "public",
+          "\"public\".\"SupportRequest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"SupportRequest_requesterUserId_fkey\" on \"SupportRequest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"SupportRequest_requesterUserId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"SupportRequest\"\nADD CONSTRAINT \"SupportRequest_requesterUserId_fkey\"\nFOREIGN KEY (\"requesterUserId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"SupportRequest_requesterUserId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "SupportRequest_requesterUserId_fkey",
+          "public",
+          "\"public\".\"SupportRequest\"",
+          "f",
+          "[\"requesterUserId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  }
+]
