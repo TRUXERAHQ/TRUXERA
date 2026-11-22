@@ -1,0 +1,196 @@
+[
+  {
+    "id": "dropCheckConstraint.Integration.Integration_authKind_check_1a81fa33",
+    "label": "Drop check constraint \"Integration_authKind_check_1a81fa33\" on \"Integration\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Integration_authKind_check_1a81fa33",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Integration_authKind_check_1a81fa33\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Integration_authKind_check_1a81fa33",
+          "public",
+          "\"public\".\"Integration\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Integration_authKind_check_1a81fa33\" on \"Integration\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Integration_authKind_check_1a81fa33\"",
+        "sql": "ALTER TABLE \"public\".\"Integration\" DROP CONSTRAINT \"Integration_authKind_check_1a81fa33\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Integration_authKind_check_1a81fa33\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Integration_authKind_check_1a81fa33",
+          "public",
+          "\"public\".\"Integration\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Integration_authKind_check_1a81fa33\" on \"Integration\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.IntegrationCredential.IntegrationCredential_authKind_check_1a81fa33",
+    "label": "Drop check constraint \"IntegrationCredential_authKind_check_1a81fa33\" on \"IntegrationCredential\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "IntegrationCredential_authKind_check_1a81fa33",
+        "table": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"IntegrationCredential_authKind_check_1a81fa33\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationCredential_authKind_check_1a81fa33",
+          "public",
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"IntegrationCredential_authKind_check_1a81fa33\" on \"IntegrationCredential\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"IntegrationCredential_authKind_check_1a81fa33\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationCredential\" DROP CONSTRAINT \"IntegrationCredential_authKind_check_1a81fa33\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"IntegrationCredential_authKind_check_1a81fa33\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationCredential_authKind_check_1a81fa33",
+          "public",
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"IntegrationCredential_authKind_check_1a81fa33\" on \"IntegrationCredential\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Integration.Integration_authKind_check_e98b4581",
+    "label": "Add check constraint \"Integration_authKind_check_e98b4581\" on \"Integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Integration_authKind_check_e98b4581",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Integration_authKind_check_e98b4581\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Integration_authKind_check_e98b4581",
+          "public",
+          "\"public\".\"Integration\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Integration_authKind_check_e98b4581\" on \"Integration\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Integration_authKind_check_e98b4581\"",
+        "sql": "ALTER TABLE \"public\".\"Integration\" ADD CONSTRAINT \"Integration_authKind_check_e98b4581\" CHECK (\"authKind\" IN ('API_KEY', 'API_KEY_BEARER', 'OAUTH2', 'BEARER_TOKEN', 'BASIC'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Integration_authKind_check_e98b4581\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Integration_authKind_check_e98b4581",
+          "public",
+          "\"public\".\"Integration\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.IntegrationCredential.IntegrationCredential_authKind_check_e98b4581",
+    "label": "Add check constraint \"IntegrationCredential_authKind_check_e98b4581\" on \"IntegrationCredential\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "IntegrationCredential_authKind_check_e98b4581",
+        "table": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"IntegrationCredential_authKind_check_e98b4581\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationCredential_authKind_check_e98b4581",
+          "public",
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"IntegrationCredential_authKind_check_e98b4581\" on \"IntegrationCredential\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"IntegrationCredential_authKind_check_e98b4581\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationCredential\" ADD CONSTRAINT \"IntegrationCredential_authKind_check_e98b4581\" CHECK (\"authKind\" IN ('API_KEY', 'API_KEY_BEARER', 'OAUTH2', 'BEARER_TOKEN', 'BASIC'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"IntegrationCredential_authKind_check_e98b4581\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "IntegrationCredential_authKind_check_e98b4581",
+          "public",
+          "\"public\".\"IntegrationCredential\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

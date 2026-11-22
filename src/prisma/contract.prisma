@@ -126,6 +126,7 @@ enum IntegrationAuthKind {
   @@type("pg/text@1")
 
   API_KEY = "API_KEY"
+  API_KEY_BEARER = "API_KEY_BEARER"
   OAUTH2 = "OAUTH2"
   BEARER_TOKEN = "BEARER_TOKEN"
   BASIC = "BASIC"

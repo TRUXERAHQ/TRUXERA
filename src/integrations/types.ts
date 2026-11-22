@@ -18,6 +18,7 @@ export type IntegrationStatus = (typeof INTEGRATION_STATUSES)[number];
 
 export const INTEGRATION_AUTH_KINDS = [
   "API_KEY",
+  "API_KEY_BEARER",
   "OAUTH2",
   "BEARER_TOKEN",
   "BASIC",

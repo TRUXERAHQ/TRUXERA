@@ -15,6 +15,9 @@ import {
   type IntegrationCredentialPayload,
 } from "@/src/integrations/auth";
 import { getConnector, listConnectors } from "@/src/integrations/registry";
+import { registerBuiltinConnectors } from "@/src/integrations/connectors";
+
+registerBuiltinConnectors();
 import { runIntegrationSync, type SyncBackend } from "@/src/integrations/sync";
 import { parseWebhookEnvelope, webhookPayloadHash } from "@/src/integrations/webhooks";
 import { computeIntegrationHealth } from "@/src/integrations/lifecycle";

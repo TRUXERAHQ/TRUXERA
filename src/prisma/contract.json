@@ -226,6 +226,10 @@
                 "value": "API_KEY"
               },
               {
+                "name": "API_KEY_BEARER",
+                "value": "API_KEY_BEARER"
+              },
+              {
                 "name": "OAUTH2",
                 "value": "OAUTH2"
               },
@@ -4811,8 +4815,8 @@
             "Integration": {
               "checks": [
                 {
-                  "expression": "\"authKind\" IN ('API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')",
-                  "name": "Integration_authKind_check_1a81fa33",
+                  "expression": "\"authKind\" IN ('API_KEY', 'API_KEY_BEARER', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')",
+                  "name": "Integration_authKind_check_e98b4581",
                   "prefix": "Integration_authKind_check"
                 },
                 {
@@ -5042,8 +5046,8 @@
             "IntegrationCredential": {
               "checks": [
                 {
-                  "expression": "\"authKind\" IN ('API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')",
-                  "name": "IntegrationCredential_authKind_check_1a81fa33",
+                  "expression": "\"authKind\" IN ('API_KEY', 'API_KEY_BEARER', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')",
+                  "name": "IntegrationCredential_authKind_check_e98b4581",
                   "prefix": "IntegrationCredential_authKind_check"
                 }
               ],
@@ -6698,6 +6702,7 @@
               "kind": "valueSet",
               "values": [
                 "API_KEY",
+                "API_KEY_BEARER",
                 "OAUTH2",
                 "BEARER_TOKEN",
                 "BASIC"
@@ -6846,7 +6851,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "23ac9f37dcdd14a92d7ec27711f271f6c8d57a301d47be01e757685a91105d67"
+    "storageHash": "1db3d24febeedcdc9a9161411e317cd68cce5d8f59385705f709b5f483db855d"
   },
   "execution": {
     "executionHash": "a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8",

@@ -1,7 +1,9 @@
 # McLeod LoadMaster — Connector #1 Implementation Specification
 
-Status: **Discovery complete — awaiting human sandbox credentials.**
-No connector code written yet. No credentials created or stored.
+Status: **Phase 1B-B implemented on `staging`** — `mcleod-track-and-trace`
+connector (Track & Trace sandbox only), `API_KEY_BEARER` composite auth,
+normalized LOAD/DELIVERY external records via the Phase 1A framework.
+api1 drivers/tractors/movements remain out of scope (need a real tenant).
 
 Sources: McLeod Innovation Hub (Tyk portal), official OpenAPI documents
 (`/documentation/raw`), McLeod API overview page. Verified 2026-11-22.

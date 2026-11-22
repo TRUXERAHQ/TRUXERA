@@ -6,6 +6,12 @@ import { IntegrationError } from "./errors.ts";
 
 export type IntegrationCredentialPayload =
   | { kind: "API_KEY"; apiKey: string; keyName?: string }
+  | {
+      kind: "API_KEY_BEARER";
+      apiKey: string;
+      accessToken: string;
+      expiresAt?: string;
+    }
   | { kind: "OAUTH2"; accessToken: string; refreshToken?: string; expiresAt?: string }
   | { kind: "BEARER_TOKEN"; token: string }
   | { kind: "BASIC"; username: string; password: string };
@@ -18,6 +24,7 @@ export type CredentialMetadata = {
 
 const SECRET_FIELD = {
   API_KEY: "apiKey",
+  API_KEY_BEARER: "accessToken",
   OAUTH2: "accessToken",
   BEARER_TOKEN: "token",
   BASIC: "password",
@@ -37,7 +44,12 @@ export function credentialHint(payload: IntegrationCredentialPayload): string | 
 export function credentialExpiresAt(
   payload: IntegrationCredentialPayload,
 ): Date | null {
-  if (payload.kind !== "OAUTH2" || !payload.expiresAt) return null;
+  if (
+    (payload.kind !== "OAUTH2" && payload.kind !== "API_KEY_BEARER") ||
+    !payload.expiresAt
+  ) {
+    return null;
+  }
   const parsed = new Date(payload.expiresAt);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
@@ -84,6 +96,26 @@ export function parseIntegrationCredentialInput(values: {
           kind: "API_KEY",
           apiKey,
           ...(keyName ? { keyName } : {}),
+        },
+      };
+    }
+    case "API_KEY_BEARER": {
+      const apiKey = str(values.apiKey);
+      const accessToken = str(values.accessToken);
+      if (apiKey.length < 8 || apiKey.length > 512) {
+        return { ok: false, error: "Enter a valid API key." };
+      }
+      if (accessToken.length < 8 || accessToken.length > 8192) {
+        return { ok: false, error: "Enter a valid bearer access token." };
+      }
+      const expiresAt = str(values.expiresAt);
+      return {
+        ok: true,
+        credential: {
+          kind: "API_KEY_BEARER",
+          apiKey,
+          accessToken,
+          ...(expiresAt ? { expiresAt } : {}),
         },
       };
     }

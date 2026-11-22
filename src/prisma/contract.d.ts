@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'23ac9f37dcdd14a92d7ec27711f271f6c8d57a301d47be01e757685a91105d67'>;
+  StorageHashBase<'1db3d24febeedcdc9a9161411e317cd68cce5d8f59385705f709b5f483db855d'>;
 export type ExecutionHash =
   ExecutionHashBase<'a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8'>;
 export type ProfileHash =
@@ -378,8 +378,8 @@ type FieldTypeOverrides = {
       };
       readonly Integration: {
         readonly authKind: {
-          readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
-          readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+          readonly output: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+          readonly input: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
         };
         readonly status: {
           readonly output:
@@ -394,8 +394,8 @@ type FieldTypeOverrides = {
       };
       readonly IntegrationCredential: {
         readonly authKind: {
-          readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
-          readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+          readonly output: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+          readonly input: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
         };
       };
       readonly IntegrationEvent: {
@@ -603,8 +603,8 @@ type ColumnTypeOverrides = {
     };
     readonly Integration: {
       readonly authKind: {
-        readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
-        readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        readonly output: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        readonly input: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
       };
       readonly status: {
         readonly output:
@@ -619,8 +619,8 @@ type ColumnTypeOverrides = {
     };
     readonly IntegrationCredential: {
       readonly authKind: {
-        readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
-        readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        readonly output: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        readonly input: 'API_KEY' | 'API_KEY_BEARER' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
       };
     };
     readonly IntegrationEvent: {
@@ -3287,7 +3287,13 @@ type ContractBase = Omit<
             };
             readonly IntegrationAuthKind: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC'];
+              readonly values: readonly [
+                'API_KEY',
+                'API_KEY_BEARER',
+                'OAUTH2',
+                'BEARER_TOKEN',
+                'BASIC',
+              ];
             };
             readonly IntegrationEventKind: {
               readonly kind: 'valueSet';
@@ -5308,6 +5314,7 @@ type ContractBase = Omit<
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'API_KEY'; readonly value: 'API_KEY' },
+              { readonly name: 'API_KEY_BEARER'; readonly value: 'API_KEY_BEARER' },
               { readonly name: 'OAUTH2'; readonly value: 'OAUTH2' },
               { readonly name: 'BEARER_TOKEN'; readonly value: 'BEARER_TOKEN' },
               { readonly name: 'BASIC'; readonly value: 'BASIC' },
@@ -5492,6 +5499,7 @@ type ContractBase = Omit<
           ];
           readonly IntegrationAuthKind: readonly [
             { readonly name: 'API_KEY'; readonly value: 'API_KEY' },
+            { readonly name: 'API_KEY_BEARER'; readonly value: 'API_KEY_BEARER' },
             { readonly name: 'OAUTH2'; readonly value: 'OAUTH2' },
             { readonly name: 'BEARER_TOKEN'; readonly value: 'BEARER_TOKEN' },
             { readonly name: 'BASIC'; readonly value: 'BASIC' },
