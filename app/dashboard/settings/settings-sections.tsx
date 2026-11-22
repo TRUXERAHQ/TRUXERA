@@ -39,6 +39,27 @@ const membershipRoles = [
   },
 ] as const;
 
+type IntegrationListItem = {
+  id: string;
+  providerKey: string;
+  displayName: string;
+  type: string;
+  status: string;
+  health: string;
+  lastSyncAt: string | null;
+  lastSuccessfulSyncAt: string | null;
+  lastSyncError: string | null;
+  recordsProcessed: number;
+  recordsFailed: number;
+};
+
+type ConnectorCatalogItem = {
+  key: string;
+  displayName: string;
+  type: string;
+  description?: string;
+};
+
 const plannedIntegrations = [
   "TMS Integration",
   "ELD Integration",
@@ -105,6 +126,8 @@ export default function SettingsSections({
   memberSince,
   userName,
   userEmail,
+  integrations,
+  connectorCatalog,
 }: {
   organizationId: string;
   organizationName: string;
@@ -117,6 +140,8 @@ export default function SettingsSections({
   memberSince: string | null;
   userName: string | null;
   userEmail: string | null;
+  integrations: IntegrationListItem[];
+  connectorCatalog: ConnectorCatalogItem[];
 }) {
   const [state, action, pending] = useActionState(
     updateOrganizationSettingsAction,
@@ -288,25 +313,76 @@ export default function SettingsSections({
 
       <Panel
         title="Integrations"
-        description="Connected-fleet integrations planned for a future release."
+        description="Connect your fleet systems. TRUXERA connects to external TMS, ELD, and telematics providers and normalizes their data for fleet intelligence — your existing systems remain the source of record."
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone="neutral">Coming in V2</Badge>
-        </div>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {plannedIntegrations.map((item) => (
-            <li
-              key={item}
-              className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-600"
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-xs text-slate-500">
-          No integrations are connected yet. TRUXERA does not store API keys,
-          credentials, or telemetry connections in V1.
-        </p>
+        {integrations.length > 0 ? (
+          <ul className="divide-y divide-slate-100">
+            {integrations.map((integration) => (
+              <li
+                key={integration.id}
+                className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-800">
+                    {integration.displayName}
+                  </p>
+                  <p className="mt-0.5 font-mono text-xs text-slate-500">
+                    {integration.providerKey} · {formatRole(integration.type)}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {integration.recordsProcessed} records processed
+                    {integration.recordsFailed > 0
+                      ? ` · ${integration.recordsFailed} failed`
+                      : ""}
+                    {" · "}Last sync {formatDate(integration.lastSyncAt)}
+                  </p>
+                  {integration.lastSyncError && (
+                    <p className="mt-1 text-xs text-amber-700">
+                      {integration.lastSyncError}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge tone={integration.health === "HEALTHY" ? "success" : integration.health === "ERROR" ? "danger" : "neutral"}>
+                    {formatRole(integration.health)}
+                  </Badge>
+                  <Badge tone="neutral">{formatRole(integration.status)}</Badge>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div>
+            <p className="text-sm font-medium text-slate-800">
+              Connect your fleet systems
+            </p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              The TRUXERA integration framework is in place. TMS, ELD, GPS &amp;
+              telematics, and custom-system connectors are being prepared — no
+              provider connections are available yet.
+            </p>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {plannedIntegrations.map((item) => (
+                <li
+                  key={item}
+                  className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-sm text-slate-600"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-slate-500">
+              No integrations are connected yet. When a connector is released,
+              credentials are stored encrypted server-side and never exposed to
+              the browser.
+            </p>
+          </div>
+        )}
+        {connectorCatalog.length > 0 && integrations.length === 0 && (
+          <p className="mt-3 text-xs text-slate-500">
+            Available connectors: {connectorCatalog.map((c) => c.displayName).join(", ")}
+          </p>
+        )}
       </Panel>
 
       <Panel

@@ -20,8 +20,32 @@
       "model": "Driver",
       "namespace": "public"
     },
+    "ExternalRecord": {
+      "model": "ExternalRecord",
+      "namespace": "public"
+    },
     "Feedback": {
       "model": "Feedback",
+      "namespace": "public"
+    },
+    "Integration": {
+      "model": "Integration",
+      "namespace": "public"
+    },
+    "IntegrationCredential": {
+      "model": "IntegrationCredential",
+      "namespace": "public"
+    },
+    "IntegrationEvent": {
+      "model": "IntegrationEvent",
+      "namespace": "public"
+    },
+    "IntegrationSyncRun": {
+      "model": "IntegrationSyncRun",
+      "namespace": "public"
+    },
+    "IntegrationWebhookEvent": {
+      "model": "IntegrationWebhookEvent",
       "namespace": "public"
     },
     "Load": {
@@ -144,6 +168,35 @@
               }
             ]
           },
+          "ExternalEntityKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "LOAD",
+                "value": "LOAD"
+              },
+              {
+                "name": "DELIVERY",
+                "value": "DELIVERY"
+              },
+              {
+                "name": "TRUCK",
+                "value": "TRUCK"
+              },
+              {
+                "name": "DRIVER",
+                "value": "DRIVER"
+              },
+              {
+                "name": "ASSIGNMENT",
+                "value": "ASSIGNMENT"
+              },
+              {
+                "name": "CUSTOMER",
+                "value": "CUSTOMER"
+              }
+            ]
+          },
           "FeedbackType": {
             "codecId": "pg/text@1",
             "members": [
@@ -162,6 +215,197 @@
               {
                 "name": "GENERAL_FEEDBACK",
                 "value": "GENERAL_FEEDBACK"
+              }
+            ]
+          },
+          "IntegrationAuthKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "API_KEY",
+                "value": "API_KEY"
+              },
+              {
+                "name": "OAUTH2",
+                "value": "OAUTH2"
+              },
+              {
+                "name": "BEARER_TOKEN",
+                "value": "BEARER_TOKEN"
+              },
+              {
+                "name": "BASIC",
+                "value": "BASIC"
+              }
+            ]
+          },
+          "IntegrationEventKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CONNECTED",
+                "value": "CONNECTED"
+              },
+              {
+                "name": "DISCONNECTED",
+                "value": "DISCONNECTED"
+              },
+              {
+                "name": "CONFIG_UPDATED",
+                "value": "CONFIG_UPDATED"
+              },
+              {
+                "name": "CREDENTIAL_STORED",
+                "value": "CREDENTIAL_STORED"
+              },
+              {
+                "name": "CREDENTIAL_ROTATED",
+                "value": "CREDENTIAL_ROTATED"
+              },
+              {
+                "name": "CREDENTIAL_REVOKED",
+                "value": "CREDENTIAL_REVOKED"
+              },
+              {
+                "name": "SYNC_STARTED",
+                "value": "SYNC_STARTED"
+              },
+              {
+                "name": "SYNC_COMPLETED",
+                "value": "SYNC_COMPLETED"
+              },
+              {
+                "name": "SYNC_FAILED",
+                "value": "SYNC_FAILED"
+              },
+              {
+                "name": "WEBHOOK_RECEIVED",
+                "value": "WEBHOOK_RECEIVED"
+              },
+              {
+                "name": "WEBHOOK_PROCESSED",
+                "value": "WEBHOOK_PROCESSED"
+              },
+              {
+                "name": "WEBHOOK_FAILED",
+                "value": "WEBHOOK_FAILED"
+              }
+            ]
+          },
+          "IntegrationStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "CONNECTING",
+                "value": "CONNECTING"
+              },
+              {
+                "name": "CONNECTED",
+                "value": "CONNECTED"
+              },
+              {
+                "name": "SYNCING",
+                "value": "SYNCING"
+              },
+              {
+                "name": "DEGRADED",
+                "value": "DEGRADED"
+              },
+              {
+                "name": "ERROR",
+                "value": "ERROR"
+              },
+              {
+                "name": "DISCONNECTED",
+                "value": "DISCONNECTED"
+              }
+            ]
+          },
+          "IntegrationSyncStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "RUNNING",
+                "value": "RUNNING"
+              },
+              {
+                "name": "SUCCEEDED",
+                "value": "SUCCEEDED"
+              },
+              {
+                "name": "FAILED",
+                "value": "FAILED"
+              },
+              {
+                "name": "PARTIAL",
+                "value": "PARTIAL"
+              }
+            ]
+          },
+          "IntegrationSyncTrigger": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "INITIAL",
+                "value": "INITIAL"
+              },
+              {
+                "name": "INCREMENTAL",
+                "value": "INCREMENTAL"
+              },
+              {
+                "name": "MANUAL",
+                "value": "MANUAL"
+              },
+              {
+                "name": "SCHEDULED",
+                "value": "SCHEDULED"
+              },
+              {
+                "name": "WEBHOOK",
+                "value": "WEBHOOK"
+              }
+            ]
+          },
+          "IntegrationType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "TMS",
+                "value": "TMS"
+              },
+              {
+                "name": "ELD",
+                "value": "ELD"
+              },
+              {
+                "name": "GPS_TELEMATICS",
+                "value": "GPS_TELEMATICS"
+              },
+              {
+                "name": "OTHER",
+                "value": "OTHER"
+              }
+            ]
+          },
+          "IntegrationWebhookStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "RECEIVED",
+                "value": "RECEIVED"
+              },
+              {
+                "name": "PROCESSED",
+                "value": "PROCESSED"
+              },
+              {
+                "name": "FAILED",
+                "value": "FAILED"
+              },
+              {
+                "name": "IGNORED",
+                "value": "IGNORED"
               }
             ]
           },
@@ -1052,6 +1296,197 @@
               "table": "Driver"
             }
           },
+          "ExternalRecord": {
+            "fields": {
+              "checksum": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "entityKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ExternalEntityKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "externalId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "integrationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "internalId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "internalKind": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastSyncedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "payload": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "integration": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Integration",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "checksum": {
+                  "column": "checksum"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "entityKind": {
+                  "column": "entityKind"
+                },
+                "externalId": {
+                  "column": "externalId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "integrationId": {
+                  "column": "integrationId"
+                },
+                "internalId": {
+                  "column": "internalId"
+                },
+                "internalKind": {
+                  "column": "internalKind"
+                },
+                "lastSyncedAt": {
+                  "column": "lastSyncedAt"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "payload": {
+                  "column": "payload"
+                },
+                "providerKey": {
+                  "column": "providerKey"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "ExternalRecord"
+            }
+          },
           "Feedback": {
             "fields": {
               "createdAt": {
@@ -1196,6 +1631,1071 @@
               },
               "namespaceId": "public",
               "table": "Feedback"
+            }
+          },
+          "Integration": {
+            "fields": {
+              "authKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationAuthKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "capabilities": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "config": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "consecutiveFailures": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "createdByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "displayName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastSuccessfulSyncAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "lastSyncAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "lastSyncError": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsFailed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsProcessed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "syncCursor": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "webhookTokenHash": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "credential": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                },
+                "to": {
+                  "model": "IntegrationCredential",
+                  "namespace": "public"
+                }
+              },
+              "events": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                },
+                "to": {
+                  "model": "IntegrationEvent",
+                  "namespace": "public"
+                }
+              },
+              "externalRecords": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                },
+                "to": {
+                  "model": "ExternalRecord",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              },
+              "syncRuns": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                },
+                "to": {
+                  "model": "IntegrationSyncRun",
+                  "namespace": "public"
+                }
+              },
+              "webhookEvents": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                },
+                "to": {
+                  "model": "IntegrationWebhookEvent",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "authKind": {
+                  "column": "authKind"
+                },
+                "capabilities": {
+                  "column": "capabilities"
+                },
+                "config": {
+                  "column": "config"
+                },
+                "consecutiveFailures": {
+                  "column": "consecutiveFailures"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "createdByUserId": {
+                  "column": "createdByUserId"
+                },
+                "displayName": {
+                  "column": "displayName"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "lastSuccessfulSyncAt": {
+                  "column": "lastSuccessfulSyncAt"
+                },
+                "lastSyncAt": {
+                  "column": "lastSyncAt"
+                },
+                "lastSyncError": {
+                  "column": "lastSyncError"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "providerKey": {
+                  "column": "providerKey"
+                },
+                "recordsFailed": {
+                  "column": "recordsFailed"
+                },
+                "recordsProcessed": {
+                  "column": "recordsProcessed"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "syncCursor": {
+                  "column": "syncCursor"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "webhookTokenHash": {
+                  "column": "webhookTokenHash"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Integration"
+            }
+          },
+          "IntegrationCredential": {
+            "fields": {
+              "authKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationAuthKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "ciphertext": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "expiresAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "hint": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "integrationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "keyVersion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "revokedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "integration": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Integration",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "authKind": {
+                  "column": "authKind"
+                },
+                "ciphertext": {
+                  "column": "ciphertext"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "hint": {
+                  "column": "hint"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "integrationId": {
+                  "column": "integrationId"
+                },
+                "keyVersion": {
+                  "column": "keyVersion"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "revokedAt": {
+                  "column": "revokedAt"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "IntegrationCredential"
+            }
+          },
+          "IntegrationEvent": {
+            "fields": {
+              "actorUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "integrationId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationEventKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "message": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "metadata": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "integration": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Integration",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "actorUserId": {
+                  "column": "actorUserId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "integrationId": {
+                  "column": "integrationId"
+                },
+                "kind": {
+                  "column": "kind"
+                },
+                "message": {
+                  "column": "message"
+                },
+                "metadata": {
+                  "column": "metadata"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "IntegrationEvent"
+            }
+          },
+          "IntegrationSyncRun": {
+            "fields": {
+              "cursorAfter": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "cursorBefore": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "errorCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "errorSummary": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "finishedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "initiatedByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "integrationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsCreated": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsFailed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsSeen": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "recordsUpdated": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "startedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationSyncStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "trigger": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationSyncTrigger",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "integration": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Integration",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "cursorAfter": {
+                  "column": "cursorAfter"
+                },
+                "cursorBefore": {
+                  "column": "cursorBefore"
+                },
+                "errorCode": {
+                  "column": "errorCode"
+                },
+                "errorSummary": {
+                  "column": "errorSummary"
+                },
+                "finishedAt": {
+                  "column": "finishedAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "initiatedByUserId": {
+                  "column": "initiatedByUserId"
+                },
+                "integrationId": {
+                  "column": "integrationId"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "recordsCreated": {
+                  "column": "recordsCreated"
+                },
+                "recordsFailed": {
+                  "column": "recordsFailed"
+                },
+                "recordsSeen": {
+                  "column": "recordsSeen"
+                },
+                "recordsUpdated": {
+                  "column": "recordsUpdated"
+                },
+                "startedAt": {
+                  "column": "startedAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "trigger": {
+                  "column": "trigger"
+                }
+              },
+              "namespaceId": "public",
+              "table": "IntegrationSyncRun"
+            }
+          },
+          "IntegrationWebhookEvent": {
+            "fields": {
+              "attempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "eventType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "externalEventId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "integrationId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastError": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "payload": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "payloadHash": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "processedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "providerKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "receivedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "IntegrationWebhookStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "integration": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Integration",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "attempts": {
+                  "column": "attempts"
+                },
+                "eventType": {
+                  "column": "eventType"
+                },
+                "externalEventId": {
+                  "column": "externalEventId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "integrationId": {
+                  "column": "integrationId"
+                },
+                "lastError": {
+                  "column": "lastError"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "payload": {
+                  "column": "payload"
+                },
+                "payloadHash": {
+                  "column": "payloadHash"
+                },
+                "processedAt": {
+                  "column": "processedAt"
+                },
+                "providerKey": {
+                  "column": "providerKey"
+                },
+                "receivedAt": {
+                  "column": "receivedAt"
+                },
+                "status": {
+                  "column": "status"
+                }
+              },
+              "namespaceId": "public",
+              "table": "IntegrationWebhookEvent"
             }
           },
           "Load": {
@@ -2966,6 +4466,202 @@
                 }
               ]
             },
+            "ExternalRecord": {
+              "checks": [
+                {
+                  "expression": "\"entityKind\" IN ('LOAD', 'DELIVERY', 'TRUCK', 'DRIVER', 'ASSIGNMENT', 'CUSTOMER')",
+                  "name": "ExternalRecord_entityKind_check_54d9be9f",
+                  "prefix": "ExternalRecord_entityKind_check"
+                }
+              ],
+              "columns": {
+                "checksum": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "entityKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ExternalEntityKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "externalId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "integrationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "internalId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "internalKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "lastSyncedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "payload": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "providerKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "ExternalRecord_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ExternalRecord"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "ExternalRecord_organizationId_integrationId_idx_9775827b"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "integrationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "ExternalRecord"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "entityKind"
+                  ],
+                  "name": "ExternalRecord_organizationId_entityKind_idx_2c710837",
+                  "prefix": "ExternalRecord_organizationId_entityKind_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "ExternalRecord_organizationId_idx_2e17ef41",
+                  "prefix": "ExternalRecord_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "name": "ExternalRecord_organizationId_integrationId_idx_9775827b",
+                  "prefix": "ExternalRecord_organizationId_integrationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "internalKind",
+                    "internalId"
+                  ],
+                  "name": "external_record_internal_idx_254c7fe8",
+                  "prefix": "external_record_internal_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "providerKey",
+                    "entityKind",
+                    "externalId"
+                  ]
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "id"
+                  ]
+                }
+              ]
+            },
             "Feedback": {
               "checks": [
                 {
@@ -3111,6 +4807,950 @@
                 ]
               },
               "uniques": []
+            },
+            "Integration": {
+              "checks": [
+                {
+                  "expression": "\"authKind\" IN ('API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')",
+                  "name": "Integration_authKind_check_1a81fa33",
+                  "prefix": "Integration_authKind_check"
+                },
+                {
+                  "expression": "\"status\" IN ('CONNECTING', 'CONNECTED', 'SYNCING', 'DEGRADED', 'ERROR', 'DISCONNECTED')",
+                  "name": "Integration_status_check_1043d03e",
+                  "prefix": "Integration_status_check"
+                },
+                {
+                  "expression": "\"type\" IN ('TMS', 'ELD', 'GPS_TELEMATICS', 'OTHER')",
+                  "name": "Integration_type_check_f2a848c5",
+                  "prefix": "Integration_type_check"
+                }
+              ],
+              "columns": {
+                "authKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationAuthKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "capabilities": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "config": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "consecutiveFailures": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "createdByUserId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "displayName": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "lastSuccessfulSyncAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "lastSyncAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "lastSyncError": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "providerKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "recordsFailed": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "recordsProcessed": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DISCONNECTED"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "syncCursor": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "webhookTokenHash": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "Integration_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "Integration_organizationId_idx_2e17ef41",
+                  "prefix": "Integration_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "providerKey"
+                  ],
+                  "name": "Integration_organizationId_providerKey_idx_fcc6e7b5",
+                  "prefix": "Integration_organizationId_providerKey_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "status"
+                  ],
+                  "name": "Integration_organizationId_status_idx_21af5e82",
+                  "prefix": "Integration_organizationId_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "id"
+                  ]
+                }
+              ]
+            },
+            "IntegrationCredential": {
+              "checks": [
+                {
+                  "expression": "\"authKind\" IN ('API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')",
+                  "name": "IntegrationCredential_authKind_check_1a81fa33",
+                  "prefix": "IntegrationCredential_authKind_check"
+                }
+              ],
+              "columns": {
+                "authKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationAuthKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "ciphertext": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "hint": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "integrationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "keyVersion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "revokedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "IntegrationCredential_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationCredential"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "unique": [
+                      "organizationId",
+                      "integrationId"
+                    ]
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "integrationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationCredential"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "IntegrationCredential_organizationId_idx_2e17ef41",
+                  "prefix": "IntegrationCredential_organizationId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                }
+              ]
+            },
+            "IntegrationEvent": {
+              "checks": [
+                {
+                  "expression": "\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED')",
+                  "name": "IntegrationEvent_kind_check_1da3be58",
+                  "prefix": "IntegrationEvent_kind_check"
+                }
+              ],
+              "columns": {
+                "actorUserId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "integrationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "kind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationEventKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "message": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "metadata": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "IntegrationEvent_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "IntegrationEvent_organizationId_integrationId_idx_9775827b"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "integrationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "actorUserId"
+                  ],
+                  "name": "IntegrationEvent_actorUserId_idx_96dac96c",
+                  "prefix": "IntegrationEvent_actorUserId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "IntegrationEvent_organizationId_idx_2e17ef41",
+                  "prefix": "IntegrationEvent_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "name": "IntegrationEvent_organizationId_integrationId_idx_9775827b",
+                  "prefix": "IntegrationEvent_organizationId_integrationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId",
+                    "createdAt"
+                  ],
+                  "name": "integration_event_created_idx_193b1373",
+                  "prefix": "integration_event_created_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "IntegrationSyncRun": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('RUNNING', 'SUCCEEDED', 'FAILED', 'PARTIAL')",
+                  "name": "IntegrationSyncRun_status_check_312222e2",
+                  "prefix": "IntegrationSyncRun_status_check"
+                },
+                {
+                  "expression": "\"trigger\" IN ('INITIAL', 'INCREMENTAL', 'MANUAL', 'SCHEDULED', 'WEBHOOK')",
+                  "name": "IntegrationSyncRun_trigger_check_42c3cef3",
+                  "prefix": "IntegrationSyncRun_trigger_check"
+                }
+              ],
+              "columns": {
+                "cursorAfter": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "cursorBefore": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "errorCode": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "errorSummary": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "finishedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "initiatedByUserId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "integrationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "recordsCreated": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "recordsFailed": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "recordsSeen": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "recordsUpdated": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "startedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "RUNNING"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationSyncStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "trigger": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationSyncTrigger",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "IntegrationSyncRun_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationSyncRun"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "IntegrationSyncRun_organizationId_integrationId_idx_9775827b"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "integrationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationSyncRun"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "IntegrationSyncRun_organizationId_idx_2e17ef41",
+                  "prefix": "IntegrationSyncRun_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "name": "IntegrationSyncRun_organizationId_integrationId_idx_9775827b",
+                  "prefix": "IntegrationSyncRun_organizationId_integrationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId",
+                    "startedAt"
+                  ],
+                  "name": "integration_syncrun_started_idx_5919ee49",
+                  "prefix": "integration_syncrun_started_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "IntegrationWebhookEvent": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('RECEIVED', 'PROCESSED', 'FAILED', 'IGNORED')",
+                  "name": "IntegrationWebhookEvent_status_check_bd99edcb",
+                  "prefix": "IntegrationWebhookEvent_status_check"
+                }
+              ],
+              "columns": {
+                "attempts": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nullable": false
+                },
+                "eventType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "externalEventId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "integrationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "lastError": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "payload": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "payloadHash": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "processedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "providerKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "receivedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "RECEIVED"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "IntegrationWebhookStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "IntegrationWebhookEvent_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationWebhookEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "IntegrationWebhookEvent_organizationId_integrationId_i_9775827b"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "integrationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "IntegrationWebhookEvent"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "IntegrationWebhookEvent_organizationId_idx_2e17ef41",
+                  "prefix": "IntegrationWebhookEvent_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "name": "IntegrationWebhookEvent_organizationId_integrationId_i_9775827b",
+                  "prefix": "IntegrationWebhookEvent_organizationId_integrationId_i",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId",
+                    "receivedAt"
+                  ],
+                  "name": "integration_webhook_received_idx_d0d8ce19",
+                  "prefix": "integration_webhook_received_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "providerKey",
+                    "externalEventId"
+                  ]
+                }
+              ]
             },
             "Load": {
               "columns": {
@@ -4034,6 +6674,17 @@
                 "INACTIVE"
               ]
             },
+            "ExternalEntityKind": {
+              "kind": "valueSet",
+              "values": [
+                "LOAD",
+                "DELIVERY",
+                "TRUCK",
+                "DRIVER",
+                "ASSIGNMENT",
+                "CUSTOMER"
+              ]
+            },
             "FeedbackType": {
               "kind": "valueSet",
               "values": [
@@ -4041,6 +6692,80 @@
                 "FEATURE_REQUEST",
                 "UX_UI_FEEDBACK",
                 "GENERAL_FEEDBACK"
+              ]
+            },
+            "IntegrationAuthKind": {
+              "kind": "valueSet",
+              "values": [
+                "API_KEY",
+                "OAUTH2",
+                "BEARER_TOKEN",
+                "BASIC"
+              ]
+            },
+            "IntegrationEventKind": {
+              "kind": "valueSet",
+              "values": [
+                "CONNECTED",
+                "DISCONNECTED",
+                "CONFIG_UPDATED",
+                "CREDENTIAL_STORED",
+                "CREDENTIAL_ROTATED",
+                "CREDENTIAL_REVOKED",
+                "SYNC_STARTED",
+                "SYNC_COMPLETED",
+                "SYNC_FAILED",
+                "WEBHOOK_RECEIVED",
+                "WEBHOOK_PROCESSED",
+                "WEBHOOK_FAILED"
+              ]
+            },
+            "IntegrationStatus": {
+              "kind": "valueSet",
+              "values": [
+                "CONNECTING",
+                "CONNECTED",
+                "SYNCING",
+                "DEGRADED",
+                "ERROR",
+                "DISCONNECTED"
+              ]
+            },
+            "IntegrationSyncStatus": {
+              "kind": "valueSet",
+              "values": [
+                "RUNNING",
+                "SUCCEEDED",
+                "FAILED",
+                "PARTIAL"
+              ]
+            },
+            "IntegrationSyncTrigger": {
+              "kind": "valueSet",
+              "values": [
+                "INITIAL",
+                "INCREMENTAL",
+                "MANUAL",
+                "SCHEDULED",
+                "WEBHOOK"
+              ]
+            },
+            "IntegrationType": {
+              "kind": "valueSet",
+              "values": [
+                "TMS",
+                "ELD",
+                "GPS_TELEMATICS",
+                "OTHER"
+              ]
+            },
+            "IntegrationWebhookStatus": {
+              "kind": "valueSet",
+              "values": [
+                "RECEIVED",
+                "PROCESSED",
+                "FAILED",
+                "IGNORED"
               ]
             },
             "MembershipRole": {
@@ -4121,10 +6846,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0c7fbdb13d046bcf0a03d6153d959cb97a9ca15ec0b67e8564df2a48fc5166d1"
+    "storageHash": "23ac9f37dcdd14a92d7ec27711f271f6c8d57a301d47be01e757685a91105d67"
   },
   "execution": {
-    "executionHash": "543ca4765ed419bae3777298a26f40fd1a1c4156040f5473c2dc5412a9d5b5e8",
+    "executionHash": "a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8",
     "mutations": {
       "defaults": [
         {
@@ -4278,6 +7003,52 @@
             }
           },
           "ref": {
+            "entry": "ExternalRecord",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "ExternalRecord",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "ExternalRecord",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
             "entry": "Feedback",
             "field": "createdAt",
             "namespace": "public"
@@ -4312,6 +7083,173 @@
           "ref": {
             "entry": "Feedback",
             "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "Integration",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "Integration",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "Integration",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "IntegrationCredential",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "IntegrationCredential",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "IntegrationCredential",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "IntegrationEvent",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "IntegrationEvent",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "IntegrationSyncRun",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "IntegrationSyncRun",
+            "field": "startedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "IntegrationWebhookEvent",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "IntegrationWebhookEvent",
+            "field": "receivedAt",
             "namespace": "public"
           }
         },

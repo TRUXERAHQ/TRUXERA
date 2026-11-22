@@ -102,6 +102,91 @@ enum FeedbackType {
   GENERAL_FEEDBACK = "GENERAL_FEEDBACK"
 }
 
+enum IntegrationType {
+  @@type("pg/text@1")
+
+  TMS = "TMS"
+  ELD = "ELD"
+  GPS_TELEMATICS = "GPS_TELEMATICS"
+  OTHER = "OTHER"
+}
+
+enum IntegrationStatus {
+  @@type("pg/text@1")
+
+  CONNECTING = "CONNECTING"
+  CONNECTED = "CONNECTED"
+  SYNCING = "SYNCING"
+  DEGRADED = "DEGRADED"
+  ERROR = "ERROR"
+  DISCONNECTED = "DISCONNECTED"
+}
+
+enum IntegrationAuthKind {
+  @@type("pg/text@1")
+
+  API_KEY = "API_KEY"
+  OAUTH2 = "OAUTH2"
+  BEARER_TOKEN = "BEARER_TOKEN"
+  BASIC = "BASIC"
+}
+
+enum ExternalEntityKind {
+  @@type("pg/text@1")
+
+  LOAD = "LOAD"
+  DELIVERY = "DELIVERY"
+  TRUCK = "TRUCK"
+  DRIVER = "DRIVER"
+  ASSIGNMENT = "ASSIGNMENT"
+  CUSTOMER = "CUSTOMER"
+}
+
+enum IntegrationSyncStatus {
+  @@type("pg/text@1")
+
+  RUNNING = "RUNNING"
+  SUCCEEDED = "SUCCEEDED"
+  FAILED = "FAILED"
+  PARTIAL = "PARTIAL"
+}
+
+enum IntegrationSyncTrigger {
+  @@type("pg/text@1")
+
+  INITIAL = "INITIAL"
+  INCREMENTAL = "INCREMENTAL"
+  MANUAL = "MANUAL"
+  SCHEDULED = "SCHEDULED"
+  WEBHOOK = "WEBHOOK"
+}
+
+enum IntegrationEventKind {
+  @@type("pg/text@1")
+
+  CONNECTED = "CONNECTED"
+  DISCONNECTED = "DISCONNECTED"
+  CONFIG_UPDATED = "CONFIG_UPDATED"
+  CREDENTIAL_STORED = "CREDENTIAL_STORED"
+  CREDENTIAL_ROTATED = "CREDENTIAL_ROTATED"
+  CREDENTIAL_REVOKED = "CREDENTIAL_REVOKED"
+  SYNC_STARTED = "SYNC_STARTED"
+  SYNC_COMPLETED = "SYNC_COMPLETED"
+  SYNC_FAILED = "SYNC_FAILED"
+  WEBHOOK_RECEIVED = "WEBHOOK_RECEIVED"
+  WEBHOOK_PROCESSED = "WEBHOOK_PROCESSED"
+  WEBHOOK_FAILED = "WEBHOOK_FAILED"
+}
+
+enum IntegrationWebhookStatus {
+  @@type("pg/text@1")
+
+  RECEIVED = "RECEIVED"
+  PROCESSED = "PROCESSED"
+  FAILED = "FAILED"
+  IGNORED = "IGNORED"
+}
+
 enum DeliveryEventType {
   @@type("pg/text@1")
 
@@ -313,6 +398,147 @@ model Feedback {
   user           User               @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([organizationId, userId, createdAt])
+}
+
+model Integration {
+  id                  Uuid               @id @onCreate(uuid(7))
+  organizationId      Uuid
+  providerKey         String
+  displayName         String
+  type                IntegrationType
+  status              IntegrationStatus  @default(DISCONNECTED)
+  authKind            IntegrationAuthKind
+  config              String?
+  capabilities        String?
+  webhookTokenHash    String?
+  syncCursor          String?
+  lastSyncAt          DateTime?
+  lastSuccessfulSyncAt DateTime?
+  lastSyncError       String?
+  consecutiveFailures Int                @default(0)
+  recordsProcessed    Int                @default(0)
+  recordsFailed       Int                @default(0)
+  createdByUserId     Uuid?
+  createdAt           temporal.CreatedAt
+  updatedAt           temporal.UpdatedAt
+
+  organization        Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  credential          IntegrationCredential?
+  externalRecords     ExternalRecord[]
+  syncRuns            IntegrationSyncRun[]
+  webhookEvents       IntegrationWebhookEvent[]
+  events              IntegrationEvent[]
+
+  @@unique([organizationId, id])
+  @@index([organizationId, status])
+  @@index([organizationId, providerKey])
+}
+
+model IntegrationCredential {
+  id             Uuid               @id @onCreate(uuid(7))
+  organizationId Uuid
+  integrationId  Uuid
+  authKind       IntegrationAuthKind
+  ciphertext     String
+  keyVersion     String
+  hint           String?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      temporal.CreatedAt
+  updatedAt      temporal.UpdatedAt
+
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  integration    Integration        @relation(fields: [organizationId, integrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, integrationId])
+  @@index([organizationId])
+}
+
+model ExternalRecord {
+  id             Uuid               @id @onCreate(uuid(7))
+  organizationId Uuid
+  integrationId  Uuid
+  providerKey    String
+  entityKind     ExternalEntityKind
+  externalId     String
+  internalKind   String?
+  internalId     Uuid?
+  checksum       String?
+  payload        String?
+  lastSyncedAt   DateTime?
+  createdAt      temporal.CreatedAt
+  updatedAt      temporal.UpdatedAt
+
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  integration    Integration        @relation(fields: [organizationId, integrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, providerKey, entityKind, externalId])
+  @@unique([organizationId, id])
+  @@index([organizationId, entityKind])
+  @@index([organizationId, internalKind, internalId], name: "external_record_internal_idx")
+}
+
+model IntegrationSyncRun {
+  id               Uuid                   @id @onCreate(uuid(7))
+  organizationId   Uuid
+  integrationId    Uuid
+  trigger          IntegrationSyncTrigger
+  status           IntegrationSyncStatus  @default(RUNNING)
+  cursorBefore     String?
+  cursorAfter      String?
+  recordsSeen      Int                    @default(0)
+  recordsCreated   Int                    @default(0)
+  recordsUpdated   Int                    @default(0)
+  recordsFailed    Int                    @default(0)
+  errorCode        String?
+  errorSummary     String?
+  initiatedByUserId Uuid?
+  startedAt        DateTime               @default(now()) @onCreate(now())
+  finishedAt       DateTime?
+
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  integration      Integration            @relation(fields: [organizationId, integrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId, integrationId, startedAt], name: "integration_syncrun_started_idx")
+}
+
+model IntegrationWebhookEvent {
+  id             Uuid                      @id @onCreate(uuid(7))
+  organizationId Uuid
+  integrationId  Uuid?
+  providerKey    String
+  eventType      String
+  externalEventId String
+  payload        String?
+  payloadHash    String?
+  status         IntegrationWebhookStatus  @default(RECEIVED)
+  attempts       Int                       @default(0)
+  lastError      String?
+  receivedAt     DateTime                  @default(now()) @onCreate(now())
+  processedAt    DateTime?
+
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  integration    Integration?              @relation(fields: [organizationId, integrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, providerKey, externalEventId])
+  @@index([organizationId, integrationId, receivedAt], name: "integration_webhook_received_idx")
+}
+
+model IntegrationEvent {
+  id             Uuid                 @id @onCreate(uuid(7))
+  organizationId Uuid
+  integrationId  Uuid?
+  actorUserId    Uuid?
+  kind           IntegrationEventKind
+  message        String?
+  metadata       String?
+  createdAt      temporal.CreatedAt
+
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  integration    Integration?         @relation(fields: [organizationId, integrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId, integrationId, createdAt], name: "integration_event_created_idx")
+  @@index([actorUserId])
 }
 
 model DeliveryEvent {

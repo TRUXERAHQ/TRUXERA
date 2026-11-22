@@ -6,6 +6,10 @@ import {
   type OperationsSearchParams,
 } from "../operations-page-data";
 import { canAdministerOrganizationSettings } from "@/src/settings/organization-settings";
+import {
+  listConnectorCatalog,
+  listIntegrationsForOrganization,
+} from "@/src/prisma/integration-data";
 import { PageHeader } from "../ui";
 import SettingsSections from "./settings-sections";
 
@@ -28,6 +32,11 @@ export default function SettingsPage({ searchParams }: Props) {
 async function SettingsContent({ searchParams }: Props) {
   const context = await getOperationsPageContext(await searchParams);
   const session = await auth();
+
+  const [integrations, connectorCatalog] = await Promise.all([
+    listIntegrationsForOrganization(context.userId, context.organization.id),
+    listConnectorCatalog(),
+  ]);
 
   const timeZones = Intl.supportedValuesOf("timeZone");
 
@@ -56,6 +65,8 @@ async function SettingsContent({ searchParams }: Props) {
           memberSince={context.membership.createdAt?.toISOString() ?? null}
           userName={session?.user?.name ?? null}
           userEmail={session?.user?.email ?? null}
+          integrations={integrations}
+          connectorCatalog={connectorCatalog}
         />
       </div>
     </TruckShell>

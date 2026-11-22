@@ -1,0 +1,1972 @@
+[
+  {
+    "id": "table.ExternalRecord",
+    "label": "Create table \"ExternalRecord\"",
+    "summary": "Creates table \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ExternalRecord\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"ExternalRecord\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ExternalRecord\"",
+        "sql": "CREATE TABLE \"public\".\"ExternalRecord\" (\n  \"checksum\" text,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"entityKind\" text NOT NULL,\n  \"externalId\" text NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"integrationId\" uuid NOT NULL,\n  \"internalId\" uuid,\n  \"internalKind\" text,\n  \"lastSyncedAt\" timestamptz(3),\n  \"organizationId\" uuid NOT NULL,\n  \"providerKey\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"ExternalRecord_entityKind_check_54d9be9f\" CHECK (\"entityKind\" IN ('LOAD', 'DELIVERY', 'TRUCK', 'DRIVER', 'ASSIGNMENT', 'CUSTOMER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ExternalRecord\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"ExternalRecord\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.Integration",
+    "label": "Create table \"Integration\"",
+    "summary": "Creates table \"Integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Integration\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Integration\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"Integration\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Integration\"",
+        "sql": "CREATE TABLE \"public\".\"Integration\" (\n  \"authKind\" text NOT NULL,\n  \"capabilities\" text,\n  \"config\" text,\n  \"consecutiveFailures\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"createdByUserId\" uuid,\n  \"displayName\" text NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"lastSuccessfulSyncAt\" timestamptz(3),\n  \"lastSyncAt\" timestamptz(3),\n  \"lastSyncError\" text,\n  \"organizationId\" uuid NOT NULL,\n  \"providerKey\" text NOT NULL,\n  \"recordsFailed\" int4 DEFAULT 0 NOT NULL,\n  \"recordsProcessed\" int4 DEFAULT 0 NOT NULL,\n  \"status\" text DEFAULT 'DISCONNECTED' NOT NULL,\n  \"syncCursor\" text,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  \"webhookTokenHash\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Integration_authKind_check_1a81fa33\" CHECK (\"authKind\" IN ('API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC')),\n  CONSTRAINT \"Integration_status_check_1043d03e\" CHECK (\"status\" IN ('CONNECTING', 'CONNECTED', 'SYNCING', 'DEGRADED', 'ERROR', 'DISCONNECTED')),\n  CONSTRAINT \"Integration_type_check_f2a848c5\" CHECK (\"type\" IN ('TMS', 'ELD', 'GPS_TELEMATICS', 'OTHER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Integration\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"Integration\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"Integration\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.IntegrationCredential",
+    "label": "Create table \"IntegrationCredential\"",
+    "summary": "Creates table \"IntegrationCredential\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"IntegrationCredential\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"IntegrationCredential\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"IntegrationCredential\"",
+        "sql": "CREATE TABLE \"public\".\"IntegrationCredential\" (\n  \"authKind\" text NOT NULL,\n  \"ciphertext\" text NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"expiresAt\" timestamptz(3),\n  \"hint\" text,\n  \"id\" uuid NOT NULL,\n  \"integrationId\" uuid NOT NULL,\n  \"keyVersion\" text NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"revokedAt\" timestamptz(3),\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"IntegrationCredential_authKind_check_1a81fa33\" CHECK (\"authKind\" IN ('API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"IntegrationCredential\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationCredential\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"IntegrationCredential\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.IntegrationEvent",
+    "label": "Create table \"IntegrationEvent\"",
+    "summary": "Creates table \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"IntegrationEvent\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"IntegrationEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"IntegrationEvent\"",
+        "sql": "CREATE TABLE \"public\".\"IntegrationEvent\" (\n  \"actorUserId\" uuid,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"integrationId\" uuid,\n  \"kind\" text NOT NULL,\n  \"message\" text,\n  \"metadata\" text,\n  \"organizationId\" uuid NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"IntegrationEvent_kind_check_1da3be58\" CHECK (\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"IntegrationEvent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"IntegrationEvent\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.IntegrationSyncRun",
+    "label": "Create table \"IntegrationSyncRun\"",
+    "summary": "Creates table \"IntegrationSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "IntegrationSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"IntegrationSyncRun\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationSyncRun\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"IntegrationSyncRun\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"IntegrationSyncRun\"",
+        "sql": "CREATE TABLE \"public\".\"IntegrationSyncRun\" (\n  \"cursorAfter\" text,\n  \"cursorBefore\" text,\n  \"errorCode\" text,\n  \"errorSummary\" text,\n  \"finishedAt\" timestamptz(3),\n  \"id\" uuid NOT NULL,\n  \"initiatedByUserId\" uuid,\n  \"integrationId\" uuid NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"recordsCreated\" int4 DEFAULT 0 NOT NULL,\n  \"recordsFailed\" int4 DEFAULT 0 NOT NULL,\n  \"recordsSeen\" int4 DEFAULT 0 NOT NULL,\n  \"recordsUpdated\" int4 DEFAULT 0 NOT NULL,\n  \"startedAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"status\" text DEFAULT 'RUNNING' NOT NULL,\n  \"trigger\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"IntegrationSyncRun_status_check_312222e2\" CHECK (\"status\" IN ('RUNNING', 'SUCCEEDED', 'FAILED', 'PARTIAL')),\n  CONSTRAINT \"IntegrationSyncRun_trigger_check_42c3cef3\" CHECK (\"trigger\" IN ('INITIAL', 'INCREMENTAL', 'MANUAL', 'SCHEDULED', 'WEBHOOK'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"IntegrationSyncRun\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationSyncRun\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"IntegrationSyncRun\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.IntegrationWebhookEvent",
+    "label": "Create table \"IntegrationWebhookEvent\"",
+    "summary": "Creates table \"IntegrationWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"IntegrationWebhookEvent\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationWebhookEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"IntegrationWebhookEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"IntegrationWebhookEvent\"",
+        "sql": "CREATE TABLE \"public\".\"IntegrationWebhookEvent\" (\n  \"attempts\" int4 DEFAULT 0 NOT NULL,\n  \"eventType\" text NOT NULL,\n  \"externalEventId\" text NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"integrationId\" uuid,\n  \"lastError\" text,\n  \"organizationId\" uuid NOT NULL,\n  \"payload\" text,\n  \"payloadHash\" text,\n  \"processedAt\" timestamptz(3),\n  \"providerKey\" text NOT NULL,\n  \"receivedAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"status\" text DEFAULT 'RECEIVED' NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"IntegrationWebhookEvent_status_check_bd99edcb\" CHECK (\"status\" IN ('RECEIVED', 'PROCESSED', 'FAILED', 'IGNORED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"IntegrationWebhookEvent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"IntegrationWebhookEvent\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.ExternalRecord.ExternalRecord_organizationId_providerKey_entityKind_externalId",
+    "label": "Add unique constraint on \"ExternalRecord\" (organizationId, providerKey, entityKind, externalId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ExternalRecord_organizationId_providerKey_entityKind_externalId",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ExternalRecord_organizationId_providerKey_entityKind_externalId\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_providerKey_entityKind_externalId",
+          "public",
+          "\"public\".\"ExternalRecord\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"ExternalRecord_organizationId_providerKey_entityKind_externalId\" on \"ExternalRecord\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ExternalRecord_organizationId_providerKey_entityKind_externalId\"",
+        "sql": "ALTER TABLE \"public\".\"ExternalRecord\" ADD CONSTRAINT \"ExternalRecord_organizationId_providerKey_entityKind_externalId\" UNIQUE (\"organizationId\", \"providerKey\", \"entityKind\", \"externalId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"ExternalRecord_organizationId_providerKey_entityKind_externalId\" exists on (organizationId, providerKey, entityKind, externalId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_providerKey_entityKind_externalId",
+          "public",
+          "\"public\".\"ExternalRecord\"",
+          "u",
+          "[\"organizationId\",\"providerKey\",\"entityKind\",\"externalId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.ExternalRecord.ExternalRecord_organizationId_id_key",
+    "label": "Add unique constraint on \"ExternalRecord\" (organizationId, id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ExternalRecord_organizationId_id_key",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ExternalRecord_organizationId_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_id_key",
+          "public",
+          "\"public\".\"ExternalRecord\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"ExternalRecord_organizationId_id_key\" on \"ExternalRecord\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ExternalRecord_organizationId_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"ExternalRecord\" ADD CONSTRAINT \"ExternalRecord_organizationId_id_key\" UNIQUE (\"organizationId\", \"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"ExternalRecord_organizationId_id_key\" exists on (organizationId, id)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_id_key",
+          "public",
+          "\"public\".\"ExternalRecord\"",
+          "u",
+          "[\"organizationId\",\"id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.Integration.Integration_organizationId_id_key",
+    "label": "Add unique constraint on \"Integration\" (organizationId, id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Integration_organizationId_id_key",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Integration_organizationId_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Integration_organizationId_id_key",
+          "public",
+          "\"public\".\"Integration\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Integration_organizationId_id_key\" on \"Integration\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"Integration_organizationId_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"Integration\" ADD CONSTRAINT \"Integration_organizationId_id_key\" UNIQUE (\"organizationId\", \"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"Integration_organizationId_id_key\" exists on (organizationId, id)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "Integration_organizationId_id_key",
+          "public",
+          "\"public\".\"Integration\"",
+          "u",
+          "[\"organizationId\",\"id\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.IntegrationCredential.IntegrationCredential_organizationId_integrationId_key",
+    "label": "Add unique constraint on \"IntegrationCredential\" (organizationId, integrationId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "IntegrationCredential_organizationId_integrationId_key",
+        "table": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"IntegrationCredential_organizationId_integrationId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationCredential_organizationId_integrationId_key",
+          "public",
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"IntegrationCredential_organizationId_integrationId_key\" on \"IntegrationCredential\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"IntegrationCredential_organizationId_integrationId_key\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationCredential\" ADD CONSTRAINT \"IntegrationCredential_organizationId_integrationId_key\" UNIQUE (\"organizationId\", \"integrationId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"IntegrationCredential_organizationId_integrationId_key\" exists on (organizationId, integrationId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "IntegrationCredential_organizationId_integrationId_key",
+          "public",
+          "\"public\".\"IntegrationCredential\"",
+          "u",
+          "[\"organizationId\",\"integrationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.IntegrationWebhookEvent.IntegrationWebhookEvent_organizationId_providerKey_externalEven",
+    "label": "Add unique constraint on \"IntegrationWebhookEvent\" (organizationId, providerKey, externalEventId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "IntegrationWebhookEvent_organizationId_providerKey_externalEven",
+        "table": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"IntegrationWebhookEvent_organizationId_providerKey_externalEven\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationWebhookEvent_organizationId_providerKey_externalEven",
+          "public",
+          "\"public\".\"IntegrationWebhookEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"IntegrationWebhookEvent_organizationId_providerKey_externalEven\" on \"IntegrationWebhookEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"IntegrationWebhookEvent_organizationId_providerKey_externalEven\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationWebhookEvent\" ADD CONSTRAINT \"IntegrationWebhookEvent_organizationId_providerKey_externalEven\" UNIQUE (\"organizationId\", \"providerKey\", \"externalEventId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"IntegrationWebhookEvent_organizationId_providerKey_externalEven\" exists on (organizationId, providerKey, externalEventId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "IntegrationWebhookEvent_organizationId_providerKey_externalEven",
+          "public",
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "u",
+          "[\"organizationId\",\"providerKey\",\"externalEventId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ExternalRecord.ExternalRecord_organizationId_entityKind_idx_2c710837",
+    "label": "Create index \"ExternalRecord_organizationId_entityKind_idx_2c710837\" on \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ExternalRecord_organizationId_entityKind_idx_2c710837",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ExternalRecord_organizationId_entityKind_idx_2c710837\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord_organizationId_entityKind_idx_2c710837\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ExternalRecord_organizationId_entityKind_idx_2c710837\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ExternalRecord_organizationId_entityKind_idx_2c710837\"",
+        "sql": "CREATE INDEX \"ExternalRecord_organizationId_entityKind_idx_2c710837\" ON \"public\".\"ExternalRecord\" (\"organizationId\", \"entityKind\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ExternalRecord_organizationId_entityKind_idx_2c710837\" exists on \"ExternalRecord\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord_organizationId_entityKind_idx_2c710837\"",
+          "i",
+          "I",
+          "\"public\".\"ExternalRecord\"",
+          "btree",
+          "[\"organizationId\",\"entityKind\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ExternalRecord.ExternalRecord_organizationId_idx_2e17ef41",
+    "label": "Create index \"ExternalRecord_organizationId_idx_2e17ef41\" on \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ExternalRecord_organizationId_idx_2e17ef41",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ExternalRecord_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ExternalRecord_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ExternalRecord_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"ExternalRecord_organizationId_idx_2e17ef41\" ON \"public\".\"ExternalRecord\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ExternalRecord_organizationId_idx_2e17ef41\" exists on \"ExternalRecord\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"ExternalRecord\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ExternalRecord.ExternalRecord_organizationId_integrationId_idx_9775827b",
+    "label": "Create index \"ExternalRecord_organizationId_integrationId_idx_9775827b\" on \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ExternalRecord_organizationId_integrationId_idx_9775827b",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ExternalRecord_organizationId_integrationId_idx_9775827b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord_organizationId_integrationId_idx_9775827b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"ExternalRecord_organizationId_integrationId_idx_9775827b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ExternalRecord_organizationId_integrationId_idx_9775827b\"",
+        "sql": "CREATE INDEX \"ExternalRecord_organizationId_integrationId_idx_9775827b\" ON \"public\".\"ExternalRecord\" (\"organizationId\", \"integrationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ExternalRecord_organizationId_integrationId_idx_9775827b\" exists on \"ExternalRecord\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"ExternalRecord_organizationId_integrationId_idx_9775827b\"",
+          "i",
+          "I",
+          "\"public\".\"ExternalRecord\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ExternalRecord.external_record_internal_idx_254c7fe8",
+    "label": "Create index \"external_record_internal_idx_254c7fe8\" on \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "external_record_internal_idx_254c7fe8",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"external_record_internal_idx_254c7fe8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"external_record_internal_idx_254c7fe8\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"external_record_internal_idx_254c7fe8\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"external_record_internal_idx_254c7fe8\"",
+        "sql": "CREATE INDEX \"external_record_internal_idx_254c7fe8\" ON \"public\".\"ExternalRecord\" (\"organizationId\", \"internalKind\", \"internalId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"external_record_internal_idx_254c7fe8\" exists on \"ExternalRecord\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"external_record_internal_idx_254c7fe8\"",
+          "i",
+          "I",
+          "\"public\".\"ExternalRecord\"",
+          "btree",
+          "[\"organizationId\",\"internalKind\",\"internalId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Integration.Integration_organizationId_idx_2e17ef41",
+    "label": "Create index \"Integration_organizationId_idx_2e17ef41\" on \"Integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Integration_organizationId_idx_2e17ef41",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Integration_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Integration_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Integration_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Integration_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"Integration_organizationId_idx_2e17ef41\" ON \"public\".\"Integration\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Integration_organizationId_idx_2e17ef41\" exists on \"Integration\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Integration_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"Integration\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Integration.Integration_organizationId_providerKey_idx_fcc6e7b5",
+    "label": "Create index \"Integration_organizationId_providerKey_idx_fcc6e7b5\" on \"Integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Integration_organizationId_providerKey_idx_fcc6e7b5",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Integration_organizationId_providerKey_idx_fcc6e7b5\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Integration_organizationId_providerKey_idx_fcc6e7b5\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Integration_organizationId_providerKey_idx_fcc6e7b5\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Integration_organizationId_providerKey_idx_fcc6e7b5\"",
+        "sql": "CREATE INDEX \"Integration_organizationId_providerKey_idx_fcc6e7b5\" ON \"public\".\"Integration\" (\"organizationId\", \"providerKey\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Integration_organizationId_providerKey_idx_fcc6e7b5\" exists on \"Integration\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Integration_organizationId_providerKey_idx_fcc6e7b5\"",
+          "i",
+          "I",
+          "\"public\".\"Integration\"",
+          "btree",
+          "[\"organizationId\",\"providerKey\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Integration.Integration_organizationId_status_idx_21af5e82",
+    "label": "Create index \"Integration_organizationId_status_idx_21af5e82\" on \"Integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Integration_organizationId_status_idx_21af5e82",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Integration_organizationId_status_idx_21af5e82\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Integration_organizationId_status_idx_21af5e82\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Integration_organizationId_status_idx_21af5e82\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Integration_organizationId_status_idx_21af5e82\"",
+        "sql": "CREATE INDEX \"Integration_organizationId_status_idx_21af5e82\" ON \"public\".\"Integration\" (\"organizationId\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Integration_organizationId_status_idx_21af5e82\" exists on \"Integration\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"Integration_organizationId_status_idx_21af5e82\"",
+          "i",
+          "I",
+          "\"public\".\"Integration\"",
+          "btree",
+          "[\"organizationId\",\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationCredential.IntegrationCredential_organizationId_idx_2e17ef41",
+    "label": "Create index \"IntegrationCredential_organizationId_idx_2e17ef41\" on \"IntegrationCredential\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationCredential_organizationId_idx_2e17ef41",
+        "table": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationCredential_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationCredential_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationCredential_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationCredential_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"IntegrationCredential_organizationId_idx_2e17ef41\" ON \"public\".\"IntegrationCredential\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationCredential_organizationId_idx_2e17ef41\" exists on \"IntegrationCredential\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationCredential_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationCredential\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationEvent.IntegrationEvent_actorUserId_idx_96dac96c",
+    "label": "Create index \"IntegrationEvent_actorUserId_idx_96dac96c\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationEvent_actorUserId_idx_96dac96c",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationEvent_actorUserId_idx_96dac96c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent_actorUserId_idx_96dac96c\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationEvent_actorUserId_idx_96dac96c\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationEvent_actorUserId_idx_96dac96c\"",
+        "sql": "CREATE INDEX \"IntegrationEvent_actorUserId_idx_96dac96c\" ON \"public\".\"IntegrationEvent\" (\"actorUserId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationEvent_actorUserId_idx_96dac96c\" exists on \"IntegrationEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent_actorUserId_idx_96dac96c\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationEvent\"",
+          "btree",
+          "[\"actorUserId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationEvent.IntegrationEvent_organizationId_idx_2e17ef41",
+    "label": "Create index \"IntegrationEvent_organizationId_idx_2e17ef41\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationEvent_organizationId_idx_2e17ef41",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationEvent_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationEvent_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationEvent_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"IntegrationEvent_organizationId_idx_2e17ef41\" ON \"public\".\"IntegrationEvent\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationEvent_organizationId_idx_2e17ef41\" exists on \"IntegrationEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationEvent\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationEvent.IntegrationEvent_organizationId_integrationId_idx_9775827b",
+    "label": "Create index \"IntegrationEvent_organizationId_integrationId_idx_9775827b\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationEvent_organizationId_integrationId_idx_9775827b",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationEvent_organizationId_integrationId_idx_9775827b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent_organizationId_integrationId_idx_9775827b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationEvent_organizationId_integrationId_idx_9775827b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationEvent_organizationId_integrationId_idx_9775827b\"",
+        "sql": "CREATE INDEX \"IntegrationEvent_organizationId_integrationId_idx_9775827b\" ON \"public\".\"IntegrationEvent\" (\"organizationId\", \"integrationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationEvent_organizationId_integrationId_idx_9775827b\" exists on \"IntegrationEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationEvent_organizationId_integrationId_idx_9775827b\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationEvent\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationEvent.integration_event_created_idx_193b1373",
+    "label": "Create index \"integration_event_created_idx_193b1373\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "integration_event_created_idx_193b1373",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"integration_event_created_idx_193b1373\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integration_event_created_idx_193b1373\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"integration_event_created_idx_193b1373\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"integration_event_created_idx_193b1373\"",
+        "sql": "CREATE INDEX \"integration_event_created_idx_193b1373\" ON \"public\".\"IntegrationEvent\" (\"organizationId\", \"integrationId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"integration_event_created_idx_193b1373\" exists on \"IntegrationEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"integration_event_created_idx_193b1373\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationEvent\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\",\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationSyncRun.IntegrationSyncRun_organizationId_idx_2e17ef41",
+    "label": "Create index \"IntegrationSyncRun_organizationId_idx_2e17ef41\" on \"IntegrationSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationSyncRun_organizationId_idx_2e17ef41",
+        "table": "IntegrationSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationSyncRun_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationSyncRun_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationSyncRun_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationSyncRun_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"IntegrationSyncRun_organizationId_idx_2e17ef41\" ON \"public\".\"IntegrationSyncRun\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationSyncRun_organizationId_idx_2e17ef41\" exists on \"IntegrationSyncRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationSyncRun_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationSyncRun\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationSyncRun.IntegrationSyncRun_organizationId_integrationId_idx_9775827b",
+    "label": "Create index \"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\" on \"IntegrationSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationSyncRun_organizationId_integrationId_idx_9775827b",
+        "table": "IntegrationSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\"",
+        "sql": "CREATE INDEX \"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\" ON \"public\".\"IntegrationSyncRun\" (\"organizationId\", \"integrationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\" exists on \"IntegrationSyncRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationSyncRun_organizationId_integrationId_idx_9775827b\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationSyncRun\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationSyncRun.integration_syncrun_started_idx_5919ee49",
+    "label": "Create index \"integration_syncrun_started_idx_5919ee49\" on \"IntegrationSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "integration_syncrun_started_idx_5919ee49",
+        "table": "IntegrationSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"integration_syncrun_started_idx_5919ee49\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integration_syncrun_started_idx_5919ee49\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"integration_syncrun_started_idx_5919ee49\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"integration_syncrun_started_idx_5919ee49\"",
+        "sql": "CREATE INDEX \"integration_syncrun_started_idx_5919ee49\" ON \"public\".\"IntegrationSyncRun\" (\"organizationId\", \"integrationId\", \"startedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"integration_syncrun_started_idx_5919ee49\" exists on \"IntegrationSyncRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"integration_syncrun_started_idx_5919ee49\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationSyncRun\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\",\"startedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationWebhookEvent.IntegrationWebhookEvent_organizationId_idx_2e17ef41",
+    "label": "Create index \"IntegrationWebhookEvent_organizationId_idx_2e17ef41\" on \"IntegrationWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationWebhookEvent_organizationId_idx_2e17ef41",
+        "table": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationWebhookEvent_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationWebhookEvent_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationWebhookEvent_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationWebhookEvent_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"IntegrationWebhookEvent_organizationId_idx_2e17ef41\" ON \"public\".\"IntegrationWebhookEvent\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationWebhookEvent_organizationId_idx_2e17ef41\" exists on \"IntegrationWebhookEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationWebhookEvent_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationWebhookEvent.IntegrationWebhookEvent_organizationId_integrationId_i_9775827b",
+    "label": "Create index \"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\" on \"IntegrationWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IntegrationWebhookEvent_organizationId_integrationId_i_9775827b",
+        "table": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\"",
+        "sql": "CREATE INDEX \"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\" ON \"public\".\"IntegrationWebhookEvent\" (\"organizationId\", \"integrationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\" exists on \"IntegrationWebhookEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IntegrationWebhookEvent_organizationId_integrationId_i_9775827b\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IntegrationWebhookEvent.integration_webhook_received_idx_d0d8ce19",
+    "label": "Create index \"integration_webhook_received_idx_d0d8ce19\" on \"IntegrationWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "integration_webhook_received_idx_d0d8ce19",
+        "table": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"integration_webhook_received_idx_d0d8ce19\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"integration_webhook_received_idx_d0d8ce19\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"integration_webhook_received_idx_d0d8ce19\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"integration_webhook_received_idx_d0d8ce19\"",
+        "sql": "CREATE INDEX \"integration_webhook_received_idx_d0d8ce19\" ON \"public\".\"IntegrationWebhookEvent\" (\"organizationId\", \"integrationId\", \"receivedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"integration_webhook_received_idx_d0d8ce19\" exists on \"IntegrationWebhookEvent\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"integration_webhook_received_idx_d0d8ce19\"",
+          "i",
+          "I",
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\",\"receivedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ExternalRecord.ExternalRecord_organizationId_fkey",
+    "label": "Add foreign key \"ExternalRecord_organizationId_fkey\" on \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ExternalRecord_organizationId_fkey",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ExternalRecord_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_fkey",
+          "public",
+          "\"public\".\"ExternalRecord\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"ExternalRecord_organizationId_fkey\" on \"ExternalRecord\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ExternalRecord_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ExternalRecord\"\nADD CONSTRAINT \"ExternalRecord_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ExternalRecord_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_fkey",
+          "public",
+          "\"public\".\"ExternalRecord\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ExternalRecord.ExternalRecord_organizationId_integrationId_fkey",
+    "label": "Add foreign key \"ExternalRecord_organizationId_integrationId_fkey\" on \"ExternalRecord\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ExternalRecord_organizationId_integrationId_fkey",
+        "table": "ExternalRecord"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ExternalRecord_organizationId_integrationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"ExternalRecord\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"ExternalRecord_organizationId_integrationId_fkey\" on \"ExternalRecord\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ExternalRecord_organizationId_integrationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ExternalRecord\"\nADD CONSTRAINT \"ExternalRecord_organizationId_integrationId_fkey\"\nFOREIGN KEY (\"organizationId\", \"integrationId\")\nREFERENCES \"public\".\"Integration\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ExternalRecord_organizationId_integrationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "ExternalRecord_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"ExternalRecord\"",
+          "f",
+          "[\"organizationId\",\"integrationId\"]",
+          "\"public\".\"Integration\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Integration.Integration_organizationId_fkey",
+    "label": "Add foreign key \"Integration_organizationId_fkey\" on \"Integration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Integration_organizationId_fkey",
+        "table": "Integration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Integration_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Integration_organizationId_fkey",
+          "public",
+          "\"public\".\"Integration\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"Integration_organizationId_fkey\" on \"Integration\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Integration_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Integration\"\nADD CONSTRAINT \"Integration_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Integration_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "Integration_organizationId_fkey",
+          "public",
+          "\"public\".\"Integration\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationCredential.IntegrationCredential_organizationId_fkey",
+    "label": "Add foreign key \"IntegrationCredential_organizationId_fkey\" on \"IntegrationCredential\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationCredential_organizationId_fkey",
+        "table": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationCredential_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationCredential_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationCredential_organizationId_fkey\" on \"IntegrationCredential\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationCredential_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationCredential\"\nADD CONSTRAINT \"IntegrationCredential_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationCredential_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationCredential_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationCredential\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationCredential.IntegrationCredential_organizationId_integrationId_fkey",
+    "label": "Add foreign key \"IntegrationCredential_organizationId_integrationId_fkey\" on \"IntegrationCredential\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationCredential_organizationId_integrationId_fkey",
+        "table": "IntegrationCredential"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationCredential_organizationId_integrationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationCredential_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationCredential\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationCredential_organizationId_integrationId_fkey\" on \"IntegrationCredential\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationCredential_organizationId_integrationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationCredential\"\nADD CONSTRAINT \"IntegrationCredential_organizationId_integrationId_fkey\"\nFOREIGN KEY (\"organizationId\", \"integrationId\")\nREFERENCES \"public\".\"Integration\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationCredential_organizationId_integrationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationCredential_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationCredential\"",
+          "f",
+          "[\"organizationId\",\"integrationId\"]",
+          "\"public\".\"Integration\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationEvent.IntegrationEvent_organizationId_fkey",
+    "label": "Add foreign key \"IntegrationEvent_organizationId_fkey\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationEvent_organizationId_fkey",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationEvent_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationEvent_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationEvent_organizationId_fkey\" on \"IntegrationEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationEvent_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationEvent\"\nADD CONSTRAINT \"IntegrationEvent_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationEvent_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationEvent_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationEvent\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationEvent.IntegrationEvent_organizationId_integrationId_fkey",
+    "label": "Add foreign key \"IntegrationEvent_organizationId_integrationId_fkey\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationEvent_organizationId_integrationId_fkey",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationEvent_organizationId_integrationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationEvent_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationEvent_organizationId_integrationId_fkey\" on \"IntegrationEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationEvent_organizationId_integrationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationEvent\"\nADD CONSTRAINT \"IntegrationEvent_organizationId_integrationId_fkey\"\nFOREIGN KEY (\"organizationId\", \"integrationId\")\nREFERENCES \"public\".\"Integration\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationEvent_organizationId_integrationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationEvent_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationEvent\"",
+          "f",
+          "[\"organizationId\",\"integrationId\"]",
+          "\"public\".\"Integration\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationSyncRun.IntegrationSyncRun_organizationId_fkey",
+    "label": "Add foreign key \"IntegrationSyncRun_organizationId_fkey\" on \"IntegrationSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationSyncRun_organizationId_fkey",
+        "table": "IntegrationSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationSyncRun_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationSyncRun_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationSyncRun\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationSyncRun_organizationId_fkey\" on \"IntegrationSyncRun\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationSyncRun_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationSyncRun\"\nADD CONSTRAINT \"IntegrationSyncRun_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationSyncRun_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationSyncRun_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationSyncRun\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationSyncRun.IntegrationSyncRun_organizationId_integrationId_fkey",
+    "label": "Add foreign key \"IntegrationSyncRun_organizationId_integrationId_fkey\" on \"IntegrationSyncRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationSyncRun_organizationId_integrationId_fkey",
+        "table": "IntegrationSyncRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationSyncRun_organizationId_integrationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationSyncRun_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationSyncRun\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationSyncRun_organizationId_integrationId_fkey\" on \"IntegrationSyncRun\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationSyncRun_organizationId_integrationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationSyncRun\"\nADD CONSTRAINT \"IntegrationSyncRun_organizationId_integrationId_fkey\"\nFOREIGN KEY (\"organizationId\", \"integrationId\")\nREFERENCES \"public\".\"Integration\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationSyncRun_organizationId_integrationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationSyncRun_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationSyncRun\"",
+          "f",
+          "[\"organizationId\",\"integrationId\"]",
+          "\"public\".\"Integration\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationWebhookEvent.IntegrationWebhookEvent_organizationId_fkey",
+    "label": "Add foreign key \"IntegrationWebhookEvent_organizationId_fkey\" on \"IntegrationWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationWebhookEvent_organizationId_fkey",
+        "table": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationWebhookEvent_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationWebhookEvent_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationWebhookEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationWebhookEvent_organizationId_fkey\" on \"IntegrationWebhookEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationWebhookEvent_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationWebhookEvent\"\nADD CONSTRAINT \"IntegrationWebhookEvent_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationWebhookEvent_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationWebhookEvent_organizationId_fkey",
+          "public",
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.IntegrationWebhookEvent.IntegrationWebhookEvent_organizationId_integrationId_fkey",
+    "label": "Add foreign key \"IntegrationWebhookEvent_organizationId_integrationId_fkey\" on \"IntegrationWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "IntegrationWebhookEvent_organizationId_integrationId_fkey",
+        "table": "IntegrationWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"IntegrationWebhookEvent_organizationId_integrationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationWebhookEvent_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationWebhookEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"IntegrationWebhookEvent_organizationId_integrationId_fkey\" on \"IntegrationWebhookEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"IntegrationWebhookEvent_organizationId_integrationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationWebhookEvent\"\nADD CONSTRAINT \"IntegrationWebhookEvent_organizationId_integrationId_fkey\"\nFOREIGN KEY (\"organizationId\", \"integrationId\")\nREFERENCES \"public\".\"Integration\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"IntegrationWebhookEvent_organizationId_integrationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "IntegrationWebhookEvent_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"IntegrationWebhookEvent\"",
+          "f",
+          "[\"organizationId\",\"integrationId\"]",
+          "\"public\".\"Integration\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  }
+]

@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0c7fbdb13d046bcf0a03d6153d959cb97a9ca15ec0b67e8564df2a48fc5166d1'>;
+  StorageHashBase<'23ac9f37dcdd14a92d7ec27711f271f6c8d57a301d47be01e757685a91105d67'>;
 export type ExecutionHash =
-  ExecutionHashBase<'543ca4765ed419bae3777298a26f40fd1a1c4156040f5473c2dc5412a9d5b5e8'>;
+  ExecutionHashBase<'a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -362,12 +362,86 @@ type FieldTypeOverrides = {
           readonly input: 'AVAILABLE' | 'ON_DUTY' | 'OFF_DUTY' | 'ON_LEAVE' | 'INACTIVE';
         };
       };
+      readonly ExternalRecord: {
+        readonly entityKind: {
+          readonly output: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER' | 'ASSIGNMENT' | 'CUSTOMER';
+          readonly input: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER' | 'ASSIGNMENT' | 'CUSTOMER';
+        };
+      };
       readonly Feedback: {
         readonly type: {
           readonly output:
             'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
           readonly input:
             'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
+        };
+      };
+      readonly Integration: {
+        readonly authKind: {
+          readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+          readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        };
+        readonly status: {
+          readonly output:
+            'CONNECTING' | 'CONNECTED' | 'SYNCING' | 'DEGRADED' | 'ERROR' | 'DISCONNECTED';
+          readonly input:
+            'CONNECTING' | 'CONNECTED' | 'SYNCING' | 'DEGRADED' | 'ERROR' | 'DISCONNECTED';
+        };
+        readonly type: {
+          readonly output: 'TMS' | 'ELD' | 'GPS_TELEMATICS' | 'OTHER';
+          readonly input: 'TMS' | 'ELD' | 'GPS_TELEMATICS' | 'OTHER';
+        };
+      };
+      readonly IntegrationCredential: {
+        readonly authKind: {
+          readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+          readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        };
+      };
+      readonly IntegrationEvent: {
+        readonly kind: {
+          readonly output:
+            | 'CONNECTED'
+            | 'DISCONNECTED'
+            | 'CONFIG_UPDATED'
+            | 'CREDENTIAL_STORED'
+            | 'CREDENTIAL_ROTATED'
+            | 'CREDENTIAL_REVOKED'
+            | 'SYNC_STARTED'
+            | 'SYNC_COMPLETED'
+            | 'SYNC_FAILED'
+            | 'WEBHOOK_RECEIVED'
+            | 'WEBHOOK_PROCESSED'
+            | 'WEBHOOK_FAILED';
+          readonly input:
+            | 'CONNECTED'
+            | 'DISCONNECTED'
+            | 'CONFIG_UPDATED'
+            | 'CREDENTIAL_STORED'
+            | 'CREDENTIAL_ROTATED'
+            | 'CREDENTIAL_REVOKED'
+            | 'SYNC_STARTED'
+            | 'SYNC_COMPLETED'
+            | 'SYNC_FAILED'
+            | 'WEBHOOK_RECEIVED'
+            | 'WEBHOOK_PROCESSED'
+            | 'WEBHOOK_FAILED';
+        };
+      };
+      readonly IntegrationSyncRun: {
+        readonly status: {
+          readonly output: 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'PARTIAL';
+          readonly input: 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'PARTIAL';
+        };
+        readonly trigger: {
+          readonly output: 'INITIAL' | 'INCREMENTAL' | 'MANUAL' | 'SCHEDULED' | 'WEBHOOK';
+          readonly input: 'INITIAL' | 'INCREMENTAL' | 'MANUAL' | 'SCHEDULED' | 'WEBHOOK';
+        };
+      };
+      readonly IntegrationWebhookEvent: {
+        readonly status: {
+          readonly output: 'RECEIVED' | 'PROCESSED' | 'FAILED' | 'IGNORED';
+          readonly input: 'RECEIVED' | 'PROCESSED' | 'FAILED' | 'IGNORED';
         };
       };
       readonly Membership: {
@@ -513,12 +587,86 @@ type ColumnTypeOverrides = {
         readonly input: 'AVAILABLE' | 'ON_DUTY' | 'OFF_DUTY' | 'ON_LEAVE' | 'INACTIVE';
       };
     };
+    readonly ExternalRecord: {
+      readonly entityKind: {
+        readonly output: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER' | 'ASSIGNMENT' | 'CUSTOMER';
+        readonly input: 'LOAD' | 'DELIVERY' | 'TRUCK' | 'DRIVER' | 'ASSIGNMENT' | 'CUSTOMER';
+      };
+    };
     readonly Feedback: {
       readonly type: {
         readonly output:
           'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
         readonly input:
           'PRODUCT_SUGGESTION' | 'FEATURE_REQUEST' | 'UX_UI_FEEDBACK' | 'GENERAL_FEEDBACK';
+      };
+    };
+    readonly Integration: {
+      readonly authKind: {
+        readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+      };
+      readonly status: {
+        readonly output:
+          'CONNECTING' | 'CONNECTED' | 'SYNCING' | 'DEGRADED' | 'ERROR' | 'DISCONNECTED';
+        readonly input:
+          'CONNECTING' | 'CONNECTED' | 'SYNCING' | 'DEGRADED' | 'ERROR' | 'DISCONNECTED';
+      };
+      readonly type: {
+        readonly output: 'TMS' | 'ELD' | 'GPS_TELEMATICS' | 'OTHER';
+        readonly input: 'TMS' | 'ELD' | 'GPS_TELEMATICS' | 'OTHER';
+      };
+    };
+    readonly IntegrationCredential: {
+      readonly authKind: {
+        readonly output: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+        readonly input: 'API_KEY' | 'OAUTH2' | 'BEARER_TOKEN' | 'BASIC';
+      };
+    };
+    readonly IntegrationEvent: {
+      readonly kind: {
+        readonly output:
+          | 'CONNECTED'
+          | 'DISCONNECTED'
+          | 'CONFIG_UPDATED'
+          | 'CREDENTIAL_STORED'
+          | 'CREDENTIAL_ROTATED'
+          | 'CREDENTIAL_REVOKED'
+          | 'SYNC_STARTED'
+          | 'SYNC_COMPLETED'
+          | 'SYNC_FAILED'
+          | 'WEBHOOK_RECEIVED'
+          | 'WEBHOOK_PROCESSED'
+          | 'WEBHOOK_FAILED';
+        readonly input:
+          | 'CONNECTED'
+          | 'DISCONNECTED'
+          | 'CONFIG_UPDATED'
+          | 'CREDENTIAL_STORED'
+          | 'CREDENTIAL_ROTATED'
+          | 'CREDENTIAL_REVOKED'
+          | 'SYNC_STARTED'
+          | 'SYNC_COMPLETED'
+          | 'SYNC_FAILED'
+          | 'WEBHOOK_RECEIVED'
+          | 'WEBHOOK_PROCESSED'
+          | 'WEBHOOK_FAILED';
+      };
+    };
+    readonly IntegrationSyncRun: {
+      readonly status: {
+        readonly output: 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'PARTIAL';
+        readonly input: 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'PARTIAL';
+      };
+      readonly trigger: {
+        readonly output: 'INITIAL' | 'INCREMENTAL' | 'MANUAL' | 'SCHEDULED' | 'WEBHOOK';
+        readonly input: 'INITIAL' | 'INCREMENTAL' | 'MANUAL' | 'SCHEDULED' | 'WEBHOOK';
+      };
+    };
+    readonly IntegrationWebhookEvent: {
+      readonly status: {
+        readonly output: 'RECEIVED' | 'PROCESSED' | 'FAILED' | 'IGNORED';
+        readonly input: 'RECEIVED' | 'PROCESSED' | 'FAILED' | 'IGNORED';
       };
     };
     readonly Membership: {
@@ -642,6 +790,24 @@ export namespace Models {
     user: public_User | null;
     readonly [RelationKeys]?: 'organization' | 'user';
   };
+  export type public_ExternalRecord = {
+    checksum: FieldOutputTypes['public']['ExternalRecord']['checksum'];
+    createdAt: FieldOutputTypes['public']['ExternalRecord']['createdAt'];
+    entityKind: FieldOutputTypes['public']['ExternalRecord']['entityKind'];
+    externalId: FieldOutputTypes['public']['ExternalRecord']['externalId'];
+    id: FieldOutputTypes['public']['ExternalRecord']['id'];
+    integrationId: FieldOutputTypes['public']['ExternalRecord']['integrationId'];
+    internalId: FieldOutputTypes['public']['ExternalRecord']['internalId'];
+    internalKind: FieldOutputTypes['public']['ExternalRecord']['internalKind'];
+    lastSyncedAt: FieldOutputTypes['public']['ExternalRecord']['lastSyncedAt'];
+    organizationId: FieldOutputTypes['public']['ExternalRecord']['organizationId'];
+    payload: FieldOutputTypes['public']['ExternalRecord']['payload'];
+    providerKey: FieldOutputTypes['public']['ExternalRecord']['providerKey'];
+    updatedAt: FieldOutputTypes['public']['ExternalRecord']['updatedAt'];
+    integration: public_Integration;
+    organization: public_Organization;
+    readonly [RelationKeys]?: 'integration' | 'organization';
+  };
   export type public_Feedback = {
     createdAt: FieldOutputTypes['public']['Feedback']['createdAt'];
     id: FieldOutputTypes['public']['Feedback']['id'];
@@ -655,6 +821,104 @@ export namespace Models {
     organization: public_Organization;
     user: public_User;
     readonly [RelationKeys]?: 'organization' | 'user';
+  };
+  export type public_Integration = {
+    authKind: FieldOutputTypes['public']['Integration']['authKind'];
+    capabilities: FieldOutputTypes['public']['Integration']['capabilities'];
+    config: FieldOutputTypes['public']['Integration']['config'];
+    consecutiveFailures: FieldOutputTypes['public']['Integration']['consecutiveFailures'];
+    createdAt: FieldOutputTypes['public']['Integration']['createdAt'];
+    createdByUserId: FieldOutputTypes['public']['Integration']['createdByUserId'];
+    displayName: FieldOutputTypes['public']['Integration']['displayName'];
+    id: FieldOutputTypes['public']['Integration']['id'];
+    lastSuccessfulSyncAt: FieldOutputTypes['public']['Integration']['lastSuccessfulSyncAt'];
+    lastSyncAt: FieldOutputTypes['public']['Integration']['lastSyncAt'];
+    lastSyncError: FieldOutputTypes['public']['Integration']['lastSyncError'];
+    organizationId: FieldOutputTypes['public']['Integration']['organizationId'];
+    providerKey: FieldOutputTypes['public']['Integration']['providerKey'];
+    recordsFailed: FieldOutputTypes['public']['Integration']['recordsFailed'];
+    recordsProcessed: FieldOutputTypes['public']['Integration']['recordsProcessed'];
+    status: FieldOutputTypes['public']['Integration']['status'];
+    syncCursor: FieldOutputTypes['public']['Integration']['syncCursor'];
+    type: FieldOutputTypes['public']['Integration']['type'];
+    updatedAt: FieldOutputTypes['public']['Integration']['updatedAt'];
+    webhookTokenHash: FieldOutputTypes['public']['Integration']['webhookTokenHash'];
+    credential: public_IntegrationCredential | null;
+    events: public_IntegrationEvent[];
+    externalRecords: public_ExternalRecord[];
+    organization: public_Organization;
+    syncRuns: public_IntegrationSyncRun[];
+    webhookEvents: public_IntegrationWebhookEvent[];
+    readonly [RelationKeys]?:
+      'credential' | 'events' | 'externalRecords' | 'organization' | 'syncRuns' | 'webhookEvents';
+  };
+  export type public_IntegrationCredential = {
+    authKind: FieldOutputTypes['public']['IntegrationCredential']['authKind'];
+    ciphertext: FieldOutputTypes['public']['IntegrationCredential']['ciphertext'];
+    createdAt: FieldOutputTypes['public']['IntegrationCredential']['createdAt'];
+    expiresAt: FieldOutputTypes['public']['IntegrationCredential']['expiresAt'];
+    hint: FieldOutputTypes['public']['IntegrationCredential']['hint'];
+    id: FieldOutputTypes['public']['IntegrationCredential']['id'];
+    integrationId: FieldOutputTypes['public']['IntegrationCredential']['integrationId'];
+    keyVersion: FieldOutputTypes['public']['IntegrationCredential']['keyVersion'];
+    organizationId: FieldOutputTypes['public']['IntegrationCredential']['organizationId'];
+    revokedAt: FieldOutputTypes['public']['IntegrationCredential']['revokedAt'];
+    updatedAt: FieldOutputTypes['public']['IntegrationCredential']['updatedAt'];
+    integration: public_Integration;
+    organization: public_Organization;
+    readonly [RelationKeys]?: 'integration' | 'organization';
+  };
+  export type public_IntegrationEvent = {
+    actorUserId: FieldOutputTypes['public']['IntegrationEvent']['actorUserId'];
+    createdAt: FieldOutputTypes['public']['IntegrationEvent']['createdAt'];
+    id: FieldOutputTypes['public']['IntegrationEvent']['id'];
+    integrationId: FieldOutputTypes['public']['IntegrationEvent']['integrationId'];
+    kind: FieldOutputTypes['public']['IntegrationEvent']['kind'];
+    message: FieldOutputTypes['public']['IntegrationEvent']['message'];
+    metadata: FieldOutputTypes['public']['IntegrationEvent']['metadata'];
+    organizationId: FieldOutputTypes['public']['IntegrationEvent']['organizationId'];
+    integration: public_Integration | null;
+    organization: public_Organization;
+    readonly [RelationKeys]?: 'integration' | 'organization';
+  };
+  export type public_IntegrationSyncRun = {
+    cursorAfter: FieldOutputTypes['public']['IntegrationSyncRun']['cursorAfter'];
+    cursorBefore: FieldOutputTypes['public']['IntegrationSyncRun']['cursorBefore'];
+    errorCode: FieldOutputTypes['public']['IntegrationSyncRun']['errorCode'];
+    errorSummary: FieldOutputTypes['public']['IntegrationSyncRun']['errorSummary'];
+    finishedAt: FieldOutputTypes['public']['IntegrationSyncRun']['finishedAt'];
+    id: FieldOutputTypes['public']['IntegrationSyncRun']['id'];
+    initiatedByUserId: FieldOutputTypes['public']['IntegrationSyncRun']['initiatedByUserId'];
+    integrationId: FieldOutputTypes['public']['IntegrationSyncRun']['integrationId'];
+    organizationId: FieldOutputTypes['public']['IntegrationSyncRun']['organizationId'];
+    recordsCreated: FieldOutputTypes['public']['IntegrationSyncRun']['recordsCreated'];
+    recordsFailed: FieldOutputTypes['public']['IntegrationSyncRun']['recordsFailed'];
+    recordsSeen: FieldOutputTypes['public']['IntegrationSyncRun']['recordsSeen'];
+    recordsUpdated: FieldOutputTypes['public']['IntegrationSyncRun']['recordsUpdated'];
+    startedAt: FieldOutputTypes['public']['IntegrationSyncRun']['startedAt'];
+    status: FieldOutputTypes['public']['IntegrationSyncRun']['status'];
+    trigger: FieldOutputTypes['public']['IntegrationSyncRun']['trigger'];
+    integration: public_Integration;
+    organization: public_Organization;
+    readonly [RelationKeys]?: 'integration' | 'organization';
+  };
+  export type public_IntegrationWebhookEvent = {
+    attempts: FieldOutputTypes['public']['IntegrationWebhookEvent']['attempts'];
+    eventType: FieldOutputTypes['public']['IntegrationWebhookEvent']['eventType'];
+    externalEventId: FieldOutputTypes['public']['IntegrationWebhookEvent']['externalEventId'];
+    id: FieldOutputTypes['public']['IntegrationWebhookEvent']['id'];
+    integrationId: FieldOutputTypes['public']['IntegrationWebhookEvent']['integrationId'];
+    lastError: FieldOutputTypes['public']['IntegrationWebhookEvent']['lastError'];
+    organizationId: FieldOutputTypes['public']['IntegrationWebhookEvent']['organizationId'];
+    payload: FieldOutputTypes['public']['IntegrationWebhookEvent']['payload'];
+    payloadHash: FieldOutputTypes['public']['IntegrationWebhookEvent']['payloadHash'];
+    processedAt: FieldOutputTypes['public']['IntegrationWebhookEvent']['processedAt'];
+    providerKey: FieldOutputTypes['public']['IntegrationWebhookEvent']['providerKey'];
+    receivedAt: FieldOutputTypes['public']['IntegrationWebhookEvent']['receivedAt'];
+    status: FieldOutputTypes['public']['IntegrationWebhookEvent']['status'];
+    integration: public_Integration | null;
+    organization: public_Organization;
+    readonly [RelationKeys]?: 'integration' | 'organization';
   };
   export type public_Load = {
     cargoDescription: FieldOutputTypes['public']['Load']['cargoDescription'];
@@ -756,7 +1020,13 @@ export declare const models: {
     DeliveryEvent: Models.public_DeliveryEvent;
     DispatchAssignment: Models.public_DispatchAssignment;
     Driver: Models.public_Driver;
+    ExternalRecord: Models.public_ExternalRecord;
     Feedback: Models.public_Feedback;
+    Integration: Models.public_Integration;
+    IntegrationCredential: Models.public_IntegrationCredential;
+    IntegrationEvent: Models.public_IntegrationEvent;
+    IntegrationSyncRun: Models.public_IntegrationSyncRun;
+    IntegrationWebhookEvent: Models.public_IntegrationWebhookEvent;
     Load: Models.public_Load;
     Membership: Models.public_Membership;
     Organization: Models.public_Organization;
@@ -1344,6 +1614,155 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly ExternalRecord: {
+              columns: {
+                readonly checksum: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly entityKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly externalId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly integrationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly internalId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly internalKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastSyncedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly payload: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly providerKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                {
+                  readonly columns: readonly [
+                    'organizationId',
+                    'providerKey',
+                    'entityKind',
+                    'externalId',
+                  ];
+                },
+                { readonly columns: readonly ['organizationId', 'id'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'ExternalRecord_organizationId_entityKind_idx_2c710837';
+                  readonly prefix: 'ExternalRecord_organizationId_entityKind_idx';
+                  readonly columns: readonly ['organizationId', 'entityKind'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ExternalRecord_organizationId_idx_2e17ef41';
+                  readonly prefix: 'ExternalRecord_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ExternalRecord_organizationId_integrationId_idx_9775827b';
+                  readonly prefix: 'ExternalRecord_organizationId_integrationId_idx';
+                  readonly columns: readonly ['organizationId', 'integrationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'external_record_internal_idx_254c7fe8';
+                  readonly prefix: 'external_record_internal_idx';
+                  readonly columns: readonly ['organizationId', 'internalKind', 'internalId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ExternalRecord';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ExternalRecord';
+                    readonly columns: readonly ['organizationId', 'integrationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Integration';
+                    readonly columns: readonly ['organizationId', 'id'];
+                  };
+                },
+              ];
+            };
             readonly Feedback: {
               columns: {
                 readonly createdAt: {
@@ -1448,6 +1867,719 @@ type ContractBase = Omit<
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'User';
                     readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly Integration: {
+              columns: {
+                readonly authKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly capabilities: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly config: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly consecutiveFailures: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly createdByUserId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly displayName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly lastSuccessfulSyncAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly lastSyncAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly lastSyncError: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly providerKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly recordsFailed: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly recordsProcessed: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'DISCONNECTED'>;
+                  };
+                  readonly many: false;
+                };
+                readonly syncCursor: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly webhookTokenHash: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['organizationId', 'id'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'Integration_organizationId_idx_2e17ef41';
+                  readonly prefix: 'Integration_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Integration_organizationId_providerKey_idx_fcc6e7b5';
+                  readonly prefix: 'Integration_organizationId_providerKey_idx';
+                  readonly columns: readonly ['organizationId', 'providerKey'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Integration_organizationId_status_idx_21af5e82';
+                  readonly prefix: 'Integration_organizationId_status_idx';
+                  readonly columns: readonly ['organizationId', 'status'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Integration';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly IntegrationCredential: {
+              columns: {
+                readonly authKind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly ciphertext: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly expiresAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly hint: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly integrationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly keyVersion: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly revokedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['organizationId', 'integrationId'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'IntegrationCredential_organizationId_idx_2e17ef41';
+                  readonly prefix: 'IntegrationCredential_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationCredential';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationCredential';
+                    readonly columns: readonly ['organizationId', 'integrationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Integration';
+                    readonly columns: readonly ['organizationId', 'id'];
+                  };
+                },
+              ];
+            };
+            readonly IntegrationEvent: {
+              columns: {
+                readonly actorUserId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly integrationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly kind: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly message: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly metadata: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'IntegrationEvent_actorUserId_idx_96dac96c';
+                  readonly prefix: 'IntegrationEvent_actorUserId_idx';
+                  readonly columns: readonly ['actorUserId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'IntegrationEvent_organizationId_idx_2e17ef41';
+                  readonly prefix: 'IntegrationEvent_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'IntegrationEvent_organizationId_integrationId_idx_9775827b';
+                  readonly prefix: 'IntegrationEvent_organizationId_integrationId_idx';
+                  readonly columns: readonly ['organizationId', 'integrationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'integration_event_created_idx_193b1373';
+                  readonly prefix: 'integration_event_created_idx';
+                  readonly columns: readonly ['organizationId', 'integrationId', 'createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationEvent';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationEvent';
+                    readonly columns: readonly ['organizationId', 'integrationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Integration';
+                    readonly columns: readonly ['organizationId', 'id'];
+                  };
+                },
+              ];
+            };
+            readonly IntegrationSyncRun: {
+              columns: {
+                readonly cursorAfter: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly cursorBefore: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly errorCode: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly errorSummary: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly finishedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly initiatedByUserId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly integrationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly recordsCreated: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly recordsFailed: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly recordsSeen: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly recordsUpdated: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly startedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'RUNNING'>;
+                  };
+                  readonly many: false;
+                };
+                readonly trigger: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'IntegrationSyncRun_organizationId_idx_2e17ef41';
+                  readonly prefix: 'IntegrationSyncRun_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'IntegrationSyncRun_organizationId_integrationId_idx_9775827b';
+                  readonly prefix: 'IntegrationSyncRun_organizationId_integrationId_idx';
+                  readonly columns: readonly ['organizationId', 'integrationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'integration_syncrun_started_idx_5919ee49';
+                  readonly prefix: 'integration_syncrun_started_idx';
+                  readonly columns: readonly ['organizationId', 'integrationId', 'startedAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationSyncRun';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationSyncRun';
+                    readonly columns: readonly ['organizationId', 'integrationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Integration';
+                    readonly columns: readonly ['organizationId', 'id'];
+                  };
+                },
+              ];
+            };
+            readonly IntegrationWebhookEvent: {
+              columns: {
+                readonly attempts: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                  readonly many: false;
+                };
+                readonly eventType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly externalEventId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly integrationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly lastError: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly payload: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly payloadHash: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly processedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly providerKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly receivedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'RECEIVED'>;
+                  };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['organizationId', 'providerKey', 'externalEventId'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'IntegrationWebhookEvent_organizationId_idx_2e17ef41';
+                  readonly prefix: 'IntegrationWebhookEvent_organizationId_idx';
+                  readonly columns: readonly ['organizationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'IntegrationWebhookEvent_organizationId_integrationId_i_9775827b';
+                  readonly prefix: 'IntegrationWebhookEvent_organizationId_integrationId_i';
+                  readonly columns: readonly ['organizationId', 'integrationId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'integration_webhook_received_idx_d0d8ce19';
+                  readonly prefix: 'integration_webhook_received_idx';
+                  readonly columns: readonly ['organizationId', 'integrationId', 'receivedAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationWebhookEvent';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'IntegrationWebhookEvent';
+                    readonly columns: readonly ['organizationId', 'integrationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Integration';
+                    readonly columns: readonly ['organizationId', 'id'];
                   };
                 },
               ];
@@ -2133,6 +3265,17 @@ type ContractBase = Omit<
                 'INACTIVE',
               ];
             };
+            readonly ExternalEntityKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'LOAD',
+                'DELIVERY',
+                'TRUCK',
+                'DRIVER',
+                'ASSIGNMENT',
+                'CUSTOMER',
+              ];
+            };
             readonly FeedbackType: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -2141,6 +3284,60 @@ type ContractBase = Omit<
                 'UX_UI_FEEDBACK',
                 'GENERAL_FEEDBACK',
               ];
+            };
+            readonly IntegrationAuthKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['API_KEY', 'OAUTH2', 'BEARER_TOKEN', 'BASIC'];
+            };
+            readonly IntegrationEventKind: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'CONNECTED',
+                'DISCONNECTED',
+                'CONFIG_UPDATED',
+                'CREDENTIAL_STORED',
+                'CREDENTIAL_ROTATED',
+                'CREDENTIAL_REVOKED',
+                'SYNC_STARTED',
+                'SYNC_COMPLETED',
+                'SYNC_FAILED',
+                'WEBHOOK_RECEIVED',
+                'WEBHOOK_PROCESSED',
+                'WEBHOOK_FAILED',
+              ];
+            };
+            readonly IntegrationStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'CONNECTING',
+                'CONNECTED',
+                'SYNCING',
+                'DEGRADED',
+                'ERROR',
+                'DISCONNECTED',
+              ];
+            };
+            readonly IntegrationSyncStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['RUNNING', 'SUCCEEDED', 'FAILED', 'PARTIAL'];
+            };
+            readonly IntegrationSyncTrigger: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'INITIAL',
+                'INCREMENTAL',
+                'MANUAL',
+                'SCHEDULED',
+                'WEBHOOK',
+              ];
+            };
+            readonly IntegrationType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['TMS', 'ELD', 'GPS_TELEMATICS', 'OTHER'];
+            };
+            readonly IntegrationWebhookStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['RECEIVED', 'PROCESSED', 'FAILED', 'IGNORED'];
             };
             readonly MembershipRole: {
               readonly kind: 'valueSet';
@@ -2207,7 +3404,31 @@ type ContractBase = Omit<
       readonly model: 'DispatchAssignment';
     };
     readonly Driver: { readonly namespace: 'public' & NamespaceId; readonly model: 'Driver' };
+    readonly ExternalRecord: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ExternalRecord';
+    };
     readonly Feedback: { readonly namespace: 'public' & NamespaceId; readonly model: 'Feedback' };
+    readonly Integration: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Integration';
+    };
+    readonly IntegrationCredential: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'IntegrationCredential';
+    };
+    readonly IntegrationEvent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'IntegrationEvent';
+    };
+    readonly IntegrationSyncRun: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'IntegrationSyncRun';
+    };
+    readonly IntegrationWebhookEvent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'IntegrationWebhookEvent';
+    };
     readonly Load: { readonly namespace: 'public' & NamespaceId; readonly model: 'Load' };
     readonly Membership: {
       readonly namespace: 'public' & NamespaceId;
@@ -2647,6 +3868,119 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly ExternalRecord: {
+            readonly fields: {
+              readonly checksum: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly entityKind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly externalId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly integrationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly internalId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly internalKind: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly lastSyncedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly payload: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly providerKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly integration: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Integration';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'integrationId'];
+                  readonly targetFields: readonly ['organizationId', 'id'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ExternalRecord';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly checksum: { readonly column: 'checksum' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly entityKind: { readonly column: 'entityKind' };
+                readonly externalId: { readonly column: 'externalId' };
+                readonly id: { readonly column: 'id' };
+                readonly integrationId: { readonly column: 'integrationId' };
+                readonly internalId: { readonly column: 'internalId' };
+                readonly internalKind: { readonly column: 'internalKind' };
+                readonly lastSyncedAt: { readonly column: 'lastSyncedAt' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly payload: { readonly column: 'payload' };
+                readonly providerKey: { readonly column: 'providerKey' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly Feedback: {
             readonly fields: {
               readonly createdAt: {
@@ -2730,6 +4064,622 @@ type ContractBase = Omit<
                 readonly type: { readonly column: 'type' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
+          readonly Integration: {
+            readonly fields: {
+              readonly authKind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly capabilities: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly config: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly consecutiveFailures: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly createdByUserId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly displayName: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly lastSuccessfulSyncAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly lastSyncAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly lastSyncError: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly providerKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly recordsFailed: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly recordsProcessed: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly syncCursor: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly webhookTokenHash: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly credential: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'IntegrationCredential';
+                };
+                readonly cardinality: '1:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'id'];
+                  readonly targetFields: readonly ['organizationId', 'integrationId'];
+                };
+              };
+              readonly events: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'IntegrationEvent';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'id'];
+                  readonly targetFields: readonly ['organizationId', 'integrationId'];
+                };
+              };
+              readonly externalRecords: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ExternalRecord';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'id'];
+                  readonly targetFields: readonly ['organizationId', 'integrationId'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly syncRuns: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'IntegrationSyncRun';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'id'];
+                  readonly targetFields: readonly ['organizationId', 'integrationId'];
+                };
+              };
+              readonly webhookEvents: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'IntegrationWebhookEvent';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'id'];
+                  readonly targetFields: readonly ['organizationId', 'integrationId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Integration';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly authKind: { readonly column: 'authKind' };
+                readonly capabilities: { readonly column: 'capabilities' };
+                readonly config: { readonly column: 'config' };
+                readonly consecutiveFailures: { readonly column: 'consecutiveFailures' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly createdByUserId: { readonly column: 'createdByUserId' };
+                readonly displayName: { readonly column: 'displayName' };
+                readonly id: { readonly column: 'id' };
+                readonly lastSuccessfulSyncAt: { readonly column: 'lastSuccessfulSyncAt' };
+                readonly lastSyncAt: { readonly column: 'lastSyncAt' };
+                readonly lastSyncError: { readonly column: 'lastSyncError' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly providerKey: { readonly column: 'providerKey' };
+                readonly recordsFailed: { readonly column: 'recordsFailed' };
+                readonly recordsProcessed: { readonly column: 'recordsProcessed' };
+                readonly status: { readonly column: 'status' };
+                readonly syncCursor: { readonly column: 'syncCursor' };
+                readonly type: { readonly column: 'type' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly webhookTokenHash: { readonly column: 'webhookTokenHash' };
+              };
+            };
+          };
+          readonly IntegrationCredential: {
+            readonly fields: {
+              readonly authKind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly ciphertext: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly expiresAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly hint: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly integrationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly keyVersion: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly revokedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly integration: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Integration';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'integrationId'];
+                  readonly targetFields: readonly ['organizationId', 'id'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'IntegrationCredential';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly authKind: { readonly column: 'authKind' };
+                readonly ciphertext: { readonly column: 'ciphertext' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly expiresAt: { readonly column: 'expiresAt' };
+                readonly hint: { readonly column: 'hint' };
+                readonly id: { readonly column: 'id' };
+                readonly integrationId: { readonly column: 'integrationId' };
+                readonly keyVersion: { readonly column: 'keyVersion' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly revokedAt: { readonly column: 'revokedAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly IntegrationEvent: {
+            readonly fields: {
+              readonly actorUserId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly integrationId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly message: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly metadata: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+            };
+            readonly relations: {
+              readonly integration: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Integration';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'integrationId'];
+                  readonly targetFields: readonly ['organizationId', 'id'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'IntegrationEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly actorUserId: { readonly column: 'actorUserId' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly integrationId: { readonly column: 'integrationId' };
+                readonly kind: { readonly column: 'kind' };
+                readonly message: { readonly column: 'message' };
+                readonly metadata: { readonly column: 'metadata' };
+                readonly organizationId: { readonly column: 'organizationId' };
+              };
+            };
+          };
+          readonly IntegrationSyncRun: {
+            readonly fields: {
+              readonly cursorAfter: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly cursorBefore: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly errorCode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly errorSummary: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly finishedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly initiatedByUserId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly integrationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly recordsCreated: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly recordsFailed: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly recordsSeen: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly recordsUpdated: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly startedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly trigger: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly integration: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Integration';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'integrationId'];
+                  readonly targetFields: readonly ['organizationId', 'id'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'IntegrationSyncRun';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly cursorAfter: { readonly column: 'cursorAfter' };
+                readonly cursorBefore: { readonly column: 'cursorBefore' };
+                readonly errorCode: { readonly column: 'errorCode' };
+                readonly errorSummary: { readonly column: 'errorSummary' };
+                readonly finishedAt: { readonly column: 'finishedAt' };
+                readonly id: { readonly column: 'id' };
+                readonly initiatedByUserId: { readonly column: 'initiatedByUserId' };
+                readonly integrationId: { readonly column: 'integrationId' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly recordsCreated: { readonly column: 'recordsCreated' };
+                readonly recordsFailed: { readonly column: 'recordsFailed' };
+                readonly recordsSeen: { readonly column: 'recordsSeen' };
+                readonly recordsUpdated: { readonly column: 'recordsUpdated' };
+                readonly startedAt: { readonly column: 'startedAt' };
+                readonly status: { readonly column: 'status' };
+                readonly trigger: { readonly column: 'trigger' };
+              };
+            };
+          };
+          readonly IntegrationWebhookEvent: {
+            readonly fields: {
+              readonly attempts: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly eventType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly externalEventId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly integrationId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly lastError: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly payload: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly payloadHash: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly processedAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly providerKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly receivedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly integration: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Integration';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId', 'integrationId'];
+                  readonly targetFields: readonly ['organizationId', 'id'];
+                };
+              };
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'IntegrationWebhookEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly attempts: { readonly column: 'attempts' };
+                readonly eventType: { readonly column: 'eventType' };
+                readonly externalEventId: { readonly column: 'externalEventId' };
+                readonly id: { readonly column: 'id' };
+                readonly integrationId: { readonly column: 'integrationId' };
+                readonly lastError: { readonly column: 'lastError' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly payload: { readonly column: 'payload' };
+                readonly payloadHash: { readonly column: 'payloadHash' };
+                readonly processedAt: { readonly column: 'processedAt' };
+                readonly providerKey: { readonly column: 'providerKey' };
+                readonly receivedAt: { readonly column: 'receivedAt' };
+                readonly status: { readonly column: 'status' };
               };
             };
           };
@@ -3334,6 +5284,17 @@ type ContractBase = Omit<
               { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
             ];
           };
+          readonly ExternalEntityKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'LOAD'; readonly value: 'LOAD' },
+              { readonly name: 'DELIVERY'; readonly value: 'DELIVERY' },
+              { readonly name: 'TRUCK'; readonly value: 'TRUCK' },
+              { readonly name: 'DRIVER'; readonly value: 'DRIVER' },
+              { readonly name: 'ASSIGNMENT'; readonly value: 'ASSIGNMENT' },
+              { readonly name: 'CUSTOMER'; readonly value: 'CUSTOMER' },
+            ];
+          };
           readonly FeedbackType: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -3341,6 +5302,80 @@ type ContractBase = Omit<
               { readonly name: 'FEATURE_REQUEST'; readonly value: 'FEATURE_REQUEST' },
               { readonly name: 'UX_UI_FEEDBACK'; readonly value: 'UX_UI_FEEDBACK' },
               { readonly name: 'GENERAL_FEEDBACK'; readonly value: 'GENERAL_FEEDBACK' },
+            ];
+          };
+          readonly IntegrationAuthKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'API_KEY'; readonly value: 'API_KEY' },
+              { readonly name: 'OAUTH2'; readonly value: 'OAUTH2' },
+              { readonly name: 'BEARER_TOKEN'; readonly value: 'BEARER_TOKEN' },
+              { readonly name: 'BASIC'; readonly value: 'BASIC' },
+            ];
+          };
+          readonly IntegrationEventKind: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CONNECTED'; readonly value: 'CONNECTED' },
+              { readonly name: 'DISCONNECTED'; readonly value: 'DISCONNECTED' },
+              { readonly name: 'CONFIG_UPDATED'; readonly value: 'CONFIG_UPDATED' },
+              { readonly name: 'CREDENTIAL_STORED'; readonly value: 'CREDENTIAL_STORED' },
+              { readonly name: 'CREDENTIAL_ROTATED'; readonly value: 'CREDENTIAL_ROTATED' },
+              { readonly name: 'CREDENTIAL_REVOKED'; readonly value: 'CREDENTIAL_REVOKED' },
+              { readonly name: 'SYNC_STARTED'; readonly value: 'SYNC_STARTED' },
+              { readonly name: 'SYNC_COMPLETED'; readonly value: 'SYNC_COMPLETED' },
+              { readonly name: 'SYNC_FAILED'; readonly value: 'SYNC_FAILED' },
+              { readonly name: 'WEBHOOK_RECEIVED'; readonly value: 'WEBHOOK_RECEIVED' },
+              { readonly name: 'WEBHOOK_PROCESSED'; readonly value: 'WEBHOOK_PROCESSED' },
+              { readonly name: 'WEBHOOK_FAILED'; readonly value: 'WEBHOOK_FAILED' },
+            ];
+          };
+          readonly IntegrationStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'CONNECTING'; readonly value: 'CONNECTING' },
+              { readonly name: 'CONNECTED'; readonly value: 'CONNECTED' },
+              { readonly name: 'SYNCING'; readonly value: 'SYNCING' },
+              { readonly name: 'DEGRADED'; readonly value: 'DEGRADED' },
+              { readonly name: 'ERROR'; readonly value: 'ERROR' },
+              { readonly name: 'DISCONNECTED'; readonly value: 'DISCONNECTED' },
+            ];
+          };
+          readonly IntegrationSyncStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'RUNNING'; readonly value: 'RUNNING' },
+              { readonly name: 'SUCCEEDED'; readonly value: 'SUCCEEDED' },
+              { readonly name: 'FAILED'; readonly value: 'FAILED' },
+              { readonly name: 'PARTIAL'; readonly value: 'PARTIAL' },
+            ];
+          };
+          readonly IntegrationSyncTrigger: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'INITIAL'; readonly value: 'INITIAL' },
+              { readonly name: 'INCREMENTAL'; readonly value: 'INCREMENTAL' },
+              { readonly name: 'MANUAL'; readonly value: 'MANUAL' },
+              { readonly name: 'SCHEDULED'; readonly value: 'SCHEDULED' },
+              { readonly name: 'WEBHOOK'; readonly value: 'WEBHOOK' },
+            ];
+          };
+          readonly IntegrationType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'TMS'; readonly value: 'TMS' },
+              { readonly name: 'ELD'; readonly value: 'ELD' },
+              { readonly name: 'GPS_TELEMATICS'; readonly value: 'GPS_TELEMATICS' },
+              { readonly name: 'OTHER'; readonly value: 'OTHER' },
+            ];
+          };
+          readonly IntegrationWebhookStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'RECEIVED'; readonly value: 'RECEIVED' },
+              { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
+              { readonly name: 'FAILED'; readonly value: 'FAILED' },
+              { readonly name: 'IGNORED'; readonly value: 'IGNORED' },
             ];
           };
           readonly MembershipRole: {
@@ -3441,11 +5476,72 @@ type ContractBase = Omit<
             { readonly name: 'ON_LEAVE'; readonly value: 'ON_LEAVE' },
             { readonly name: 'INACTIVE'; readonly value: 'INACTIVE' },
           ];
+          readonly ExternalEntityKind: readonly [
+            { readonly name: 'LOAD'; readonly value: 'LOAD' },
+            { readonly name: 'DELIVERY'; readonly value: 'DELIVERY' },
+            { readonly name: 'TRUCK'; readonly value: 'TRUCK' },
+            { readonly name: 'DRIVER'; readonly value: 'DRIVER' },
+            { readonly name: 'ASSIGNMENT'; readonly value: 'ASSIGNMENT' },
+            { readonly name: 'CUSTOMER'; readonly value: 'CUSTOMER' },
+          ];
           readonly FeedbackType: readonly [
             { readonly name: 'PRODUCT_SUGGESTION'; readonly value: 'PRODUCT_SUGGESTION' },
             { readonly name: 'FEATURE_REQUEST'; readonly value: 'FEATURE_REQUEST' },
             { readonly name: 'UX_UI_FEEDBACK'; readonly value: 'UX_UI_FEEDBACK' },
             { readonly name: 'GENERAL_FEEDBACK'; readonly value: 'GENERAL_FEEDBACK' },
+          ];
+          readonly IntegrationAuthKind: readonly [
+            { readonly name: 'API_KEY'; readonly value: 'API_KEY' },
+            { readonly name: 'OAUTH2'; readonly value: 'OAUTH2' },
+            { readonly name: 'BEARER_TOKEN'; readonly value: 'BEARER_TOKEN' },
+            { readonly name: 'BASIC'; readonly value: 'BASIC' },
+          ];
+          readonly IntegrationEventKind: readonly [
+            { readonly name: 'CONNECTED'; readonly value: 'CONNECTED' },
+            { readonly name: 'DISCONNECTED'; readonly value: 'DISCONNECTED' },
+            { readonly name: 'CONFIG_UPDATED'; readonly value: 'CONFIG_UPDATED' },
+            { readonly name: 'CREDENTIAL_STORED'; readonly value: 'CREDENTIAL_STORED' },
+            { readonly name: 'CREDENTIAL_ROTATED'; readonly value: 'CREDENTIAL_ROTATED' },
+            { readonly name: 'CREDENTIAL_REVOKED'; readonly value: 'CREDENTIAL_REVOKED' },
+            { readonly name: 'SYNC_STARTED'; readonly value: 'SYNC_STARTED' },
+            { readonly name: 'SYNC_COMPLETED'; readonly value: 'SYNC_COMPLETED' },
+            { readonly name: 'SYNC_FAILED'; readonly value: 'SYNC_FAILED' },
+            { readonly name: 'WEBHOOK_RECEIVED'; readonly value: 'WEBHOOK_RECEIVED' },
+            { readonly name: 'WEBHOOK_PROCESSED'; readonly value: 'WEBHOOK_PROCESSED' },
+            { readonly name: 'WEBHOOK_FAILED'; readonly value: 'WEBHOOK_FAILED' },
+          ];
+          readonly IntegrationStatus: readonly [
+            { readonly name: 'CONNECTING'; readonly value: 'CONNECTING' },
+            { readonly name: 'CONNECTED'; readonly value: 'CONNECTED' },
+            { readonly name: 'SYNCING'; readonly value: 'SYNCING' },
+            { readonly name: 'DEGRADED'; readonly value: 'DEGRADED' },
+            { readonly name: 'ERROR'; readonly value: 'ERROR' },
+            { readonly name: 'DISCONNECTED'; readonly value: 'DISCONNECTED' },
+          ];
+          readonly IntegrationSyncStatus: readonly [
+            { readonly name: 'RUNNING'; readonly value: 'RUNNING' },
+            { readonly name: 'SUCCEEDED'; readonly value: 'SUCCEEDED' },
+            { readonly name: 'FAILED'; readonly value: 'FAILED' },
+            { readonly name: 'PARTIAL'; readonly value: 'PARTIAL' },
+          ];
+          readonly IntegrationSyncTrigger: readonly [
+            { readonly name: 'INITIAL'; readonly value: 'INITIAL' },
+            { readonly name: 'INCREMENTAL'; readonly value: 'INCREMENTAL' },
+            { readonly name: 'MANUAL'; readonly value: 'MANUAL' },
+            { readonly name: 'SCHEDULED'; readonly value: 'SCHEDULED' },
+            { readonly name: 'WEBHOOK'; readonly value: 'WEBHOOK' },
+          ];
+          readonly IntegrationType: readonly [
+            { readonly name: 'TMS'; readonly value: 'TMS' },
+            { readonly name: 'ELD'; readonly value: 'ELD' },
+            { readonly name: 'GPS_TELEMATICS'; readonly value: 'GPS_TELEMATICS' },
+            { readonly name: 'OTHER'; readonly value: 'OTHER' },
+          ];
+          readonly IntegrationWebhookStatus: readonly [
+            { readonly name: 'RECEIVED'; readonly value: 'RECEIVED' },
+            { readonly name: 'PROCESSED'; readonly value: 'PROCESSED' },
+            { readonly name: 'FAILED'; readonly value: 'FAILED' },
+            { readonly name: 'IGNORED'; readonly value: 'IGNORED' },
           ];
           readonly MembershipRole: readonly [
             { readonly name: 'OWNER'; readonly value: 'OWNER' },
@@ -3653,6 +5749,43 @@ type ContractBase = Omit<
             readonly params: { readonly precision: 3 };
           };
           readonly ref: {
+            readonly entry: 'ExternalRecord';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ExternalRecord';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'ExternalRecord';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
             readonly entry: 'Feedback';
             readonly field: 'createdAt';
             readonly namespace: 'public';
@@ -3680,6 +5813,140 @@ type ContractBase = Omit<
           readonly ref: {
             readonly entry: 'Feedback';
             readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'Integration';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Integration';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'Integration';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'IntegrationCredential';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'IntegrationCredential';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'IntegrationCredential';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'IntegrationEvent';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'IntegrationEvent';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'IntegrationSyncRun';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'IntegrationSyncRun';
+            readonly field: 'startedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'IntegrationWebhookEvent';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'IntegrationWebhookEvent';
+            readonly field: 'receivedAt';
             readonly namespace: 'public';
           };
         },
