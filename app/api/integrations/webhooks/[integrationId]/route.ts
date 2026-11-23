@@ -43,7 +43,14 @@ export async function POST(
   }
 
   return NextResponse.json(
-    { received: true, duplicate: result.duplicate, status: result.status },
+    {
+      received: true,
+      duplicate: result.duplicate,
+      status: result.status,
+      ...(result.signalsIngested
+        ? { signalsIngested: result.signalsIngested }
+        : {}),
+    },
     { status: result.duplicate ? 200 : 202 },
   );
 }

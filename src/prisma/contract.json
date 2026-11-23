@@ -56,6 +56,14 @@
       "model": "Membership",
       "namespace": "public"
     },
+    "OperationalSignal": {
+      "model": "OperationalSignal",
+      "namespace": "public"
+    },
+    "OperationalSignalLatest": {
+      "model": "OperationalSignalLatest",
+      "namespace": "public"
+    },
     "Organization": {
       "model": "Organization",
       "namespace": "public"
@@ -460,6 +468,27 @@
               {
                 "name": "HIGH",
                 "value": "HIGH"
+              }
+            ]
+          },
+          "SignalSubjectKind": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "TRUCK",
+                "value": "TRUCK"
+              },
+              {
+                "name": "DRIVER",
+                "value": "DRIVER"
+              },
+              {
+                "name": "DELIVERY",
+                "value": "DELIVERY"
+              },
+              {
+                "name": "LOAD",
+                "value": "LOAD"
               }
             ]
           },
@@ -1871,6 +1900,23 @@
                   "namespace": "public"
                 }
               },
+              "operationalSignals": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "integrationId"
+                  ]
+                },
+                "to": {
+                  "model": "OperationalSignal",
+                  "namespace": "public"
+                }
+              },
               "organization": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -2974,6 +3020,400 @@
               },
               "namespaceId": "public",
               "table": "Membership"
+            }
+          },
+          "OperationalSignal": {
+            "fields": {
+              "clockSkew": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "dedupeKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "eventId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "ingestedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "integrationId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "provenance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sequence": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "signalKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceTimestamp": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "subjectId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "subjectKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SignalSubjectKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "value": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "integration": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "targetFields": [
+                    "organizationId",
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Integration",
+                  "namespace": "public"
+                }
+              },
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "clockSkew": {
+                  "column": "clockSkew"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dedupeKey": {
+                  "column": "dedupeKey"
+                },
+                "eventId": {
+                  "column": "eventId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ingestedAt": {
+                  "column": "ingestedAt"
+                },
+                "integrationId": {
+                  "column": "integrationId"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "provenance": {
+                  "column": "provenance"
+                },
+                "providerKey": {
+                  "column": "providerKey"
+                },
+                "sequence": {
+                  "column": "sequence"
+                },
+                "signalKind": {
+                  "column": "signalKind"
+                },
+                "sourceTimestamp": {
+                  "column": "sourceTimestamp"
+                },
+                "subjectId": {
+                  "column": "subjectId"
+                },
+                "subjectKind": {
+                  "column": "subjectKind"
+                },
+                "value": {
+                  "column": "value"
+                }
+              },
+              "namespaceId": "public",
+              "table": "OperationalSignal"
+            }
+          },
+          "OperationalSignalLatest": {
+            "fields": {
+              "conflict": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "provenance": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerKey": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "signalId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "signalKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceTimestamp": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "subjectId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "subjectKind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SignalSubjectKind",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "value": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "conflict": {
+                  "column": "conflict"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "provenance": {
+                  "column": "provenance"
+                },
+                "providerKey": {
+                  "column": "providerKey"
+                },
+                "signalId": {
+                  "column": "signalId"
+                },
+                "signalKind": {
+                  "column": "signalKind"
+                },
+                "sourceTimestamp": {
+                  "column": "sourceTimestamp"
+                },
+                "subjectId": {
+                  "column": "subjectId"
+                },
+                "subjectKind": {
+                  "column": "subjectKind"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "value": {
+                  "column": "value"
+                }
+              },
+              "namespaceId": "public",
+              "table": "OperationalSignalLatest"
             }
           },
           "Organization": {
@@ -6024,6 +6464,373 @@
                 }
               ]
             },
+            "OperationalSignal": {
+              "checks": [
+                {
+                  "expression": "\"subjectKind\" IN ('TRUCK', 'DRIVER', 'DELIVERY', 'LOAD')",
+                  "name": "OperationalSignal_subjectKind_check_e30d2d3c",
+                  "prefix": "OperationalSignal_subjectKind_check"
+                }
+              ],
+              "columns": {
+                "clockSkew": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "dedupeKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": ""
+                  },
+                  "nullable": false
+                },
+                "eventId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "ingestedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "integrationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "provenance": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "providerKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "sequence": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "signalKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "sourceTimestamp": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "subjectId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "subjectKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SignalSubjectKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "value": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "OperationalSignal_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "OperationalSignal"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "opsignal_integration_idx_9775827b"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId",
+                      "integrationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "OperationalSignal"
+                  },
+                  "target": {
+                    "columns": [
+                      "organizationId",
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Integration"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "OperationalSignal_organizationId_idx_2e17ef41",
+                  "prefix": "OperationalSignal_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "integrationId"
+                  ],
+                  "name": "opsignal_integration_idx_9775827b",
+                  "prefix": "opsignal_integration_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "subjectKind",
+                    "subjectId",
+                    "signalKind",
+                    "sourceTimestamp"
+                  ],
+                  "name": "opsignal_subject_idx_798ddcc0",
+                  "prefix": "opsignal_subject_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "providerKey",
+                    "subjectKind",
+                    "subjectId",
+                    "signalKind",
+                    "sourceTimestamp",
+                    "dedupeKey"
+                  ]
+                }
+              ]
+            },
+            "OperationalSignalLatest": {
+              "checks": [
+                {
+                  "expression": "\"subjectKind\" IN ('TRUCK', 'DRIVER', 'DELIVERY', 'LOAD')",
+                  "name": "OperationalSignalLatest_subjectKind_check_e30d2d3c",
+                  "prefix": "OperationalSignalLatest_subjectKind_check"
+                }
+              ],
+              "columns": {
+                "conflict": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "provenance": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "providerKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "signalId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "signalKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "sourceTimestamp": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "subjectId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "subjectKind": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SignalSubjectKind",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "value": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "OperationalSignalLatest_organizationId_idx_2e17ef41"
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "OperationalSignalLatest"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ],
+                  "name": "OperationalSignalLatest_organizationId_idx_2e17ef41",
+                  "prefix": "OperationalSignalLatest_organizationId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "organizationId",
+                    "subjectKind",
+                    "subjectId"
+                  ],
+                  "name": "opsignal_latest_subject_idx_a85508cb",
+                  "prefix": "opsignal_latest_subject_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId",
+                    "providerKey",
+                    "subjectKind",
+                    "subjectId",
+                    "signalKind"
+                  ]
+                }
+              ]
+            },
             "Organization": {
               "columns": {
                 "createdAt": {
@@ -6801,6 +7608,15 @@
                 "HIGH"
               ]
             },
+            "SignalSubjectKind": {
+              "kind": "valueSet",
+              "values": [
+                "TRUCK",
+                "DRIVER",
+                "DELIVERY",
+                "LOAD"
+              ]
+            },
             "SupportCategory": {
               "kind": "valueSet",
               "values": [
@@ -6861,10 +7677,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3dc79afc3517d4709c4691a9613720554d9011726ccdd2babd156faf39424e19"
+    "storageHash": "8490377061788be334493616526a859184e01343ec760f07394425dfba2a2b30"
   },
   "execution": {
-    "executionHash": "a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8",
+    "executionHash": "0b9aa424d25b81912b57c9c0a348b422da22f3bf2710fde1cadbbff882f0e46a",
     "mutations": {
       "defaults": [
         {
@@ -7356,6 +8172,91 @@
           },
           "ref": {
             "entry": "Membership",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "OperationalSignal",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "OperationalSignal",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "OperationalSignal",
+            "field": "ingestedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "OperationalSignalLatest",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "OperationalSignalLatest",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "OperationalSignalLatest",
             "field": "updatedAt",
             "namespace": "public"
           }

@@ -1,0 +1,592 @@
+[
+  {
+    "id": "table.OperationalSignal",
+    "label": "Create table \"OperationalSignal\"",
+    "summary": "Creates table \"OperationalSignal\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"OperationalSignal\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignal\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"OperationalSignal\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"OperationalSignal\"",
+        "sql": "CREATE TABLE \"public\".\"OperationalSignal\" (\n  \"clockSkew\" bool DEFAULT false NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"dedupeKey\" text DEFAULT '' NOT NULL,\n  \"eventId\" text,\n  \"id\" uuid NOT NULL,\n  \"ingestedAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"integrationId\" uuid,\n  \"organizationId\" uuid NOT NULL,\n  \"provenance\" text NOT NULL,\n  \"providerKey\" text NOT NULL,\n  \"sequence\" int4,\n  \"signalKind\" text NOT NULL,\n  \"sourceTimestamp\" timestamptz(3) NOT NULL,\n  \"subjectId\" uuid NOT NULL,\n  \"subjectKind\" text NOT NULL,\n  \"value\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"OperationalSignal_subjectKind_check_e30d2d3c\" CHECK (\"subjectKind\" IN ('TRUCK', 'DRIVER', 'DELIVERY', 'LOAD'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"OperationalSignal\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignal\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"OperationalSignal\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.OperationalSignalLatest",
+    "label": "Create table \"OperationalSignalLatest\"",
+    "summary": "Creates table \"OperationalSignalLatest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "OperationalSignalLatest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"OperationalSignalLatest\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignalLatest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"OperationalSignalLatest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"OperationalSignalLatest\"",
+        "sql": "CREATE TABLE \"public\".\"OperationalSignalLatest\" (\n  \"conflict\" bool DEFAULT false NOT NULL,\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"provenance\" text NOT NULL,\n  \"providerKey\" text NOT NULL,\n  \"signalId\" uuid NOT NULL,\n  \"signalKind\" text NOT NULL,\n  \"sourceTimestamp\" timestamptz(3) NOT NULL,\n  \"subjectId\" uuid NOT NULL,\n  \"subjectKind\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  \"value\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"OperationalSignalLatest_subjectKind_check_e30d2d3c\" CHECK (\"subjectKind\" IN ('TRUCK', 'DRIVER', 'DELIVERY', 'LOAD'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"OperationalSignalLatest\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignalLatest\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"OperationalSignalLatest\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.OperationalSignal.OperationalSignal_organizationId_providerKey_subjectKind_subjec",
+    "label": "Add unique constraint on \"OperationalSignal\" (organizationId, providerKey, subjectKind, subjectId, signalKind, sourceTimestamp, dedupeKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "OperationalSignal_organizationId_providerKey_subjectKind_subjec",
+        "table": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"OperationalSignal_organizationId_providerKey_subjectKind_subjec\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OperationalSignal_organizationId_providerKey_subjectKind_subjec",
+          "public",
+          "\"public\".\"OperationalSignal\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"OperationalSignal_organizationId_providerKey_subjectKind_subjec\" on \"OperationalSignal\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"OperationalSignal_organizationId_providerKey_subjectKind_subjec\"",
+        "sql": "ALTER TABLE \"public\".\"OperationalSignal\" ADD CONSTRAINT \"OperationalSignal_organizationId_providerKey_subjectKind_subjec\" UNIQUE (\"organizationId\", \"providerKey\", \"subjectKind\", \"subjectId\", \"signalKind\", \"sourceTimestamp\", \"dedupeKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"OperationalSignal_organizationId_providerKey_subjectKind_subjec\" exists on (organizationId, providerKey, subjectKind, subjectId, signalKind, sourceTimestamp, dedupeKey)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "OperationalSignal_organizationId_providerKey_subjectKind_subjec",
+          "public",
+          "\"public\".\"OperationalSignal\"",
+          "u",
+          "[\"organizationId\",\"providerKey\",\"subjectKind\",\"subjectId\",\"signalKind\",\"sourceTimestamp\",\"dedupeKey\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.OperationalSignalLatest.OperationalSignalLatest_organizationId_providerKey_subjectKind_",
+    "label": "Add unique constraint on \"OperationalSignalLatest\" (organizationId, providerKey, subjectKind, subjectId, signalKind)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "OperationalSignalLatest_organizationId_providerKey_subjectKind_",
+        "table": "OperationalSignalLatest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"OperationalSignalLatest_organizationId_providerKey_subjectKind_\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OperationalSignalLatest_organizationId_providerKey_subjectKind_",
+          "public",
+          "\"public\".\"OperationalSignalLatest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"OperationalSignalLatest_organizationId_providerKey_subjectKind_\" on \"OperationalSignalLatest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"OperationalSignalLatest_organizationId_providerKey_subjectKind_\"",
+        "sql": "ALTER TABLE \"public\".\"OperationalSignalLatest\" ADD CONSTRAINT \"OperationalSignalLatest_organizationId_providerKey_subjectKind_\" UNIQUE (\"organizationId\", \"providerKey\", \"subjectKind\", \"subjectId\", \"signalKind\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"OperationalSignalLatest_organizationId_providerKey_subjectKind_\" exists on (organizationId, providerKey, subjectKind, subjectId, signalKind)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "OperationalSignalLatest_organizationId_providerKey_subjectKind_",
+          "public",
+          "\"public\".\"OperationalSignalLatest\"",
+          "u",
+          "[\"organizationId\",\"providerKey\",\"subjectKind\",\"subjectId\",\"signalKind\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OperationalSignal.OperationalSignal_organizationId_idx_2e17ef41",
+    "label": "Create index \"OperationalSignal_organizationId_idx_2e17ef41\" on \"OperationalSignal\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "OperationalSignal_organizationId_idx_2e17ef41",
+        "table": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"OperationalSignal_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignal_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"OperationalSignal_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"OperationalSignal_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"OperationalSignal_organizationId_idx_2e17ef41\" ON \"public\".\"OperationalSignal\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"OperationalSignal_organizationId_idx_2e17ef41\" exists on \"OperationalSignal\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignal_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"OperationalSignal\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OperationalSignal.opsignal_integration_idx_9775827b",
+    "label": "Create index \"opsignal_integration_idx_9775827b\" on \"OperationalSignal\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "opsignal_integration_idx_9775827b",
+        "table": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"opsignal_integration_idx_9775827b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"opsignal_integration_idx_9775827b\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"opsignal_integration_idx_9775827b\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"opsignal_integration_idx_9775827b\"",
+        "sql": "CREATE INDEX \"opsignal_integration_idx_9775827b\" ON \"public\".\"OperationalSignal\" (\"organizationId\", \"integrationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"opsignal_integration_idx_9775827b\" exists on \"OperationalSignal\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"opsignal_integration_idx_9775827b\"",
+          "i",
+          "I",
+          "\"public\".\"OperationalSignal\"",
+          "btree",
+          "[\"organizationId\",\"integrationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OperationalSignal.opsignal_subject_idx_798ddcc0",
+    "label": "Create index \"opsignal_subject_idx_798ddcc0\" on \"OperationalSignal\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "opsignal_subject_idx_798ddcc0",
+        "table": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"opsignal_subject_idx_798ddcc0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"opsignal_subject_idx_798ddcc0\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"opsignal_subject_idx_798ddcc0\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"opsignal_subject_idx_798ddcc0\"",
+        "sql": "CREATE INDEX \"opsignal_subject_idx_798ddcc0\" ON \"public\".\"OperationalSignal\" (\"organizationId\", \"subjectKind\", \"subjectId\", \"signalKind\", \"sourceTimestamp\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"opsignal_subject_idx_798ddcc0\" exists on \"OperationalSignal\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"opsignal_subject_idx_798ddcc0\"",
+          "i",
+          "I",
+          "\"public\".\"OperationalSignal\"",
+          "btree",
+          "[\"organizationId\",\"subjectKind\",\"subjectId\",\"signalKind\",\"sourceTimestamp\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OperationalSignalLatest.OperationalSignalLatest_organizationId_idx_2e17ef41",
+    "label": "Create index \"OperationalSignalLatest_organizationId_idx_2e17ef41\" on \"OperationalSignalLatest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "OperationalSignalLatest_organizationId_idx_2e17ef41",
+        "table": "OperationalSignalLatest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"OperationalSignalLatest_organizationId_idx_2e17ef41\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignalLatest_organizationId_idx_2e17ef41\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"OperationalSignalLatest_organizationId_idx_2e17ef41\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"OperationalSignalLatest_organizationId_idx_2e17ef41\"",
+        "sql": "CREATE INDEX \"OperationalSignalLatest_organizationId_idx_2e17ef41\" ON \"public\".\"OperationalSignalLatest\" (\"organizationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"OperationalSignalLatest_organizationId_idx_2e17ef41\" exists on \"OperationalSignalLatest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"OperationalSignalLatest_organizationId_idx_2e17ef41\"",
+          "i",
+          "I",
+          "\"public\".\"OperationalSignalLatest\"",
+          "btree",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.OperationalSignalLatest.opsignal_latest_subject_idx_a85508cb",
+    "label": "Create index \"opsignal_latest_subject_idx_a85508cb\" on \"OperationalSignalLatest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "opsignal_latest_subject_idx_a85508cb",
+        "table": "OperationalSignalLatest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"opsignal_latest_subject_idx_a85508cb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"opsignal_latest_subject_idx_a85508cb\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"opsignal_latest_subject_idx_a85508cb\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"opsignal_latest_subject_idx_a85508cb\"",
+        "sql": "CREATE INDEX \"opsignal_latest_subject_idx_a85508cb\" ON \"public\".\"OperationalSignalLatest\" (\"organizationId\", \"subjectKind\", \"subjectId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"opsignal_latest_subject_idx_a85508cb\" exists on \"OperationalSignalLatest\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"opsignal_latest_subject_idx_a85508cb\"",
+          "i",
+          "I",
+          "\"public\".\"OperationalSignalLatest\"",
+          "btree",
+          "[\"organizationId\",\"subjectKind\",\"subjectId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.OperationalSignal.OperationalSignal_organizationId_fkey",
+    "label": "Add foreign key \"OperationalSignal_organizationId_fkey\" on \"OperationalSignal\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "OperationalSignal_organizationId_fkey",
+        "table": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"OperationalSignal_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OperationalSignal_organizationId_fkey",
+          "public",
+          "\"public\".\"OperationalSignal\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"OperationalSignal_organizationId_fkey\" on \"OperationalSignal\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"OperationalSignal_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"OperationalSignal\"\nADD CONSTRAINT \"OperationalSignal_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"OperationalSignal_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "OperationalSignal_organizationId_fkey",
+          "public",
+          "\"public\".\"OperationalSignal\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.OperationalSignal.OperationalSignal_organizationId_integrationId_fkey",
+    "label": "Add foreign key \"OperationalSignal_organizationId_integrationId_fkey\" on \"OperationalSignal\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "OperationalSignal_organizationId_integrationId_fkey",
+        "table": "OperationalSignal"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"OperationalSignal_organizationId_integrationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OperationalSignal_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"OperationalSignal\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"OperationalSignal_organizationId_integrationId_fkey\" on \"OperationalSignal\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"OperationalSignal_organizationId_integrationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"OperationalSignal\"\nADD CONSTRAINT \"OperationalSignal_organizationId_integrationId_fkey\"\nFOREIGN KEY (\"organizationId\", \"integrationId\")\nREFERENCES \"public\".\"Integration\" (\"organizationId\", \"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"OperationalSignal_organizationId_integrationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "OperationalSignal_organizationId_integrationId_fkey",
+          "public",
+          "\"public\".\"OperationalSignal\"",
+          "f",
+          "[\"organizationId\",\"integrationId\"]",
+          "\"public\".\"Integration\"",
+          "[\"organizationId\",\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.OperationalSignalLatest.OperationalSignalLatest_organizationId_fkey",
+    "label": "Add foreign key \"OperationalSignalLatest_organizationId_fkey\" on \"OperationalSignalLatest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "OperationalSignalLatest_organizationId_fkey",
+        "table": "OperationalSignalLatest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"OperationalSignalLatest_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "OperationalSignalLatest_organizationId_fkey",
+          "public",
+          "\"public\".\"OperationalSignalLatest\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"OperationalSignalLatest_organizationId_fkey\" on \"OperationalSignalLatest\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"OperationalSignalLatest_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"OperationalSignalLatest\"\nADD CONSTRAINT \"OperationalSignalLatest_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"OperationalSignalLatest_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "OperationalSignalLatest_organizationId_fkey",
+          "public",
+          "\"public\".\"OperationalSignalLatest\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  }
+]

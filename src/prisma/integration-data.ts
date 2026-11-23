@@ -23,6 +23,7 @@ import { runIntegrationSync, type SyncBackend } from "@/src/integrations/sync";
 import { getOperationalMapper } from "@/src/integrations/materialize/registry";
 import { mcleodOperationalMapper } from "@/src/integrations/materialize/mcleod";
 import { materializeExternalRecords } from "@/src/integrations/materialize/materializer";
+import { ingestOperationalSignals, linkFleetEntities } from "./operational-signals";
 import { createConnectedDataRepository } from "@/src/integrations/materialize/connected-data";
 import { registerOperationalMapper } from "@/src/integrations/materialize/registry";
 import { parseWebhookEnvelope, webhookPayloadHash } from "@/src/integrations/webhooks";
@@ -704,6 +705,23 @@ export async function runSyncForIntegration(
     changedRecords: outcome.changedRecords ?? [],
   });
 
+  const fleetLinkRefs = (outcome.changedRecords ?? []).filter(
+    (ref) =>
+      (ref.entityKind === "TRUCK" || ref.entityKind === "DRIVER") &&
+      typeof ref.recordId === "string",
+  );
+  const fleetLink =
+    fleetLinkRefs.length > 0
+      ? await linkFleetEntities({
+          organizationId,
+          integrationId: integration.id,
+          providerKey: integration.providerKey,
+          refs: fleetLinkRefs,
+        }).catch((error) => ({
+          error: toSafeIntegrationError(error).message,
+        }))
+      : null;
+
   await db.orm.public.Integration.where({
     organizationId,
     id: integration.id,
@@ -730,6 +748,7 @@ export async function runSyncForIntegration(
       recordsFailed: outcome.recordsFailed,
       error: outcome.error,
       materialization,
+      fleetLink,
     },
   });
 
@@ -844,7 +863,16 @@ export async function listIntegrationEventsForOrganization(
 }
 
 export type WebhookIngestResult =
-  | { ok: true; duplicate: boolean; status: string }
+  | {
+      ok: true;
+      duplicate: boolean;
+      status: string;
+      signalsIngested?: {
+        stored: number;
+        duplicates: number;
+        rejected: number;
+      };
+    }
   | { ok: false; status: number; error: string };
 
 export async function ingestWebhookForIntegration(input: {
@@ -951,7 +979,54 @@ export async function ingestWebhookForIntegration(input: {
     },
   });
 
-  return { ok: true, duplicate: false, status: eventStatus };
+  // Vendor-neutral signal ingest: a webhook payload may carry a `signals`
+  // array of operational signal inputs. No provider-specific parsing — each
+  // entry is validated by the shared signal schema before storage.
+  let signalsIngested: { stored: number; duplicates: number; rejected: number } | null = null;
+  const payloadRecord =
+    typeof envelope.payload === "object" && envelope.payload !== null
+      ? (envelope.payload as Record<string, unknown>)
+      : null;
+  const nestedPayload =
+    payloadRecord &&
+    typeof payloadRecord["payload"] === "object" &&
+    payloadRecord["payload"] !== null
+      ? (payloadRecord["payload"] as Record<string, unknown>)
+      : null;
+  const signalBatch = Array.isArray(payloadRecord?.["signals"])
+    ? payloadRecord["signals"]
+    : Array.isArray(nestedPayload?.["signals"])
+      ? nestedPayload["signals"]
+      : null;
+  if (signalBatch) {
+    const outcomes = await ingestOperationalSignals({
+      organizationId: integration.organizationId,
+      integrationId: integration.id,
+      providerKey: integration.providerKey,
+      signals: signalBatch,
+    });
+    signalsIngested = {
+      stored: outcomes.filter((o) => o.status === "stored").length,
+      duplicates: outcomes.filter((o) => o.status === "duplicate").length,
+      rejected: outcomes.filter((o) => o.status === "rejected").length,
+    };
+    if (signalsIngested.stored > 0 || signalsIngested.rejected > 0) {
+      await recordIntegrationEvent(db, {
+        organizationId: integration.organizationId,
+        integrationId: integration.id,
+        kind: "WEBHOOK_PROCESSED",
+        message: `Ingested ${signalsIngested.stored} operational signal(s) from webhook.`,
+        metadata: { signalsIngested },
+      });
+    }
+  }
+
+  return {
+    ok: true,
+    duplicate: false,
+    status: eventStatus,
+    ...(signalsIngested ? { signalsIngested } : {}),
+  } as WebhookIngestResult;
 }
 
 export { listConnectors, type ConnectorDescriptor };

@@ -10,3 +10,7 @@ export * from "./lifecycle.ts";
 export * from "./sync.ts";
 export * from "./webhooks.ts";
 export * from "./policy.ts";
+export * from "./signals/types.ts";
+export * from "./signals/ingest.ts";
+export * from "./signals/policy.ts";
+export * from "./signals/entity-link.ts";

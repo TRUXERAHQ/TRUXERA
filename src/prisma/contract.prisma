@@ -190,6 +190,15 @@ enum IntegrationWebhookStatus {
   IGNORED = "IGNORED"
 }
 
+enum SignalSubjectKind {
+  @@type("pg/text@1")
+
+  TRUCK = "TRUCK"
+  DRIVER = "DRIVER"
+  DELIVERY = "DELIVERY"
+  LOAD = "LOAD"
+}
+
 enum DeliveryEventType {
   @@type("pg/text@1")
 
@@ -431,6 +440,7 @@ model Integration {
   syncRuns            IntegrationSyncRun[]
   webhookEvents       IntegrationWebhookEvent[]
   events              IntegrationEvent[]
+  operationalSignals  OperationalSignal[]
 
   @@unique([organizationId, id])
   @@index([organizationId, status])
@@ -561,4 +571,51 @@ model DeliveryEvent {
 
   @@index([organizationId, deliveryId, occurredAt])
   @@index([actorUserId])
+}
+
+model OperationalSignal {
+  id              Uuid               @id @onCreate(uuid(7))
+  organizationId  Uuid
+  integrationId   Uuid?
+  providerKey     String
+  subjectKind     SignalSubjectKind
+  subjectId       Uuid
+  signalKind      String
+  value           String
+  provenance      String
+  sourceTimestamp DateTime
+  ingestedAt      DateTime           @default(now()) @onCreate(now())
+  sequence        Int?
+  eventId         String?
+  dedupeKey       String             @default("")
+  clockSkew       Boolean            @default(false)
+  createdAt       temporal.CreatedAt
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  integration     Integration?       @relation(fields: [organizationId, integrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, providerKey, subjectKind, subjectId, signalKind, sourceTimestamp, dedupeKey])
+  @@index([organizationId, subjectKind, subjectId, signalKind, sourceTimestamp], name: "opsignal_subject_idx")
+  @@index([organizationId, integrationId], name: "opsignal_integration_idx")
+}
+
+model OperationalSignalLatest {
+  id              Uuid               @id @onCreate(uuid(7))
+  organizationId  Uuid
+  providerKey     String
+  subjectKind     SignalSubjectKind
+  subjectId       Uuid
+  signalKind      String
+  signalId        Uuid
+  sourceTimestamp DateTime
+  value           String
+  provenance      String
+  conflict        Boolean            @default(false)
+  createdAt       temporal.CreatedAt
+  updatedAt       temporal.UpdatedAt
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([organizationId, providerKey, subjectKind, subjectId, signalKind])
+  @@index([organizationId, subjectKind, subjectId], name: "opsignal_latest_subject_idx")
 }

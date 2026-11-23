@@ -21,12 +21,21 @@ export type IntegrationSignalSummary = {
   lastSyncAt: string | null;
   lastSuccessfulSyncAt: string | null;
   linkedRecords: number;
+  linkedFleetEntities: number;
   mappingFailedRecords: number;
   staleRecords: number;
 };
 
+export type FleetEntityLink = {
+  internalKind: "Truck" | "Driver";
+  internalId: string;
+  providerKey: string;
+  sourceName: string;
+};
+
 export type ConnectedSignalsOverview = {
   records: Record<string, ConnectedRecordState>;
+  fleetEntities: FleetEntityLink[];
   integrations: IntegrationSignalSummary[];
 };
 
@@ -135,16 +144,38 @@ export async function getConnectedSignalsOverview(
   );
 
   const records: Record<string, ConnectedRecordState> = {};
+  const fleetEntities: FleetEntityLink[] = [];
   const perIntegration = new Map<
     string,
-    { linked: number; mappingFailed: number; stale: number; providerKey: string; displayName: string }
+    { linked: number; fleetLinked: number; mappingFailed: number; stale: number; providerKey: string; displayName: string }
   >();
 
   for (const rec of externalRecords) {
     if (!rec.internalId || !rec.internalKind) continue;
-    if (rec.internalKind !== "Load" && rec.internalKind !== "Delivery") continue;
     const integration = integrationById.get(rec.integrationId);
     if (!integration) continue; // cross-tenant / dangling link defense
+
+    if (rec.internalKind === "Truck" || rec.internalKind === "Driver") {
+      const agg = perIntegration.get(integration.id) ?? {
+        linked: 0,
+        fleetLinked: 0,
+        mappingFailed: 0,
+        stale: 0,
+        providerKey: rec.providerKey,
+        displayName: integration.displayName,
+      };
+      agg.fleetLinked += 1;
+      perIntegration.set(integration.id, agg);
+      fleetEntities.push({
+        internalKind: rec.internalKind,
+        internalId: rec.internalId,
+        providerKey: rec.providerKey,
+        sourceName: integration.displayName,
+      });
+      continue;
+    }
+
+    if (rec.internalKind !== "Load" && rec.internalKind !== "Delivery") continue;
 
     const expectedInterval = getProviderSyncIntervalMinutes(rec.providerKey);
     const latestRun = latestRunByIntegration.get(integration.id);
@@ -200,6 +231,7 @@ export async function getConnectedSignalsOverview(
 
     const agg = perIntegration.get(integration.id) ?? {
       linked: 0,
+      fleetLinked: 0,
       mappingFailed: 0,
       stale: 0,
       providerKey: rec.providerKey,
@@ -240,11 +272,12 @@ export async function getConnectedSignalsOverview(
         lastSuccessfulSyncAt:
           integration.lastSuccessfulSyncAt?.toISOString() ?? null,
         linkedRecords: agg?.linked ?? 0,
+        linkedFleetEntities: agg?.fleetLinked ?? 0,
         mappingFailedRecords: agg?.mappingFailed ?? 0,
         staleRecords: agg?.stale ?? 0,
       };
     },
   );
 
-  return { records, integrations: integrationSummaries };
+  return { records, fleetEntities, integrations: integrationSummaries };
 }

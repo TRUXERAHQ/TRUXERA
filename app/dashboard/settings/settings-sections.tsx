@@ -71,6 +71,7 @@ type SignalSummaryItem = {
   lastSyncAt: string | null;
   lastSuccessfulSyncAt: string | null;
   linkedRecords: number;
+  linkedFleetEntities: number;
   mappingFailedRecords: number;
   staleRecords: number;
 };
@@ -364,6 +365,9 @@ export default function SettingsSections({
                     <p className="mt-1 text-xs text-slate-500">
                       Data source: {formatRole(signal.freshness)}
                       {signal.intervalAssumed ? " (default interval)" : ""}
+                      {signal.linkedFleetEntities > 0
+                        ? ` · ${signal.linkedFleetEntities} fleet ${signal.linkedFleetEntities === 1 ? "entity" : "entities"} linked`
+                        : ""}
                       {signal.mappingFailedRecords > 0
                         ? ` · ${signal.mappingFailedRecords} mapping failure${signal.mappingFailedRecords === 1 ? "" : "s"}`
                         : ""}
