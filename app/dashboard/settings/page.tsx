@@ -15,7 +15,6 @@ import { getConnectedSignalsOverview } from "@/src/prisma/connected-signals";
 import { getOnboardingFactsForUser } from "@/src/prisma/onboarding-data";
 import { getAccountOverviewForUser } from "@/src/prisma/organization-data";
 import { getReliabilityOverviewForUser } from "@/src/prisma/reliability-data";
-import { getBillingOverviewForUser } from "@/src/prisma/billing-data";
 import { computeOnboardingState } from "@/src/onboarding/onboarding";
 import { PageHeader } from "../ui";
 import SettingsSections from "./settings-sections";
@@ -39,14 +38,6 @@ export default function SettingsPage({ searchParams }: Props) {
 async function SettingsContent({ searchParams }: Props) {
   const params = await searchParams;
   const context = await getOperationsPageContext(params);
-  const billingReturnValue = Array.isArray(params.billing)
-    ? params.billing[0]
-    : params.billing;
-  const billingReturn =
-    billingReturnValue === "checkout_success" ||
-    billingReturnValue === "checkout_canceled"
-      ? billingReturnValue
-      : null;
   const session = await auth();
 
   const [
@@ -55,7 +46,6 @@ async function SettingsContent({ searchParams }: Props) {
     signals,
     accountOverview,
     reliability,
-    billing,
   ] = await Promise.all([
     listIntegrationsForOrganization(context.userId, context.organization.id),
     listConnectorCatalog(),
@@ -65,7 +55,6 @@ async function SettingsContent({ searchParams }: Props) {
     ),
     getAccountOverviewForUser(context.userId, context.organization.id),
     getReliabilityOverviewForUser(context.userId, context.organization.id),
-    getBillingOverviewForUser(context.userId, context.organization.id),
   ]);
 
   const onboardingFacts = await getOnboardingFactsForUser(
@@ -130,8 +119,6 @@ async function SettingsContent({ searchParams }: Props) {
               : null
           }
           reliability={reliability}
-          billing={billing}
-          billingReturn={billingReturn}
         />
       </div>
     </TruckShell>

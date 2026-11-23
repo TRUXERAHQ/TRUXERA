@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import {
   updateAccountStatusAction,
   updateOrganizationSettingsAction,
 } from "./actions";
-import {
-  startBillingCheckoutAction,
-  type CheckoutActionState,
-} from "./billing-actions";
 import {
   Badge,
   buttonDangerClass,
@@ -23,12 +19,6 @@ import {
 import type { OnboardingView } from "@/src/onboarding/onboarding";
 import type { AccountStatus } from "@/src/account/account-status";
 import type { ReliabilityOverview } from "@/src/prisma/reliability-data";
-import type { BillingOverview } from "@/src/prisma/billing-data";
-import {
-  BILLING_PLANS,
-  ENTITLEMENT_LABELS,
-  USAGE_LIMIT_LABELS,
-} from "@/src/billing/billing";
 
 const membershipRoles = [
   {
@@ -401,240 +391,6 @@ function ReliabilitySection({
   );
 }
 
-function formatPriceCents(cents: number | null): string | null {
-  if (cents === null) return null;
-  const dollars = cents / 100;
-  return `$${dollars.toLocaleString("en-US", {
-    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function usageLimitSuffix(limit: unknown): string {
-  if (typeof limit === "number") return ` / ${limit}`;
-  if (limit === "custom") return " / Custom";
-  if (limit === "unlimited") return " · Unlimited";
-  return "";
-}
-
-function CheckoutPlanOptions({
-  organizationId,
-  currentPlan,
-}: {
-  organizationId: string;
-  currentPlan: string;
-}) {
-  const [state, action, pending] = useActionState<
-    CheckoutActionState,
-    FormData
-  >(startBillingCheckoutAction, {});
-
-  useEffect(() => {
-    if (state.url) window.location.assign(state.url);
-  }, [state.url]);
-
-  return (
-    <div className="space-y-3">
-      {(["STARTER", "PROFESSIONAL"] as const).map((planKey) => {
-        const plan = BILLING_PLANS[planKey];
-        const isCurrent = currentPlan === planKey;
-        return (
-          <div
-            key={planKey}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-3"
-          >
-            <div>
-              <p className="text-sm font-medium text-slate-800">
-                {plan.label}
-                {isCurrent && (
-                  <span className="ml-2 text-xs text-slate-400">
-                    current plan
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-slate-500">{plan.description}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {(["MONTHLY", "ANNUAL"] as const).map((interval) => (
-                <form key={interval} action={action}>
-                  <input
-                    type="hidden"
-                    name="organizationId"
-                    value={organizationId}
-                  />
-                  <input type="hidden" name="plan" value={planKey} />
-                  <input type="hidden" name="interval" value={interval} />
-                  <button
-                    type="submit"
-                    disabled={pending || isCurrent}
-                    className={buttonSecondaryClass}
-                  >
-                    {interval === "MONTHLY" ? "Monthly" : "Annual"}
-                  </button>
-                </form>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-      {state.error && <Notice tone="danger">{state.error}</Notice>}
-      <p className="text-xs text-slate-500">
-        Checkout is processed securely by Stripe. Your subscription activates
-        after payment is confirmed.
-      </p>
-    </div>
-  );
-}
-
-function BillingSection({
-  billing,
-  organizationId,
-  canAdminister,
-  accountStatus,
-  billingReturn,
-}: {
-  billing: BillingOverview | null;
-  organizationId: string;
-  canAdminister: boolean;
-  accountStatus: AccountStatus;
-  billingReturn: string | null;
-}) {
-  const monthly = billing ? formatPriceCents(billing.prices.monthlyCents) : null;
-  const annual = billing ? formatPriceCents(billing.prices.annualCents) : null;
-  const priceLabel = !billing
-    ? null
-    : billing.prices.custom
-      ? billing.plan === "TRIAL"
-        ? "Trial — no charge"
-        : "Custom"
-      : [
-          monthly ? `${monthly}/month` : null,
-          annual ? `${annual}/year billed annually` : null,
-        ]
-          .filter(Boolean)
-          .join(" · ");
-
-  return (
-    <Panel
-      title="Billing & Plan"
-      description="Commercial plan, pricing, and entitlement state for this organization. Billing is informational in this release — no payment method is stored, no charges are made, and no billing provider is connected. Plan changes will be available in a future billing release."
-    >
-      {billing ? (
-        <div className="space-y-5">
-          {billingReturn === "checkout_success" && (
-            <Notice tone="success">
-              Checkout complete. Your subscription will update once Stripe
-              confirms the payment — this usually takes a few seconds.
-            </Notice>
-          )}
-          {billingReturn === "checkout_canceled" && (
-            <Notice tone="info">
-              Checkout was canceled. No changes were made to your plan.
-            </Notice>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="info">{billing.planLabel}</Badge>
-            {billing.subscriptionStatusLabel && (
-              <Badge
-                tone={
-                  billing.subscriptionStatus === "ACTIVE" ||
-                  billing.subscriptionStatus === "TRIAL"
-                    ? "success"
-                    : billing.subscriptionStatus === "PAUSED"
-                      ? "warning"
-                      : "neutral"
-                }
-              >
-                {billing.subscriptionStatusLabel}
-              </Badge>
-            )}
-            {!billing.configured && (
-              <Badge tone="neutral">Not configured</Badge>
-            )}
-          </div>
-
-          <dl className="space-y-2.5">
-            <MetaRow label="Plan">{billing.planLabel}</MetaRow>
-            <MetaRow label="Price">{priceLabel ?? "Custom"}</MetaRow>
-            <MetaRow label="Subscription">
-              {billing.subscriptionStatusLabel ?? "Not configured"}
-            </MetaRow>
-            <MetaRow label="Trial">
-              {billing.trialStartAt || billing.trialEndAt
-                ? `${formatDate(billing.trialStartAt)} → ${formatDate(billing.trialEndAt)}`
-                : "Not configured"}
-            </MetaRow>
-            <MetaRow label="Billing provider">
-              {billing.providerConnected
-                ? billing.providerKey ?? "Connected"
-                : "None connected"}
-            </MetaRow>
-          </dl>
-
-          <div className="border-t border-slate-100 pt-4">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-              Features
-            </p>
-            <ul className="mt-2 space-y-1">
-              {billing.entitlements.map((key) => (
-                <li
-                  key={key}
-                  className="flex items-center gap-2 text-sm text-slate-700"
-                >
-                  <span className="text-emerald-600" aria-hidden="true">
-                    ✓
-                  </span>
-                  {ENTITLEMENT_LABELS[key]}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="border-t border-slate-100 pt-4">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-              Usage
-            </p>
-            <dl className="mt-2 space-y-2">
-              {(Object.keys(USAGE_LIMIT_LABELS) as (keyof typeof USAGE_LIMIT_LABELS)[]).map(
-                (key) => (
-                  <MetaRow key={key} label={USAGE_LIMIT_LABELS[key]}>
-                    {billing.usage[key]}
-                    {usageLimitSuffix(billing.limits[key])}
-                  </MetaRow>
-                ),
-              )}
-            </dl>
-            <p className="mt-2 text-xs text-slate-500">
-              Active vehicle and integration limits are enforced by your
-              plan. Other usage is informational.
-            </p>
-          </div>
-
-          {billing.providerConnected &&
-            canAdminister &&
-            accountStatus === "ACTIVE" && (
-              <div className="border-t border-slate-100 pt-4">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-                  Plans
-                </p>
-                <div className="mt-2">
-                  <CheckoutPlanOptions
-                    organizationId={organizationId}
-                    currentPlan={billing.plan}
-                  />
-                </div>
-              </div>
-            )}
-        </div>
-      ) : (
-        <p className="text-sm text-slate-500">
-          Billing information is not available for this workspace.
-        </p>
-      )}
-    </Panel>
-  );
-}
-
 function AccountStatusSection({
   organizationId,
   organizationName,
@@ -798,8 +554,6 @@ export default function SettingsSections({
   accountStatus,
   account,
   reliability,
-  billing,
-  billingReturn,
 }: {
   organizationId: string;
   organizationName: string;
@@ -820,8 +574,6 @@ export default function SettingsSections({
   accountStatus: AccountStatus;
   account: AccountOverviewView | null;
   reliability: ReliabilityOverview | null;
-  billing: BillingOverview | null;
-  billingReturn: string | null;
 }) {
   const [state, action, pending] = useActionState(
     updateOrganizationSettingsAction,
@@ -1211,13 +963,17 @@ export default function SettingsSections({
 
       <ReliabilitySection reliability={reliability} />
 
-      <BillingSection
-        billing={billing}
-        organizationId={organizationId}
-        canAdminister={canAdminister}
-        accountStatus={accountStatus}
-        billingReturn={billingReturn}
-      />
+      <Panel
+        title="Billing & Plans"
+        description="Plan, subscription, usage, and checkout are managed on the dedicated billing page."
+      >
+        <Link
+          href={`/dashboard/billing?organizationId=${encodeURIComponent(organizationId)}`}
+          className={buttonSecondaryClass}
+        >
+          Go to Billing & Plans
+        </Link>
+      </Panel>
 
       <Panel
         title="Notifications"

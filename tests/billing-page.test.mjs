@@ -71,6 +71,24 @@ test("plan feature bullets are concise and catalog-derived", () => {
   }
 });
 
+test("settings no longer renders duplicate billing UI", () => {
+  const sections = readFileSync(
+    new URL("../app/dashboard/settings/settings-sections.tsx", import.meta.url),
+    "utf8",
+  );
+  const page = readFileSync(
+    new URL("../app/dashboard/settings/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.equal(sections.includes("startBillingCheckoutAction"), false);
+  assert.equal(sections.includes("CheckoutPlanOptions"), false);
+  assert.equal(sections.includes("BillingSection"), false);
+  assert.equal(sections.includes("getBillingOverviewForUser"), false);
+  assert.equal(page.includes("getBillingOverviewForUser"), false);
+  // A link to the dedicated page is the only billing affordance left.
+  assert.equal(sections.includes("/dashboard/billing"), true);
+});
+
 test("plan cards expose only catalog plans with professional recommended", () => {
   const view = readFileSync(
     new URL("../app/dashboard/billing/billing-plans.tsx", import.meta.url),
