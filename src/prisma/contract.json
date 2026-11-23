@@ -293,6 +293,14 @@
               {
                 "name": "WEBHOOK_FAILED",
                 "value": "WEBHOOK_FAILED"
+              },
+              {
+                "name": "EXTERNAL_RECORD_MAPPED",
+                "value": "EXTERNAL_RECORD_MAPPED"
+              },
+              {
+                "name": "EXTERNAL_RECORD_MAPPING_FAILED",
+                "value": "EXTERNAL_RECORD_MAPPING_FAILED"
               }
             ]
           },
@@ -5202,8 +5210,8 @@
             "IntegrationEvent": {
               "checks": [
                 {
-                  "expression": "\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED')",
-                  "name": "IntegrationEvent_kind_check_1da3be58",
+                  "expression": "\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED', 'EXTERNAL_RECORD_MAPPED', 'EXTERNAL_RECORD_MAPPING_FAILED')",
+                  "name": "IntegrationEvent_kind_check_cb9dddca",
                   "prefix": "IntegrationEvent_kind_check"
                 }
               ],
@@ -6722,7 +6730,9 @@
                 "SYNC_FAILED",
                 "WEBHOOK_RECEIVED",
                 "WEBHOOK_PROCESSED",
-                "WEBHOOK_FAILED"
+                "WEBHOOK_FAILED",
+                "EXTERNAL_RECORD_MAPPED",
+                "EXTERNAL_RECORD_MAPPING_FAILED"
               ]
             },
             "IntegrationStatus": {
@@ -6851,7 +6861,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1db3d24febeedcdc9a9161411e317cd68cce5d8f59385705f709b5f483db855d"
+    "storageHash": "3dc79afc3517d4709c4691a9613720554d9011726ccdd2babd156faf39424e19"
   },
   "execution": {
     "executionHash": "a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8",

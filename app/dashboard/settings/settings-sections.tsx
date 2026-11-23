@@ -51,6 +51,7 @@ type IntegrationListItem = {
   lastSyncError: string | null;
   recordsProcessed: number;
   recordsFailed: number;
+  linkedRecords: number;
 };
 
 type ConnectorCatalogItem = {
@@ -333,6 +334,9 @@ export default function SettingsSections({
                     {integration.recordsProcessed} records processed
                     {integration.recordsFailed > 0
                       ? ` · ${integration.recordsFailed} failed`
+                      : ""}
+                    {integration.linkedRecords > 0
+                      ? ` · ${integration.linkedRecords} operational records linked`
                       : ""}
                     {" · "}Last sync {formatDate(integration.lastSyncAt)}
                   </p>

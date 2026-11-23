@@ -13,6 +13,14 @@ export type SyncRunRecord = {
 
 export type UpsertedRecord = {
   outcome: "created" | "updated" | "unchanged";
+  previousPayload?: string | null;
+};
+
+export type ChangedRecordRef = {
+  entityKind: string;
+  externalId: string;
+  recordId: string;
+  previousPayload: string | null;
 };
 
 export interface SyncBackend {
@@ -45,7 +53,7 @@ export interface SyncBackend {
     checksum: string;
     payload: Record<string, unknown>;
     externalUpdatedAt?: string | null;
-  }): Promise<UpsertedRecord>;
+  }): Promise<UpsertedRecord & { recordId?: string }>;
 
   setSyncCursor(input: {
     organizationId: string;
@@ -67,6 +75,7 @@ export type SyncOutcome = {
   recordsUpdated: number;
   recordsFailed: number;
   error: { code: string; message: string } | null;
+  changedRecords?: ChangedRecordRef[];
 };
 
 export async function runIntegrationSync(input: {
@@ -110,6 +119,7 @@ export async function runIntegrationSync(input: {
     let created = 0;
     let updated = 0;
     let failed = 0;
+    const changedRecords: ChangedRecordRef[] = [];
 
     for (const entity of result.entities) {
       if (input.signal?.aborted) {
@@ -132,6 +142,17 @@ export async function runIntegrationSync(input: {
         });
         if (upserted.outcome === "created") created += 1;
         else if (upserted.outcome === "updated") updated += 1;
+        if (
+          (upserted.outcome === "created" || upserted.outcome === "updated") &&
+          upserted.recordId
+        ) {
+          changedRecords.push({
+            entityKind: entity.kind,
+            externalId: entity.externalId,
+            recordId: upserted.recordId,
+            previousPayload: upserted.previousPayload ?? null,
+          });
+        }
       } catch {
         failed += 1;
       }
@@ -180,6 +201,7 @@ export async function runIntegrationSync(input: {
       recordsUpdated: updated,
       recordsFailed: failed,
       error: lastError ? { code: "RECORD_FAILURES", message: lastError } : null,
+      changedRecords,
     };
   } catch (error) {
     const safe = toSafeIntegrationError(error);

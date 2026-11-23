@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1db3d24febeedcdc9a9161411e317cd68cce5d8f59385705f709b5f483db855d'>;
+  StorageHashBase<'3dc79afc3517d4709c4691a9613720554d9011726ccdd2babd156faf39424e19'>;
 export type ExecutionHash =
   ExecutionHashBase<'a4f668cc5d066c74416c828751a42286098ab9bda1dd7aa217599871bcb66ac8'>;
 export type ProfileHash =
@@ -412,7 +412,9 @@ type FieldTypeOverrides = {
             | 'SYNC_FAILED'
             | 'WEBHOOK_RECEIVED'
             | 'WEBHOOK_PROCESSED'
-            | 'WEBHOOK_FAILED';
+            | 'WEBHOOK_FAILED'
+            | 'EXTERNAL_RECORD_MAPPED'
+            | 'EXTERNAL_RECORD_MAPPING_FAILED';
           readonly input:
             | 'CONNECTED'
             | 'DISCONNECTED'
@@ -425,7 +427,9 @@ type FieldTypeOverrides = {
             | 'SYNC_FAILED'
             | 'WEBHOOK_RECEIVED'
             | 'WEBHOOK_PROCESSED'
-            | 'WEBHOOK_FAILED';
+            | 'WEBHOOK_FAILED'
+            | 'EXTERNAL_RECORD_MAPPED'
+            | 'EXTERNAL_RECORD_MAPPING_FAILED';
         };
       };
       readonly IntegrationSyncRun: {
@@ -637,7 +641,9 @@ type ColumnTypeOverrides = {
           | 'SYNC_FAILED'
           | 'WEBHOOK_RECEIVED'
           | 'WEBHOOK_PROCESSED'
-          | 'WEBHOOK_FAILED';
+          | 'WEBHOOK_FAILED'
+          | 'EXTERNAL_RECORD_MAPPED'
+          | 'EXTERNAL_RECORD_MAPPING_FAILED';
         readonly input:
           | 'CONNECTED'
           | 'DISCONNECTED'
@@ -650,7 +656,9 @@ type ColumnTypeOverrides = {
           | 'SYNC_FAILED'
           | 'WEBHOOK_RECEIVED'
           | 'WEBHOOK_PROCESSED'
-          | 'WEBHOOK_FAILED';
+          | 'WEBHOOK_FAILED'
+          | 'EXTERNAL_RECORD_MAPPED'
+          | 'EXTERNAL_RECORD_MAPPING_FAILED';
       };
     };
     readonly IntegrationSyncRun: {
@@ -3310,6 +3318,8 @@ type ContractBase = Omit<
                 'WEBHOOK_RECEIVED',
                 'WEBHOOK_PROCESSED',
                 'WEBHOOK_FAILED',
+                'EXTERNAL_RECORD_MAPPED',
+                'EXTERNAL_RECORD_MAPPING_FAILED',
               ];
             };
             readonly IntegrationStatus: {
@@ -5335,6 +5345,11 @@ type ContractBase = Omit<
               { readonly name: 'WEBHOOK_RECEIVED'; readonly value: 'WEBHOOK_RECEIVED' },
               { readonly name: 'WEBHOOK_PROCESSED'; readonly value: 'WEBHOOK_PROCESSED' },
               { readonly name: 'WEBHOOK_FAILED'; readonly value: 'WEBHOOK_FAILED' },
+              { readonly name: 'EXTERNAL_RECORD_MAPPED'; readonly value: 'EXTERNAL_RECORD_MAPPED' },
+              {
+                readonly name: 'EXTERNAL_RECORD_MAPPING_FAILED';
+                readonly value: 'EXTERNAL_RECORD_MAPPING_FAILED';
+              },
             ];
           };
           readonly IntegrationStatus: {
@@ -5517,6 +5532,11 @@ type ContractBase = Omit<
             { readonly name: 'WEBHOOK_RECEIVED'; readonly value: 'WEBHOOK_RECEIVED' },
             { readonly name: 'WEBHOOK_PROCESSED'; readonly value: 'WEBHOOK_PROCESSED' },
             { readonly name: 'WEBHOOK_FAILED'; readonly value: 'WEBHOOK_FAILED' },
+            { readonly name: 'EXTERNAL_RECORD_MAPPED'; readonly value: 'EXTERNAL_RECORD_MAPPED' },
+            {
+              readonly name: 'EXTERNAL_RECORD_MAPPING_FAILED';
+              readonly value: 'EXTERNAL_RECORD_MAPPING_FAILED';
+            },
           ];
           readonly IntegrationStatus: readonly [
             { readonly name: 'CONNECTING'; readonly value: 'CONNECTING' },

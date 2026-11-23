@@ -18,7 +18,13 @@ import { getConnector, listConnectors } from "@/src/integrations/registry";
 import { registerBuiltinConnectors } from "@/src/integrations/connectors";
 
 registerBuiltinConnectors();
+registerOperationalMapper("mcleod-track-and-trace", mcleodOperationalMapper);
 import { runIntegrationSync, type SyncBackend } from "@/src/integrations/sync";
+import { getOperationalMapper } from "@/src/integrations/materialize/registry";
+import { mcleodOperationalMapper } from "@/src/integrations/materialize/mcleod";
+import { materializeExternalRecords } from "@/src/integrations/materialize/materializer";
+import { createConnectedDataRepository } from "@/src/integrations/materialize/connected-data";
+import { registerOperationalMapper } from "@/src/integrations/materialize/registry";
 import { parseWebhookEnvelope, webhookPayloadHash } from "@/src/integrations/webhooks";
 import { computeIntegrationHealth } from "@/src/integrations/lifecycle";
 import { toSafeIntegrationError } from "@/src/integrations/errors";
@@ -128,6 +134,7 @@ export type IntegrationSummary = {
   recordsProcessed: number;
   recordsFailed: number;
   consecutiveFailures: number;
+  linkedRecords: number;
   createdAt: string;
 };
 
@@ -145,7 +152,7 @@ function toSummary(row: {
   recordsFailed: number;
   consecutiveFailures: number;
   createdAt: Date;
-}): IntegrationSummary {
+}, linkedRecords = 0): IntegrationSummary {
   return {
     id: row.id,
     providerKey: row.providerKey,
@@ -165,8 +172,23 @@ function toSummary(row: {
     recordsProcessed: row.recordsProcessed,
     recordsFailed: row.recordsFailed,
     consecutiveFailures: row.consecutiveFailures,
+    linkedRecords,
     createdAt: row.createdAt.toISOString(),
   };
+}
+
+async function countLinkedRecords(
+  organizationId: string,
+  integrationId: string,
+): Promise<number> {
+  await connectDatabase();
+  const rows = await db.orm.public.ExternalRecord.where({
+    organizationId,
+    integrationId,
+  })
+    .select("internalId")
+    .all();
+  return rows.filter((row) => row.internalId !== null).length;
 }
 
 async function authorizeOrgRead(userId: string, organizationId: string) {
@@ -199,7 +221,11 @@ export async function listIntegrationsForOrganization(
   const rows = await db.orm.public.Integration.where({ organizationId })
     .orderBy((integration) => integration.createdAt.asc())
     .all();
-  return rows.map(toSummary);
+  return Promise.all(
+    rows.map(async (row) =>
+      toSummary(row, await countLinkedRecords(organizationId, row.id)),
+    ),
+  );
 }
 
 export async function getIntegrationForOrganization(
@@ -214,7 +240,9 @@ export async function getIntegrationForOrganization(
     organizationId,
     id: integrationId,
   }).first();
-  return row ? toSummary(row) : null;
+  return row
+    ? toSummary(row, await countLinkedRecords(organizationId, row.id))
+    : null;
 }
 
 export async function listConnectorCatalog() {
@@ -316,15 +344,19 @@ export async function createIntegrationConnection(
 
     return {
       ok: true as const,
-      value: toSummary({
-        ...row,
-        lastSyncAt: null,
-        lastSuccessfulSyncAt: null,
-        lastSyncError: null,
-        recordsProcessed: 0,
-        recordsFailed: 0,
-        consecutiveFailures: 0,
-      }),
+      value: toSummary(
+        {
+          ...row,
+          lastSyncAt: null,
+          lastSuccessfulSyncAt: null,
+          lastSyncError: null,
+          recordsProcessed: 0,
+          recordsFailed: 0,
+          consecutiveFailures: 0,
+          createdAt: row.createdAt,
+        },
+        0,
+      ),
     };
   });
 
@@ -556,7 +588,7 @@ const syncBackend: SyncBackend = {
     }).first();
 
     if (!existing) {
-      await db.orm.public.ExternalRecord.create({
+      const created = await db.orm.public.ExternalRecord.create({
         organizationId: input.organizationId,
         integrationId: input.integrationId,
         providerKey: input.providerKey,
@@ -566,7 +598,7 @@ const syncBackend: SyncBackend = {
         payload: JSON.stringify(input.payload),
         lastSyncedAt: new Date(),
       });
-      return { outcome: "created" };
+      return { outcome: "created", recordId: created.id, previousPayload: null };
     }
 
     if (existing.checksum === input.checksum) {
@@ -581,7 +613,11 @@ const syncBackend: SyncBackend = {
       payload: JSON.stringify(input.payload),
       lastSyncedAt: new Date(),
     });
-    return { outcome: "updated" };
+    return {
+      outcome: "updated",
+      recordId: existing.id,
+      previousPayload: existing.payload,
+    };
   },
 
   async setSyncCursor(input) {
@@ -661,6 +697,13 @@ export async function runSyncForIntegration(
     initiatedByUserId: userId,
   });
 
+  const materialization = await materializeChangedRecords({
+    organizationId,
+    integrationId: integration.id,
+    providerKey: integration.providerKey,
+    changedRecords: outcome.changedRecords ?? [],
+  });
+
   await db.orm.public.Integration.where({
     organizationId,
     id: integration.id,
@@ -686,10 +729,58 @@ export async function runSyncForIntegration(
       recordsUpdated: outcome.recordsUpdated,
       recordsFailed: outcome.recordsFailed,
       error: outcome.error,
+      materialization,
     },
   });
 
   return { ok: true, value: outcome };
+}
+
+async function materializeChangedRecords(input: {
+  organizationId: string;
+  integrationId: string;
+  providerKey: string;
+  changedRecords: {
+    entityKind: string;
+    externalId: string;
+    recordId: string;
+    previousPayload: string | null;
+  }[];
+}): Promise<Record<string, unknown> | null> {
+  if (input.changedRecords.length === 0) return null;
+  const mapper = getOperationalMapper(input.providerKey);
+  if (!mapper) return null;
+
+  const refs = input.changedRecords
+    .filter(
+      (ref) =>
+        (ref.entityKind === "LOAD" || ref.entityKind === "DELIVERY") &&
+        typeof ref.recordId === "string",
+    )
+    .map((ref) => ({
+      providerKey: input.providerKey,
+      entityKind: ref.entityKind as "LOAD" | "DELIVERY",
+      externalId: ref.externalId,
+      recordId: ref.recordId,
+      previousPayload: ref.previousPayload,
+    }));
+
+  if (refs.length === 0) return null;
+
+  try {
+    const result = await materializeExternalRecords({
+      repository: createConnectedDataRepository(),
+      mapper,
+      organizationId: input.organizationId,
+      integrationId: input.integrationId,
+      providerKey: input.providerKey,
+      refs,
+    });
+    return { ...result };
+  } catch (error) {
+    const safe = toSafeIntegrationError(error);
+    return { error: safe.message };
+  }
 }
 
 export async function listSyncRunsForIntegration(
