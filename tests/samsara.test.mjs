@@ -366,6 +366,72 @@ test("fleet extractor: deterministic truck/driver matching keys", () => {
   resetFleetEntityExtractors();
 });
 
+test("HOS 403 is a non-fatal feed warning; other feeds still sync", async () => {
+  const handler = async (url) => {
+    if (url.includes("/fleet/vehicles?")) return jsonResponse(200, page([vehicle]));
+    if (url.includes("/fleet/drivers?")) return jsonResponse(200, page([driver]));
+    if (url.includes("stats/feed")) return jsonResponse(200, page([feedVehicle], "c1", false));
+    if (url.includes("hos/clocks")) return jsonResponse(403, {});
+    return jsonResponse(404, {});
+  };
+  const { connector } = connectorWith(handler);
+  const result = await connector.fetchChanges(syncCtx());
+
+  // Entities and stats signals are unaffected.
+  assert.equal(result.entities.length, 2);
+  assert.ok(result.signals.some((s) => s.signalKind === "VEHICLE_LOCATION"));
+  assert.ok(result.signals.some((s) => s.signalKind === "VEHICLE_MOTION_STATE"));
+  // No HOS signals fabricated.
+  assert.ok(!result.signals.some((s) => s.signalKind === "DRIVER_DUTY_STATUS"));
+  // Warning recorded for the failed feed.
+  assert.equal(result.warnings.length, 1);
+  assert.equal(result.warnings[0].feed, "hos-clocks");
+  assert.equal(result.warnings[0].code, "AUTHORIZATION_FAILED");
+  assert.ok(!result.warnings[0].message.includes(TOKEN));
+  // Stats cursor still advances.
+  assert.equal(JSON.parse(result.nextCursor).stats, "c1");
+});
+
+test("HOS 500 is also non-fatal; includeHos=false skips the feed entirely", async () => {
+  let hosCalls = 0;
+  const handler = async (url) => {
+    if (url.includes("/fleet/vehicles?")) return jsonResponse(200, page([vehicle]));
+    if (url.includes("/fleet/drivers?")) return jsonResponse(200, page([driver]));
+    if (url.includes("stats/feed")) return jsonResponse(200, page([], null, false));
+    if (url.includes("hos/clocks")) {
+      hosCalls += 1;
+      return jsonResponse(500, {});
+    }
+    return jsonResponse(404, {});
+  };
+  const { connector } = connectorWith(handler);
+  const result = await connector.fetchChanges(syncCtx());
+  assert.equal(result.warnings.length, 1);
+  assert.equal(result.warnings[0].code, "PROVIDER_UNAVAILABLE");
+
+  hosCalls = 0;
+  const ctx = syncCtx();
+  ctx.config = { includeHos: false };
+  const result2 = await connector.fetchChanges(ctx);
+  assert.equal(hosCalls, 0);
+  assert.equal(result2.warnings, undefined);
+});
+
+test("stats feed failure remains fatal (no partial cursor advance)", async () => {
+  const handler = async (url) => {
+    if (url.includes("/fleet/vehicles?")) return jsonResponse(200, page([vehicle]));
+    if (url.includes("/fleet/drivers?")) return jsonResponse(200, page([driver]));
+    if (url.includes("stats/feed")) return jsonResponse(503, {});
+    if (url.includes("hos/clocks")) return jsonResponse(200, page([]));
+    return jsonResponse(404, {});
+  };
+  const { connector } = connectorWith(handler);
+  await assert.rejects(
+    connector.fetchChanges(syncCtx('{"stats":"old"}')),
+    (e) => e.code === "PROVIDER_UNAVAILABLE",
+  );
+});
+
 test("verifyConnection reports safe detail", async () => {
   const { connector } = connectorWith(async () => jsonResponse(200, page([])));
   const ctx = {

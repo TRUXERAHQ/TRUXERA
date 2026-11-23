@@ -1,4 +1,4 @@
-import type { IntegrationConnector, SyncContext, ConnectorSignal } from "./connector.ts";
+import type { IntegrationConnector, SyncContext, ConnectorSignal, ConnectorFeedWarning } from "./connector.ts";
 import type { IntegrationCredentialPayload } from "./auth.ts";
 import type { SyncTrigger } from "./types.ts";
 import { IntegrationError, toSafeIntegrationError } from "./errors.ts";
@@ -77,6 +77,7 @@ export type SyncOutcome = {
   error: { code: string; message: string } | null;
   changedRecords?: ChangedRecordRef[];
   signals?: ConnectorSignal[];
+  warnings?: ConnectorFeedWarning[];
 };
 
 export async function runIntegrationSync(input: {
@@ -160,9 +161,20 @@ export async function runIntegrationSync(input: {
     }
 
     const recordsSeen = result.entities.length;
+    const feedWarnings = result.warnings ?? [];
     const status =
-      failed === 0 ? "SUCCEEDED" : recordsSeen === failed ? "FAILED" : "PARTIAL";
+      failed === 0
+        ? feedWarnings.length > 0
+          ? "PARTIAL"
+          : "SUCCEEDED"
+        : recordsSeen === failed
+          ? "FAILED"
+          : "PARTIAL";
     const finishedAt = new Date();
+    const warningSummary =
+      feedWarnings.length > 0
+        ? feedWarnings.map((w) => `${w.feed}: ${w.message}`).join(" ")
+        : null;
 
     await backend.finishSyncRun({
       runId: run.id,
@@ -172,17 +184,34 @@ export async function runIntegrationSync(input: {
       recordsCreated: created,
       recordsUpdated: updated,
       recordsFailed: failed,
-      errorCode: status === "SUCCEEDED" ? null : "RECORD_FAILURES",
+      errorCode:
+        status === "SUCCEEDED"
+          ? null
+          : failed > 0
+            ? "RECORD_FAILURES"
+            : "PARTIAL_FEED",
       errorSummary:
         status === "SUCCEEDED"
           ? null
-          : `${failed} of ${recordsSeen} records failed to persist.`,
+          : [
+              failed > 0
+                ? `${failed} of ${recordsSeen} records failed to persist.`
+                : null,
+              warningSummary,
+            ]
+              .filter(Boolean)
+              .join(" ") || null,
     });
 
     const lastError =
       status === "SUCCEEDED"
         ? null
-        : `${failed} record(s) failed during sync.`;
+        : [
+            failed > 0 ? `${failed} record(s) failed during sync.` : null,
+            warningSummary,
+          ]
+            .filter(Boolean)
+            .join(" ") || null;
     await backend.setSyncCursor({
       organizationId: input.organizationId,
       integrationId: input.integrationId,
@@ -204,6 +233,7 @@ export async function runIntegrationSync(input: {
       error: lastError ? { code: "RECORD_FAILURES", message: lastError } : null,
       changedRecords,
       signals: result.signals ?? [],
+      warnings: feedWarnings,
     };
   } catch (error) {
     const safe = toSafeIntegrationError(error);

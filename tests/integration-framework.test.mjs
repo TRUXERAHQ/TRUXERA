@@ -443,6 +443,63 @@ test("sync failure marks integration error state with a safe message", async () 
   assert.equal(cursors.at(-1).consecutiveFailures, 1);
 });
 
+test("sync records feed warnings as PARTIAL without failing the run", async () => {
+  const { backend, runs, cursors } = createMockBackend();
+  const connector = {
+    descriptor: {
+      key: "warn-tms",
+      displayName: "Warn",
+      type: "TMS",
+      auth: { kinds: [], requiresCredential: false },
+      capabilities: {
+        entities: ["LOAD"],
+        initialSync: true,
+        incrementalSync: true,
+        polling: true,
+        webhooks: false,
+      },
+    },
+    async fetchChanges() {
+      return {
+        entities: [{ kind: "LOAD", externalId: "OK-1", data: {} }],
+        signals: [],
+        warnings: [
+          {
+            feed: "hos-clocks",
+            code: "AUTHORIZATION_FAILED",
+            message: "Samsara denied access for HOS clocks (403).",
+          },
+        ],
+        nextCursor: "cursor-9",
+      };
+    },
+  };
+
+  const outcome = await runIntegrationSync({
+    connector,
+    backend,
+    organizationId: "org-1",
+    integrationId: "int-1",
+    providerKey: "warn-tms",
+    config: {},
+    credential: null,
+    trigger: "SCHEDULED",
+    cursor: null,
+  });
+
+  assert.equal(outcome.status, "PARTIAL");
+  assert.equal(outcome.recordsCreated, 1);
+  assert.equal(outcome.recordsFailed, 0);
+  assert.equal(outcome.warnings.length, 1);
+  assert.equal(outcome.warnings[0].feed, "hos-clocks");
+  assert.equal(runs[0].status, "PARTIAL");
+  assert.equal(runs[0].errorCode, "PARTIAL_FEED");
+  // Cursor still advances: the stats feed itself succeeded.
+  assert.equal(cursors.at(-1).cursor, "cursor-9");
+  assert.equal(cursors.at(-1).status, "DEGRADED");
+  assert.ok(cursors.at(-1).lastSyncError.includes("hos-clocks"));
+});
+
 test("integration administration is restricted to owner and admin roles", () => {
   assert.equal(canAdministerIntegrations("OWNER"), true);
   assert.equal(canAdministerIntegrations("ADMIN"), true);

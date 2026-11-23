@@ -796,6 +796,7 @@ export async function runSyncForIntegration(
       materialization,
       fleetLink,
       signalIngest,
+      feedWarnings: outcome.warnings ?? [],
     },
   });
 

@@ -71,9 +71,21 @@ export type ConnectorSignal = {
   dedupeKey?: string | null;
 };
 
+/**
+ * A non-fatal provider feed failure. The sync continues for all other
+ * feeds; the warning is surfaced on the sync outcome so the run can be
+ * recorded as partial rather than silently succeeding or failing whole.
+ */
+export type ConnectorFeedWarning = {
+  feed: string;
+  code: string;
+  message: string;
+};
+
 export type FetchResult = {
   entities: NormalizedEntity[];
   signals?: ConnectorSignal[];
+  warnings?: ConnectorFeedWarning[];
   nextCursor?: string | null;
 };
 

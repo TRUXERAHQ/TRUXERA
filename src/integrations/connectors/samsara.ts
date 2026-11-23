@@ -2,13 +2,14 @@ import type {
   ConnectionCheck,
   ConnectionContext,
   ConnectorDescriptor,
+  ConnectorFeedWarning,
   FetchResult,
   IntegrationConnector,
   SyncContext,
 } from "../connector.ts";
 import type { ConnectorSignal } from "../connector.ts";
 import type { IntegrationCredentialPayload } from "../auth.ts";
-import { IntegrationError, redactSecrets } from "../errors.ts";
+import { IntegrationError, redactSecrets, toSafeIntegrationError } from "../errors.ts";
 import {
   extractSamsaraHosSignals,
   extractSamsaraStatsSignals,
@@ -363,6 +364,7 @@ export function createSamsaraConnector(options?: {
       const client = clientFor(ctx);
       const entities: NormalizedEntity[] = [];
       const signals: ConnectorSignal[] = [];
+      const warnings: ConnectorFeedWarning[] = [];
       const cursorState = parseCursor(ctx.cursor);
 
       // Fleet entity snapshots (checksum-idempotent upserts downstream).
@@ -404,15 +406,27 @@ export function createSamsaraConnector(options?: {
       // HOS clocks is a paginated current-state snapshot (not a cursor
       // feed), so every sync drains all pages and no cursor is persisted.
       // Requires the "Read ELD Compliance Settings (US)" token scope.
+      // A failure on this feed (e.g. 403 when the token lacks the ELD
+      // scope) is non-fatal: it is reported as a feed warning so the
+      // rest of the sync still succeeds and is recorded as partial.
       if (config.includeHos) {
-        const hosEntries = await listAllPages({
-          client,
-          path: "/fleet/hos/clocks",
-          what: "HOS clocks",
-          signal: ctx.signal,
-        });
-        const observedAt = new Date().toISOString();
-        signals.push(...extractSamsaraHosSignals(hosEntries, observedAt));
+        try {
+          const hosEntries = await listAllPages({
+            client,
+            path: "/fleet/hos/clocks",
+            what: "HOS clocks",
+            signal: ctx.signal,
+          });
+          const observedAt = new Date().toISOString();
+          signals.push(...extractSamsaraHosSignals(hosEntries, observedAt));
+        } catch (error) {
+          const safe = toSafeIntegrationError(error);
+          warnings.push({
+            feed: "hos-clocks",
+            code: safe.code,
+            message: safe.message,
+          });
+        }
       }
 
       if (signals.length > MAX_SIGNALS_PER_SYNC) {
@@ -426,7 +440,12 @@ export function createSamsaraConnector(options?: {
         stats: statsFeed.endCursor ?? cursorState.stats ?? null,
       });
 
-      return { entities, signals, nextCursor };
+      return {
+        entities,
+        signals,
+        warnings: warnings.length > 0 ? warnings : undefined,
+        nextCursor,
+      };
     },
   };
 }
