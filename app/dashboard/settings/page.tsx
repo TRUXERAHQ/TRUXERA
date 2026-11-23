@@ -10,6 +10,7 @@ import {
   listConnectorCatalog,
   listIntegrationsForOrganization,
 } from "@/src/prisma/integration-data";
+import { getConnectedSignalsOverview } from "@/src/prisma/connected-signals";
 import { PageHeader } from "../ui";
 import SettingsSections from "./settings-sections";
 
@@ -33,9 +34,13 @@ async function SettingsContent({ searchParams }: Props) {
   const context = await getOperationsPageContext(await searchParams);
   const session = await auth();
 
-  const [integrations, connectorCatalog] = await Promise.all([
+  const [integrations, connectorCatalog, signals] = await Promise.all([
     listIntegrationsForOrganization(context.userId, context.organization.id),
     listConnectorCatalog(),
+    getConnectedSignalsOverview(
+      context.userId,
+      context.organization.id,
+    ),
   ]);
 
   const timeZones = Intl.supportedValuesOf("timeZone");
@@ -66,6 +71,7 @@ async function SettingsContent({ searchParams }: Props) {
           userName={session?.user?.name ?? null}
           userEmail={session?.user?.email ?? null}
           integrations={integrations}
+          signalSummaries={signals?.integrations ?? []}
           connectorCatalog={connectorCatalog}
         />
       </div>

@@ -61,6 +61,20 @@ type ConnectorCatalogItem = {
   description?: string;
 };
 
+type SignalSummaryItem = {
+  integrationId: string;
+  providerKey: string;
+  displayName: string;
+  status: string;
+  freshness: string;
+  intervalAssumed: boolean;
+  lastSyncAt: string | null;
+  lastSuccessfulSyncAt: string | null;
+  linkedRecords: number;
+  mappingFailedRecords: number;
+  staleRecords: number;
+};
+
 const plannedIntegrations = [
   "TMS Integration",
   "ELD Integration",
@@ -128,6 +142,7 @@ export default function SettingsSections({
   userName,
   userEmail,
   integrations,
+  signalSummaries,
   connectorCatalog,
 }: {
   organizationId: string;
@@ -142,6 +157,7 @@ export default function SettingsSections({
   userName: string | null;
   userEmail: string | null;
   integrations: IntegrationListItem[];
+  signalSummaries: SignalSummaryItem[];
   connectorCatalog: ConnectorCatalogItem[];
 }) {
   const [state, action, pending] = useActionState(
@@ -318,7 +334,11 @@ export default function SettingsSections({
       >
         {integrations.length > 0 ? (
           <ul className="divide-y divide-slate-100">
-            {integrations.map((integration) => (
+            {integrations.map((integration) => {
+              const signal = signalSummaries.find(
+                (entry) => entry.integrationId === integration.id,
+              );
+              return (
               <li
                 key={integration.id}
                 className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
@@ -340,6 +360,18 @@ export default function SettingsSections({
                       : ""}
                     {" · "}Last sync {formatDate(integration.lastSyncAt)}
                   </p>
+                  {signal && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Data source: {formatRole(signal.freshness)}
+                      {signal.intervalAssumed ? " (default interval)" : ""}
+                      {signal.mappingFailedRecords > 0
+                        ? ` · ${signal.mappingFailedRecords} mapping failure${signal.mappingFailedRecords === 1 ? "" : "s"}`
+                        : ""}
+                      {signal.staleRecords > 0
+                        ? ` · ${signal.staleRecords} stale record${signal.staleRecords === 1 ? "" : "s"}`
+                        : ""}
+                    </p>
+                  )}
                   {integration.lastSyncError && (
                     <p className="mt-1 text-xs text-amber-700">
                       {integration.lastSyncError}
@@ -353,7 +385,8 @@ export default function SettingsSections({
                   <Badge tone="neutral">{formatRole(integration.status)}</Badge>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         ) : (
           <div>

@@ -8,6 +8,7 @@ import type {
 } from "../fleet/delivery-risk.ts";
 import { riskLevels } from "../fleet/delivery-risk.ts";
 import { isUuid } from "../trucks/truck-policy.ts";
+import type { ConnectedRecordState } from "../integrations/connected-signals.ts";
 
 const activeStatuses = new Set<DeliveryStatus>([
   "PLANNED",
@@ -146,6 +147,7 @@ export type CommandCenterItem = {
   requiresAttention: boolean;
   priority: number;
   actionability: number;
+  connected: ConnectedRecordState | null;
 };
 
 function compareItems(left: CommandCenterItem, right: CommandCenterItem) {
@@ -223,6 +225,7 @@ export function buildCommandCenter(input: {
     deliveryId: string;
     analysis: DeliveryRiskAnalysis;
   }>;
+  connectedStates?: Record<string, ConnectedRecordState>;
 }) {
   const deliveries = input.deliveries.filter(
     (delivery) =>
@@ -354,6 +357,10 @@ export function buildCommandCenter(input: {
       requiresAttention,
       priority,
       actionability,
+      connected:
+        input.connectedStates?.[delivery.id] ??
+        input.connectedStates?.[delivery.loadId] ??
+        null,
     }];
   });
 

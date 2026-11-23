@@ -8,6 +8,8 @@ import {
   type OperationsSearchParams,
 } from "../operations-page-data";
 import { getDispatchBoardForOrganization } from "@/src/prisma/operations-data";
+import { getConnectedSignalsOverview } from "@/src/prisma/connected-signals";
+import type { ConnectedRecordState } from "@/src/integrations/connected-signals";
 import { analyzeDeliveryRisksForOrganization } from "@/src/fleet/delivery-risk";
 import {
   buildCommandCenter,
@@ -78,6 +80,42 @@ function dateLabel(date: Date, timezone: string) {
   }).format(date);
 }
 
+function connectedBadge(state: ConnectedRecordState | null) {
+  if (!state) {
+    return { label: "Manual", tone: "neutral" as const };
+  }
+  if (
+    state.freshness === "DISCONNECTED" ||
+    state.freshness === "SYNC_FAILED" ||
+    state.quality === "SOURCE_UNAVAILABLE"
+  ) {
+    return { label: "Connected · Sync issue", tone: "danger" as const };
+  }
+  if (
+    state.freshness === "STALE" ||
+    state.quality === "SOURCE_STALE"
+  ) {
+    return { label: "Connected · Stale", tone: "warning" as const };
+  }
+  return { label: "Connected · Fresh", tone: "info" as const };
+}
+
+function connectedSourceLine(
+  state: ConnectedRecordState,
+  timezone: string,
+) {
+  const parts = [`Data source: ${state.sourceName}`];
+  if (state.lastSyncedAt) {
+    parts.push(
+      `Last synced ${dateLabel(new Date(state.lastSyncedAt), timezone)}`,
+    );
+  } else {
+    parts.push("No successful sync yet");
+  }
+  if (state.intervalAssumed) parts.push("default sync interval");
+  return parts.join(" · ");
+}
+
 export default function CommandCenterPage({ searchParams }: Props) {
   return (
     <Suspense
@@ -103,6 +141,11 @@ async function CommandCenterContent({ searchParams }: Props) {
 
   const organizationId = context.organization.id;
   const analyzedAt = new Date();
+  const signals = await getConnectedSignalsOverview(
+    context.userId,
+    organizationId,
+    analyzedAt,
+  );
   const filters = parseCommandCenterFilters(params);
   const activeAssignments = board.assignments.filter(
     (assignment) => assignment.endedAt === null,
@@ -174,6 +217,7 @@ async function CommandCenterContent({ searchParams }: Props) {
     ),
     events: board.events,
     analyses,
+    connectedStates: signals?.records ?? {},
   });
   const loads = Array.from(
     new Map(
@@ -419,8 +463,20 @@ async function CommandCenterContent({ searchParams }: Props) {
                         {item.requiresAttention && (
                           <Badge tone="warning">Requires attention</Badge>
                         )}
+                        <Badge tone={connectedBadge(item.connected).tone}>
+                          {connectedBadge(item.connected).label}
+                        </Badge>
                       </div>
                     </div>
+
+                    {item.connected && (
+                      <p className="mt-2 text-xs text-slate-500">
+                        {connectedSourceLine(
+                          item.connected,
+                          context.organization.timezone,
+                        )}
+                      </p>
+                    )}
 
                     <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                       <p>
