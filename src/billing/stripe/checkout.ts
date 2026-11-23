@@ -76,8 +76,8 @@ export async function createCheckoutSession(input: {
           ? { customer_email: input.customerEmail }
           : {}),
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${base}/dashboard/settings?billing=checkout_success`,
-      cancel_url: `${base}/dashboard/settings?billing=checkout_canceled`,
+      success_url: `${base}/dashboard/billing?billing=checkout_success`,
+      cancel_url: `${base}/dashboard/billing?billing=checkout_canceled`,
       client_reference_id: input.organizationId,
       metadata,
       subscription_data: { metadata },

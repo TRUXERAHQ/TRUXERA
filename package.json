@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/tenant-access.test.mjs tests/integration-framework.test.mjs tests/mcleod-track-and-trace.test.mjs tests/materialize.test.mjs tests/connected-signals.test.mjs tests/operational-signals.test.mjs tests/samsara.test.mjs tests/onboarding.test.mjs tests/account.test.mjs tests/reliability.test.mjs tests/billing.test.mjs tests/stripe-billing.test.mjs",
+    "test": "node --experimental-strip-types --test tests/tenant-access.test.mjs tests/integration-framework.test.mjs tests/mcleod-track-and-trace.test.mjs tests/materialize.test.mjs tests/connected-signals.test.mjs tests/operational-signals.test.mjs tests/samsara.test.mjs tests/onboarding.test.mjs tests/account.test.mjs tests/reliability.test.mjs tests/billing.test.mjs tests/stripe-billing.test.mjs tests/billing-page.test.mjs",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
