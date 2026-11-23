@@ -1,0 +1,151 @@
+[
+  {
+    "id": "table.BillingSubscription",
+    "label": "Create table \"BillingSubscription\"",
+    "summary": "Creates table \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"BillingSubscription\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"BillingSubscription\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"BillingSubscription\"",
+        "sql": "CREATE TABLE \"public\".\"BillingSubscription\" (\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"organizationId\" uuid NOT NULL,\n  \"plan\" text NOT NULL,\n  \"providerKey\" text,\n  \"providerSubscriptionId\" text,\n  \"status\" text NOT NULL,\n  \"trialEndAt\" timestamptz(3),\n  \"trialStartAt\" timestamptz(3),\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"BillingSubscription_plan_check_b703cbe4\" CHECK (\"plan\" IN ('TRIAL', 'PROFESSIONAL', 'ENTERPRISE')),\n  CONSTRAINT \"BillingSubscription_status_check_06476f63\" CHECK (\"status\" IN ('TRIAL', 'ACTIVE', 'PAUSED', 'CANCELED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"BillingSubscription\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"BillingSubscription\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"BillingSubscription\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.BillingSubscription.BillingSubscription_organizationId_key",
+    "label": "Add unique constraint on \"BillingSubscription\" (organizationId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "BillingSubscription_organizationId_key",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"BillingSubscription_organizationId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "BillingSubscription_organizationId_key",
+          "public",
+          "\"public\".\"BillingSubscription\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"BillingSubscription_organizationId_key\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"BillingSubscription_organizationId_key\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD CONSTRAINT \"BillingSubscription_organizationId_key\" UNIQUE (\"organizationId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"BillingSubscription_organizationId_key\" exists on (organizationId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "BillingSubscription_organizationId_key",
+          "public",
+          "\"public\".\"BillingSubscription\"",
+          "u",
+          "[\"organizationId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.BillingSubscription.BillingSubscription_organizationId_fkey",
+    "label": "Add foreign key \"BillingSubscription_organizationId_fkey\" on \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "BillingSubscription_organizationId_fkey",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"BillingSubscription_organizationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "BillingSubscription_organizationId_fkey",
+          "public",
+          "\"public\".\"BillingSubscription\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"BillingSubscription_organizationId_fkey\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"BillingSubscription_organizationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\"\nADD CONSTRAINT \"BillingSubscription_organizationId_fkey\"\nFOREIGN KEY (\"organizationId\")\nREFERENCES \"public\".\"Organization\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"BillingSubscription_organizationId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "BillingSubscription_organizationId_fkey",
+          "public",
+          "\"public\".\"BillingSubscription\"",
+          "f",
+          "[\"organizationId\"]",
+          "\"public\".\"Organization\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  }
+]

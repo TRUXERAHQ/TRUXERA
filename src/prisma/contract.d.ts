@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'879e25aca4ee97932ef634f7fb219bb4355b245e20a2ebac0bdb84cc8225862c'>;
+  StorageHashBase<'f59ebd0df81da3ea784f06a49876a5f691027af2d6ec48eac42f12c2ac935003'>;
 export type ExecutionHash =
-  ExecutionHashBase<'0b9aa424d25b81912b57c9c0a348b422da22f3bf2710fde1cadbbff882f0e46a'>;
+  ExecutionHashBase<'02eb8b53ee797efa623c70f7a72ed1a7b51354b14d3457f1b10c2246f6f54eb9'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -278,6 +278,16 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly BillingSubscription: {
+        readonly plan: {
+          readonly output: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
+          readonly input: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
+        };
+        readonly status: {
+          readonly output: 'TRIAL' | 'ACTIVE' | 'PAUSED' | 'CANCELED';
+          readonly input: 'TRIAL' | 'ACTIVE' | 'PAUSED' | 'CANCELED';
+        };
+      };
       readonly Delivery: {
         readonly riskLevel: {
           readonly output: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -527,6 +537,16 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly BillingSubscription: {
+      readonly plan: {
+        readonly output: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
+        readonly input: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
+      };
+      readonly status: {
+        readonly output: 'TRIAL' | 'ACTIVE' | 'PAUSED' | 'CANCELED';
+        readonly input: 'TRIAL' | 'ACTIVE' | 'PAUSED' | 'CANCELED';
+      };
+    };
     readonly Delivery: {
       readonly riskLevel: {
         readonly output: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -773,6 +793,20 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 >;
 
 export namespace Models {
+  export type public_BillingSubscription = {
+    createdAt: FieldOutputTypes['public']['BillingSubscription']['createdAt'];
+    id: FieldOutputTypes['public']['BillingSubscription']['id'];
+    organizationId: FieldOutputTypes['public']['BillingSubscription']['organizationId'];
+    plan: FieldOutputTypes['public']['BillingSubscription']['plan'];
+    providerKey: FieldOutputTypes['public']['BillingSubscription']['providerKey'];
+    providerSubscriptionId: FieldOutputTypes['public']['BillingSubscription']['providerSubscriptionId'];
+    status: FieldOutputTypes['public']['BillingSubscription']['status'];
+    trialEndAt: FieldOutputTypes['public']['BillingSubscription']['trialEndAt'];
+    trialStartAt: FieldOutputTypes['public']['BillingSubscription']['trialStartAt'];
+    updatedAt: FieldOutputTypes['public']['BillingSubscription']['updatedAt'];
+    organization: public_Organization;
+    readonly [RelationKeys]?: 'organization';
+  };
   export type public_Delivery = {
     createdAt: FieldOutputTypes['public']['Delivery']['createdAt'];
     deliveredAt: FieldOutputTypes['public']['Delivery']['deliveredAt'];
@@ -1110,6 +1144,7 @@ export namespace Models {
 
 export declare const models: {
   public: {
+    BillingSubscription: Models.public_BillingSubscription;
     Delivery: Models.public_Delivery;
     DeliveryEvent: Models.public_DeliveryEvent;
     DispatchAssignment: Models.public_DispatchAssignment;
@@ -1151,6 +1186,91 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly BillingSubscription: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly plan: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly providerKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly providerSubscriptionId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly trialEndAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly trialStartAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['organizationId'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'BillingSubscription';
+                    readonly columns: readonly ['organizationId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Organization';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly Delivery: {
               columns: {
                 readonly createdAt: {
@@ -3645,6 +3765,10 @@ type ContractBase = Omit<
             };
           };
           readonly valueSet: {
+            readonly BillingPlan: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['TRIAL', 'PROFESSIONAL', 'ENTERPRISE'];
+            };
             readonly DeliveryEventType: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -3777,6 +3901,10 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['TRUCK', 'DRIVER', 'DELIVERY', 'LOAD'];
             };
+            readonly SubscriptionStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['TRIAL', 'ACTIVE', 'PAUSED', 'CANCELED'];
+            };
             readonly SupportCategory: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -3824,6 +3952,10 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly BillingSubscription: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'BillingSubscription';
+    };
     readonly Delivery: { readonly namespace: 'public' & NamespaceId; readonly model: 'Delivery' };
     readonly DeliveryEvent: {
       readonly namespace: 'public' & NamespaceId;
@@ -3891,6 +4023,96 @@ type ContractBase = Omit<
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly BillingSubscription: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly plan: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly providerKey: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly providerSubscriptionId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly trialEndAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly trialStartAt: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: {
+              readonly organization: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Organization';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['organizationId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'BillingSubscription';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly id: { readonly column: 'id' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly plan: { readonly column: 'plan' };
+                readonly providerKey: { readonly column: 'providerKey' };
+                readonly providerSubscriptionId: { readonly column: 'providerSubscriptionId' };
+                readonly status: { readonly column: 'status' };
+                readonly trialEndAt: { readonly column: 'trialEndAt' };
+                readonly trialStartAt: { readonly column: 'trialStartAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
           readonly Delivery: {
             readonly fields: {
               readonly createdAt: {
@@ -5934,6 +6156,14 @@ type ContractBase = Omit<
           };
         };
         readonly enum: {
+          readonly BillingPlan: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'TRIAL'; readonly value: 'TRIAL' },
+              { readonly name: 'PROFESSIONAL'; readonly value: 'PROFESSIONAL' },
+              { readonly name: 'ENTERPRISE'; readonly value: 'ENTERPRISE' },
+            ];
+          };
           readonly DeliveryEventType: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -6102,6 +6332,15 @@ type ContractBase = Omit<
               { readonly name: 'LOAD'; readonly value: 'LOAD' },
             ];
           };
+          readonly SubscriptionStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'TRIAL'; readonly value: 'TRIAL' },
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'PAUSED'; readonly value: 'PAUSED' },
+              { readonly name: 'CANCELED'; readonly value: 'CANCELED' },
+            ];
+          };
           readonly SupportCategory: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -6158,6 +6397,11 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly BillingPlan: readonly [
+            { readonly name: 'TRIAL'; readonly value: 'TRIAL' },
+            { readonly name: 'PROFESSIONAL'; readonly value: 'PROFESSIONAL' },
+            { readonly name: 'ENTERPRISE'; readonly value: 'ENTERPRISE' },
+          ];
           readonly DeliveryEventType: readonly [
             { readonly name: 'STATUS_CHANGED'; readonly value: 'STATUS_CHANGED' },
             { readonly name: 'ASSIGNMENT_CHANGED'; readonly value: 'ASSIGNMENT_CHANGED' },
@@ -6278,6 +6522,12 @@ type ContractBase = Omit<
             { readonly name: 'DELIVERY'; readonly value: 'DELIVERY' },
             { readonly name: 'LOAD'; readonly value: 'LOAD' },
           ];
+          readonly SubscriptionStatus: readonly [
+            { readonly name: 'TRIAL'; readonly value: 'TRIAL' },
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'PAUSED'; readonly value: 'PAUSED' },
+            { readonly name: 'CANCELED'; readonly value: 'CANCELED' },
+          ];
           readonly SupportCategory: readonly [
             { readonly name: 'TECHNICAL_ISSUE'; readonly value: 'TECHNICAL_ISSUE' },
             { readonly name: 'DATA_ISSUE'; readonly value: 'DATA_ISSUE' },
@@ -6351,6 +6601,43 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'BillingSubscription';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'BillingSubscription';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'BillingSubscription';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
         {
           readonly onCreate: {
             readonly id: 'timestampNow';

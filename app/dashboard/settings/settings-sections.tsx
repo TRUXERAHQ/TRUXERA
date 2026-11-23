@@ -19,6 +19,11 @@ import {
 import type { OnboardingView } from "@/src/onboarding/onboarding";
 import type { AccountStatus } from "@/src/account/account-status";
 import type { ReliabilityOverview } from "@/src/prisma/reliability-data";
+import type { BillingOverview } from "@/src/prisma/billing-data";
+import {
+  ENTITLEMENT_LABELS,
+  USAGE_LIMIT_LABELS,
+} from "@/src/billing/billing";
 
 const membershipRoles = [
   {
@@ -391,6 +396,103 @@ function ReliabilitySection({
   );
 }
 
+function BillingSection({ billing }: { billing: BillingOverview | null }) {
+  return (
+    <Panel
+      title="Billing & Plan"
+      description="Commercial plan and entitlement state for this organization. Billing is informational in this release — no payment method is stored, no charges are made, and no billing provider is connected."
+    >
+      {billing ? (
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="info">{billing.planLabel}</Badge>
+            {billing.subscriptionStatusLabel && (
+              <Badge
+                tone={
+                  billing.subscriptionStatus === "ACTIVE" ||
+                  billing.subscriptionStatus === "TRIAL"
+                    ? "success"
+                    : billing.subscriptionStatus === "PAUSED"
+                      ? "warning"
+                      : "neutral"
+                }
+              >
+                {billing.subscriptionStatusLabel}
+              </Badge>
+            )}
+            {!billing.configured && (
+              <Badge tone="neutral">Not configured</Badge>
+            )}
+          </div>
+
+          <dl className="space-y-2.5">
+            <MetaRow label="Plan">{billing.planLabel}</MetaRow>
+            <MetaRow label="Subscription">
+              {billing.subscriptionStatusLabel ?? "Not configured"}
+            </MetaRow>
+            <MetaRow label="Trial">
+              {billing.trialStartAt || billing.trialEndAt
+                ? `${formatDate(billing.trialStartAt)} → ${formatDate(billing.trialEndAt)}`
+                : "Not configured"}
+            </MetaRow>
+            <MetaRow label="Billing provider">
+              {billing.providerConnected
+                ? billing.providerKey ?? "Connected"
+                : "None connected"}
+            </MetaRow>
+          </dl>
+
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+              Features
+            </p>
+            <ul className="mt-2 space-y-1">
+              {billing.entitlements.map((key) => (
+                <li
+                  key={key}
+                  className="flex items-center gap-2 text-sm text-slate-700"
+                >
+                  <span className="text-emerald-600" aria-hidden="true">
+                    ✓
+                  </span>
+                  {ENTITLEMENT_LABELS[key]}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+              Usage
+            </p>
+            <dl className="mt-2 space-y-2">
+              {(Object.keys(USAGE_LIMIT_LABELS) as (keyof typeof USAGE_LIMIT_LABELS)[]).map(
+                (key) => (
+                  <MetaRow key={key} label={USAGE_LIMIT_LABELS[key]}>
+                    {billing.usage[key]}
+                    {billing.limits[key] === "unlimited"
+                      ? " · unlimited"
+                      : billing.limits[key] === null
+                        ? ""
+                        : ` / ${billing.limits[key]}`}
+                  </MetaRow>
+                ),
+              )}
+            </dl>
+            <p className="mt-2 text-xs text-slate-500">
+              Usage limits are not enforced in this release.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">
+          Billing information is not available for this workspace.
+        </p>
+      )}
+    </Panel>
+  );
+}
+
 function AccountStatusSection({
   organizationId,
   organizationName,
@@ -554,6 +656,7 @@ export default function SettingsSections({
   accountStatus,
   account,
   reliability,
+  billing,
 }: {
   organizationId: string;
   organizationName: string;
@@ -574,6 +677,7 @@ export default function SettingsSections({
   accountStatus: AccountStatus;
   account: AccountOverviewView | null;
   reliability: ReliabilityOverview | null;
+  billing: BillingOverview | null;
 }) {
   const [state, action, pending] = useActionState(
     updateOrganizationSettingsAction,
@@ -962,6 +1066,8 @@ export default function SettingsSections({
       </Panel>
 
       <ReliabilitySection reliability={reliability} />
+
+      <BillingSection billing={billing} />
 
       <Panel
         title="Notifications"

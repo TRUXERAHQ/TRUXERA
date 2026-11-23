@@ -6,6 +6,23 @@ enum OrganizationStatus {
   SUSPENDED = "SUSPENDED"
 }
 
+enum BillingPlan {
+  @@type("pg/text@1")
+
+  TRIAL = "TRIAL"
+  PROFESSIONAL = "PROFESSIONAL"
+  ENTERPRISE = "ENTERPRISE"
+}
+
+enum SubscriptionStatus {
+  @@type("pg/text@1")
+
+  TRIAL = "TRIAL"
+  ACTIVE = "ACTIVE"
+  PAUSED = "PAUSED"
+  CANCELED = "CANCELED"
+}
+
 enum MembershipRole {
   @@type("pg/text@1")
 
@@ -226,6 +243,21 @@ model Organization {
   status    OrganizationStatus @default(ACTIVE)
   createdAt temporal.CreatedAt
   updatedAt temporal.UpdatedAt
+}
+
+model BillingSubscription {
+  id                     Uuid               @id @onCreate(uuid(7))
+  organizationId         Uuid               @unique
+  plan                   BillingPlan
+  status                 SubscriptionStatus
+  trialStartAt           DateTime?
+  trialEndAt             DateTime?
+  providerKey            String?
+  providerSubscriptionId String?
+  createdAt              temporal.CreatedAt
+  updatedAt              temporal.UpdatedAt
+
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 }
 
 model User {

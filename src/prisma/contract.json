@@ -4,6 +4,10 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "BillingSubscription": {
+      "model": "BillingSubscription",
+      "namespace": "public"
+    },
     "Delivery": {
       "model": "Delivery",
       "namespace": "public"
@@ -89,6 +93,23 @@
     "namespaces": {
       "public": {
         "enum": {
+          "BillingPlan": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "TRIAL",
+                "value": "TRIAL"
+              },
+              {
+                "name": "PROFESSIONAL",
+                "value": "PROFESSIONAL"
+              },
+              {
+                "name": "ENTERPRISE",
+                "value": "ENTERPRISE"
+              }
+            ]
+          },
           "DeliveryEventType": {
             "codecId": "pg/text@1",
             "members": [
@@ -509,6 +530,27 @@
               }
             ]
           },
+          "SubscriptionStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "TRIAL",
+                "value": "TRIAL"
+              },
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "PAUSED",
+                "value": "PAUSED"
+              },
+              {
+                "name": "CANCELED",
+                "value": "CANCELED"
+              }
+            ]
+          },
           "SupportCategory": {
             "codecId": "pg/text@1",
             "members": [
@@ -637,6 +679,158 @@
           }
         },
         "models": {
+          "BillingSubscription": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "organizationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "plan": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "BillingPlan",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "providerKey": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "providerSubscriptionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SubscriptionStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "trialEndAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "trialStartAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "organization": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Organization",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "organizationId": {
+                  "column": "organizationId"
+                },
+                "plan": {
+                  "column": "plan"
+                },
+                "providerKey": {
+                  "column": "providerKey"
+                },
+                "providerSubscriptionId": {
+                  "column": "providerSubscriptionId"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "trialEndAt": {
+                  "column": "trialEndAt"
+                },
+                "trialStartAt": {
+                  "column": "trialStartAt"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "BillingSubscription"
+            }
+          },
           "Delivery": {
             "fields": {
               "createdAt": {
@@ -4140,6 +4334,134 @@
       "public": {
         "entries": {
           "table": {
+            "BillingSubscription": {
+              "checks": [
+                {
+                  "expression": "\"plan\" IN ('TRIAL', 'PROFESSIONAL', 'ENTERPRISE')",
+                  "name": "BillingSubscription_plan_check_b703cbe4",
+                  "prefix": "BillingSubscription_plan_check"
+                },
+                {
+                  "expression": "\"status\" IN ('TRIAL', 'ACTIVE', 'PAUSED', 'CANCELED')",
+                  "name": "BillingSubscription_status_check_06476f63",
+                  "prefix": "BillingSubscription_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "organizationId": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "plan": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "BillingPlan",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "providerKey": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "providerSubscriptionId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SubscriptionStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "trialEndAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "trialStartAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "organizationId"
+                    ]
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade",
+                  "source": {
+                    "columns": [
+                      "organizationId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "BillingSubscription"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Organization"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "organizationId"
+                  ]
+                }
+              ]
+            },
             "Delivery": {
               "checks": [
                 {
@@ -7515,6 +7837,14 @@
             }
           },
           "valueSet": {
+            "BillingPlan": {
+              "kind": "valueSet",
+              "values": [
+                "TRIAL",
+                "PROFESSIONAL",
+                "ENTERPRISE"
+              ]
+            },
             "DeliveryEventType": {
               "kind": "valueSet",
               "values": [
@@ -7680,6 +8010,15 @@
                 "LOAD"
               ]
             },
+            "SubscriptionStatus": {
+              "kind": "valueSet",
+              "values": [
+                "TRIAL",
+                "ACTIVE",
+                "PAUSED",
+                "CANCELED"
+              ]
+            },
             "SupportCategory": {
               "kind": "valueSet",
               "values": [
@@ -7740,12 +8079,58 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "879e25aca4ee97932ef634f7fb219bb4355b245e20a2ebac0bdb84cc8225862c"
+    "storageHash": "f59ebd0df81da3ea784f06a49876a5f691027af2d6ec48eac42f12c2ac935003"
   },
   "execution": {
-    "executionHash": "0b9aa424d25b81912b57c9c0a348b422da22f3bf2710fde1cadbbff882f0e46a",
+    "executionHash": "02eb8b53ee797efa623c70f7a72ed1a7b51354b14d3457f1b10c2246f6f54eb9",
     "mutations": {
       "defaults": [
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "BillingSubscription",
+            "field": "createdAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv7",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "BillingSubscription",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator",
+            "params": {
+              "precision": 3
+            }
+          },
+          "ref": {
+            "entry": "BillingSubscription",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
         {
           "onCreate": {
             "id": "timestampNow",
