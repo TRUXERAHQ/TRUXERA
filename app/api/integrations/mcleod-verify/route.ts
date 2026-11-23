@@ -10,15 +10,13 @@ import type {
 } from "@/src/integrations/connector";
 
 // TEMPORARY staging-only McLeod sandbox verification endpoint.
-// Read-only: runs verifyConnection + one orders-list fetch against the
-// Track & Trace sandbox. Removed after verification. Never returns
-// credential values or raw provider payloads.
+// Read-only GET probes only. Removed after verification.
 
 const VERIFY_TOKEN = "f70fc5a2-8c40-4a20-8419-5a39bc8562f9";
 
 function safeBody(body: unknown): string {
   const text = typeof body === "string" ? body : JSON.stringify(body ?? null);
-  return redactSecrets(text).slice(0, 400);
+  return redactSecrets(text).slice(0, 300);
 }
 
 export async function POST(request: Request) {
@@ -38,92 +36,88 @@ export async function POST(request: Request) {
     );
   }
 
-  const baseUrl =
-    process.env.MCLEOD_TNT_BASE_URL ||
-    "https://api.mcleodsoftware.com/trackandtrace-sandbox";
+  const host = "https://api.mcleodsoftware.com";
   const tenantId = process.env.MCLEOD_TNT_TENANT || "2";
-
-  const diagnostics: Record<string, unknown> = {
-    baseUrl,
-    tenantId,
-    apiKeyLen: apiKey.length,
-    tokenLen: accessToken.length,
-  };
-
   const client = createMcLeodClient({
-    baseUrl,
+    baseUrl: host,
     tenantId,
     apiKey,
     accessToken,
   });
 
-  try {
-    const probe = await client.get("/orders");
-    diagnostics.listStatus = probe.status;
-    diagnostics.listBodyPreview =
-      probe.status >= 200 && probe.status < 300
-        ? `array=${Array.isArray(probe.body)} length=${Array.isArray(probe.body) ? probe.body.length : "n/a"}`
-        : safeBody(probe.body);
-  } catch (error) {
-    diagnostics.listError =
-      error instanceof Error ? error.message.slice(0, 300) : "request failed";
-    return NextResponse.json(diagnostics, { status: 502 });
-  }
+  const probes: Array<[string, string]> = [
+    ["tt-sandbox /orders", "/trackandtrace-sandbox/orders"],
+    ["tt-sandbox /orders/", "/trackandtrace-sandbox/orders/"],
+    ["tt-sandbox root", "/trackandtrace-sandbox"],
+    ["tt-sandbox /v1/orders", "/trackandtrace-sandbox/v1/orders"],
+    ["tt-sandbox /orders?status", "/trackandtrace-sandbox/orders?status=InProgress"],
+  ];
 
-  const connector = createMcLeodTrackAndTraceConnector();
-  const ctx: ConnectionContext = {
-    organizationId: "sandbox-verify",
-    integrationId: "sandbox-verify",
-    providerKey: "mcleod-track-and-trace",
-    config: {
-      tenantId,
-      baseUrl,
-      fetchOrderDetail: false,
-    },
-    credential: { kind: "API_KEY_BEARER" as const, apiKey, accessToken },
-  };
-
-  try {
-    const check = await connector.verifyConnection!(ctx);
-    diagnostics.verifyConnection = check;
-    if (!check.ok) {
-      return NextResponse.json(diagnostics, { status: 502 });
+  const results: Record<string, unknown> = {};
+  for (const [label, path] of probes) {
+    try {
+      const res = await client.get(path);
+      results[label] = {
+        status: res.status,
+        body:
+          res.status >= 200 && res.status < 300
+            ? `ok array=${Array.isArray(res.body)} items=${Array.isArray(res.body) ? res.body.length : (res.body as {items?:unknown[]})?.items?.length ?? "?"} keys=${res.body && typeof res.body === "object" ? Object.keys(res.body as object).join(",") : typeof res.body}`
+            : safeBody(res.body),
+      };
+      if (res.status >= 200 && res.status < 300) break;
+    } catch (error) {
+      results[label] = {
+        error: error instanceof Error ? error.message.slice(0, 200) : "failed",
+      };
     }
-
-    const result = await connector.fetchChanges({
-      ...(ctx as SyncContext),
-      trigger: "MANUAL",
-      cursor: null,
-    });
-
-    const loads = result.entities.filter((e) => e.kind === "LOAD");
-    const deliveries = result.entities.filter((e) => e.kind === "DELIVERY");
-    const statuses = [...new Set(loads.map((e) => e.data.status))];
-    const missingFieldCounts = loads.reduce<Record<string, number>>(
-      (acc, e) => {
-        const missing = Array.isArray(e.data.missingFields)
-          ? (e.data.missingFields as string[])
-          : [];
-        for (const field of missing) acc[field] = (acc[field] ?? 0) + 1;
-        return acc;
-      },
-      {},
-    );
-
-    return NextResponse.json({
-      ...diagnostics,
-      orderCount: loads.length,
-      deliveryRecordCount: deliveries.length,
-      orderStatuses: statuses,
-      missingFieldCounts,
-      detailFetched: false,
-      note: "List-level mapping verified; order-detail endpoint not called in this check.",
-    });
-  } catch (error) {
-    diagnostics.syncError =
-      error instanceof Error
-        ? redactSecrets(error.message).slice(0, 300)
-        : "sync failed";
-    return NextResponse.json(diagnostics, { status: 502 });
   }
+
+  // If any probe succeeded, run the real connector verification + list sync.
+  const anyOk = Object.values(results).some(
+    (r) => typeof r === "object" && r !== null && (r as {status?:number}).status !== undefined && (r as {status:number}).status >= 200 && (r as {status:number}).status < 300,
+  );
+
+  if (anyOk) {
+    const connector = createMcLeodTrackAndTraceConnector();
+    const ctx: ConnectionContext = {
+      organizationId: "sandbox-verify",
+      integrationId: "sandbox-verify",
+      providerKey: "mcleod-track-and-trace",
+      config: {
+        tenantId,
+        baseUrl: `${host}/trackandtrace-sandbox`,
+        fetchOrderDetail: false,
+      },
+      credential: { kind: "API_KEY_BEARER" as const, apiKey, accessToken },
+    };
+    try {
+      const check = await connector.verifyConnection!(ctx);
+      results.verifyConnection = check;
+      if (check.ok) {
+        const sync = await connector.fetchChanges({
+          ...(ctx as SyncContext),
+          trigger: "MANUAL",
+          cursor: null,
+        });
+        const loads = sync.entities.filter((e) => e.kind === "LOAD");
+        const deliveries = sync.entities.filter((e) => e.kind === "DELIVERY");
+        results.sync = {
+          orderCount: loads.length,
+          deliveryRecordCount: deliveries.length,
+          orderStatuses: [...new Set(loads.map((e) => e.data.status))],
+          missingFieldCounts: loads.reduce<Record<string, number>>((acc, e) => {
+            for (const f of (Array.isArray(e.data.missingFields) ? e.data.missingFields : []) as string[]) {
+              acc[f] = (acc[f] ?? 0) + 1;
+            }
+            return acc;
+          }, {}),
+        };
+      }
+    } catch (error) {
+      results.connectorError =
+        error instanceof Error ? redactSecrets(error.message).slice(0, 300) : "failed";
+    }
+  }
+
+  return NextResponse.json(results);
 }

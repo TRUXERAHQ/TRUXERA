@@ -284,8 +284,8 @@ test("pagination stops when next-item header is absent", async () => {
   assert.equal(listCalls.length, 1);
 });
 
-test("fetchChanges throws INVALID_PAYLOAD when orders list is not an array", async () => {
-  const { impl } = mockFetch([[isListUrl, jsonResponse(200, { orders: [] })]]);
+test("fetchChanges throws INVALID_PAYLOAD when orders list is not a recognized shape", async () => {
+  const { impl } = mockFetch([[isListUrl, jsonResponse(200, { unexpected: true })]]);
   const connector = createMcLeodTrackAndTraceConnector({ fetchImpl: impl });
   await assert.rejects(
     () => connector.fetchChanges(ctx()),
@@ -447,6 +447,16 @@ test("connector registers through the builtin registry", () => {
   // idempotent
   registerBuiltinConnectors();
   assert.equal(getConnector(MCLEOD_TNT_PROVIDER_KEY), found);
+});
+
+test("orders list accepts the documented {items:[...]} envelope", async () => {
+  const { impl } = mockFetch([
+    [isListUrl, jsonResponse(200, { items: [order()] })],
+    [isDetailUrl, jsonResponse(200, orderDetail())],
+  ]);
+  const connector = createMcLeodTrackAndTraceConnector({ fetchImpl: impl });
+  const result = await connector.fetchChanges(ctx());
+  assert.equal(result.entities.filter((e) => e.kind === "LOAD").length, 1);
 });
 
 test("empty orders list is a valid sync result", async () => {

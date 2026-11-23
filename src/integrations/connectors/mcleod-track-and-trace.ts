@@ -198,6 +198,14 @@ function requireCredential(
   return { apiKey: credential.apiKey, accessToken: credential.accessToken };
 }
 
+export function extractMcLeodOrderList(body: unknown): unknown[] | null {
+  if (Array.isArray(body)) return body;
+  const record = asRecord(body);
+  if (record && Array.isArray(record.items)) return record.items;
+  if (record && Array.isArray(record.orders)) return record.orders;
+  return null;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -331,6 +339,7 @@ export function mapMcLeodOrder(
     consigneeReferenceNumber: str(order.consigneeReferenceNumber),
     shipmentId: str(order.shipmentId),
     billToCustomerCode: str(order.billToCustomerCode),
+    linehaul: order.linehaul ?? null,
     pickup: shipper,
     stopCount:
       (shipper ? 1 : 0) +
@@ -436,7 +445,8 @@ export function createMcLeodTrackAndTraceConnector(options?: {
         const client = clientFor(ctx);
         const result = await client.get("/orders");
         assertMcLeodOk(result.status, "connection check");
-        if (!Array.isArray(result.body)) {
+        const orders = extractMcLeodOrderList(result.body);
+        if (!orders) {
           return {
             ok: false,
             detail: "McLeod Track & Trace returned an unexpected response shape.",
@@ -444,7 +454,7 @@ export function createMcLeodTrackAndTraceConnector(options?: {
         }
         return {
           ok: true,
-          detail: `Connected. ${result.body.length} active order(s) visible to this tenant.`,
+          detail: `Connected. ${orders.length} active order(s) visible to this tenant.`,
         };
       } catch (error) {
         return {
@@ -477,14 +487,15 @@ export function createMcLeodTrackAndTraceConnector(options?: {
           ctx.signal,
         );
         assertMcLeodOk(listResult.status, "orders list");
-        if (!Array.isArray(listResult.body)) {
+        const pageOrders = extractMcLeodOrderList(listResult.body);
+        if (!pageOrders) {
           throw new IntegrationError(
             "INVALID_PAYLOAD",
-            "McLeod Track & Trace orders list is not an array.",
+            "McLeod Track & Trace orders list is not a recognized array shape.",
           );
         }
 
-        for (const rawOrder of listResult.body) {
+        for (const rawOrder of pageOrders) {
           const listRecord = asRecord(rawOrder);
           const orderId = listRecord ? str(listRecord.orderId) : null;
           if (!orderId) {
@@ -534,7 +545,7 @@ export function createMcLeodTrackAndTraceConnector(options?: {
         const nextItem = listResult.headers.get("x-mcld-next-item");
         if (
           !nextItem ||
-          listResult.body.length === 0 ||
+          pageOrders.length === 0 ||
           seenCursors.has(nextItem) ||
           nextItem === startItem
         ) {
