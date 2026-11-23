@@ -6,11 +6,14 @@ import {
   type OperationsSearchParams,
 } from "../operations-page-data";
 import { canAdministerOrganizationSettings } from "@/src/settings/organization-settings";
+import { canManageFleet } from "@/src/trucks/truck-policy";
 import {
   listConnectorCatalog,
   listIntegrationsForOrganization,
 } from "@/src/prisma/integration-data";
 import { getConnectedSignalsOverview } from "@/src/prisma/connected-signals";
+import { getOnboardingFactsForUser } from "@/src/prisma/onboarding-data";
+import { computeOnboardingState } from "@/src/onboarding/onboarding";
 import { PageHeader } from "../ui";
 import SettingsSections from "./settings-sections";
 
@@ -43,6 +46,21 @@ async function SettingsContent({ searchParams }: Props) {
     ),
   ]);
 
+  const onboardingFacts = await getOnboardingFactsForUser(
+    context.userId,
+    context.organization.id,
+    integrations.map((integration) => ({
+      providerKey: integration.providerKey,
+      displayName: integration.displayName,
+      status: integration.status,
+      health: integration.health,
+      lastSyncAt: integration.lastSyncAt,
+    })),
+  );
+  const onboarding = onboardingFacts
+    ? computeOnboardingState(onboardingFacts, context.organization.id)
+    : null;
+
   const timeZones = Intl.supportedValuesOf("timeZone");
 
   return (
@@ -73,6 +91,8 @@ async function SettingsContent({ searchParams }: Props) {
           integrations={integrations}
           signalSummaries={signals?.integrations ?? []}
           connectorCatalog={connectorCatalog}
+          onboarding={onboarding}
+          canManageFleet={canManageFleet(context.membership.role)}
         />
       </div>
     </TruckShell>

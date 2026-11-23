@@ -3,7 +3,7 @@ import { createOrganizationWithOwner } from "./onboarding-service";
 import {
   canAdministerOrganizationSettings,
   type OrganizationSettingsInput,
-} from "@/src/settings/organization-settings";
+} from "../settings/organization-settings";
 
 export async function getOrganizationsForUser(userId: string) {
   await connectDatabase();

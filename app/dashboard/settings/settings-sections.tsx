@@ -12,6 +12,7 @@ import {
   Notice,
   Panel,
 } from "../ui";
+import type { OnboardingView } from "@/src/onboarding/onboarding";
 
 const membershipRoles = [
   {
@@ -145,6 +146,8 @@ export default function SettingsSections({
   integrations,
   signalSummaries,
   connectorCatalog,
+  onboarding,
+  canManageFleet,
 }: {
   organizationId: string;
   organizationName: string;
@@ -160,6 +163,8 @@ export default function SettingsSections({
   integrations: IntegrationListItem[];
   signalSummaries: SignalSummaryItem[];
   connectorCatalog: ConnectorCatalogItem[];
+  onboarding: OnboardingView | null;
+  canManageFleet: boolean;
 }) {
   const [state, action, pending] = useActionState(
     updateOrganizationSettingsAction,
@@ -296,6 +301,119 @@ export default function SettingsSections({
           {organizationPanel}
           {preferencesPanel}
         </>
+      )}
+
+      {onboarding && (
+        <Panel
+          title="Organization setup"
+          description="Workspace readiness checklist. Derived from your organization's actual records — integrations are optional and never required for operations."
+        >
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                tone={
+                  onboarding.state === "READY"
+                    ? "success"
+                    : onboarding.state === "IN_PROGRESS"
+                      ? "info"
+                      : "neutral"
+                }
+              >
+                {onboarding.state === "READY"
+                  ? "Ready for operations"
+                  : onboarding.state === "IN_PROGRESS"
+                    ? "Setup in progress"
+                    : "Not started"}
+              </Badge>
+              {onboarding.nextAction && canManageFleet && (
+                <Link
+                  href={onboarding.nextAction.href}
+                  className={buttonPrimaryClass}
+                >
+                  {onboarding.nextAction.label}
+                </Link>
+              )}
+            </div>
+
+            <ul className="divide-y divide-slate-100">
+              {onboarding.checks.map((check) => (
+                <li
+                  key={check.key}
+                  className="flex items-start gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      check.complete
+                        ? "bg-emerald-100 text-emerald-700"
+                        : check.required
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {check.complete ? "✓" : "•"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium text-slate-800">
+                        {check.label}
+                      </p>
+                      {!check.required && (
+                        <Badge tone="neutral">Optional</Badge>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                      {check.description}
+                    </p>
+                    {check.category === "INTEGRATION_READINESS" &&
+                      integrations.length > 0 && (
+                        <ul className="mt-1.5 space-y-0.5">
+                          {integrations.map((integration) => (
+                            <li
+                              key={integration.id}
+                              className="text-xs text-slate-500"
+                            >
+                              {integration.displayName} ·{" "}
+                              {formatRole(integration.status)} · health{" "}
+                              {formatRole(integration.health)}
+                              {integration.lastSyncAt
+                                ? ` · last sync ${formatDate(integration.lastSyncAt)}`
+                                : " · never synced"}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {onboarding.state === "READY" ? (
+              <p className="border-t border-slate-100 pt-3 text-sm text-slate-600">
+                All required setup checks are complete. TRUXERA is ready for
+                day-to-day fleet operations.
+              </p>
+            ) : onboarding.nextAction ? (
+              <p className="border-t border-slate-100 pt-3 text-sm text-slate-600">
+                Next step:{" "}
+                {canManageFleet ? (
+                  <Link
+                    href={onboarding.nextAction.href}
+                    className="font-medium text-indigo-600 hover:text-indigo-800"
+                  >
+                    {onboarding.nextAction.label}
+                  </Link>
+                ) : (
+                  <span className="font-medium text-slate-700">
+                    {onboarding.nextAction.label}
+                  </span>
+                )}{" "}
+                — your role can view this checklist; fleet changes require a
+                dispatcher, admin, or owner role.
+              </p>
+            ) : null}
+          </div>
+        </Panel>
       )}
 
       <Panel
