@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'f59ebd0df81da3ea784f06a49876a5f691027af2d6ec48eac42f12c2ac935003'>;
+  StorageHashBase<'300ce5325c8c5bddd17d3e0a25a6868c62140556702255fbcd1fd3df601e13ef'>;
 export type ExecutionHash =
   ExecutionHashBase<'02eb8b53ee797efa623c70f7a72ed1a7b51354b14d3457f1b10c2246f6f54eb9'>;
 export type ProfileHash =
@@ -280,8 +280,8 @@ type FieldTypeOverrides = {
     readonly models: {
       readonly BillingSubscription: {
         readonly plan: {
-          readonly output: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
-          readonly input: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
+          readonly output: 'TRIAL' | 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
+          readonly input: 'TRIAL' | 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
         };
         readonly status: {
           readonly output: 'TRIAL' | 'ACTIVE' | 'PAUSED' | 'CANCELED';
@@ -539,8 +539,8 @@ type ColumnTypeOverrides = {
   readonly public: {
     readonly BillingSubscription: {
       readonly plan: {
-        readonly output: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
-        readonly input: 'TRIAL' | 'PROFESSIONAL' | 'ENTERPRISE';
+        readonly output: 'TRIAL' | 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
+        readonly input: 'TRIAL' | 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
       };
       readonly status: {
         readonly output: 'TRIAL' | 'ACTIVE' | 'PAUSED' | 'CANCELED';
@@ -794,8 +794,11 @@ export type StorageColumnInputTypes = ColumnTypesFromStorage<
 
 export namespace Models {
   export type public_BillingSubscription = {
+    annualPriceCents: FieldOutputTypes['public']['BillingSubscription']['annualPriceCents'];
     createdAt: FieldOutputTypes['public']['BillingSubscription']['createdAt'];
     id: FieldOutputTypes['public']['BillingSubscription']['id'];
+    integrationLimit: FieldOutputTypes['public']['BillingSubscription']['integrationLimit'];
+    monthlyPriceCents: FieldOutputTypes['public']['BillingSubscription']['monthlyPriceCents'];
     organizationId: FieldOutputTypes['public']['BillingSubscription']['organizationId'];
     plan: FieldOutputTypes['public']['BillingSubscription']['plan'];
     providerKey: FieldOutputTypes['public']['BillingSubscription']['providerKey'];
@@ -804,6 +807,7 @@ export namespace Models {
     trialEndAt: FieldOutputTypes['public']['BillingSubscription']['trialEndAt'];
     trialStartAt: FieldOutputTypes['public']['BillingSubscription']['trialStartAt'];
     updatedAt: FieldOutputTypes['public']['BillingSubscription']['updatedAt'];
+    vehicleLimit: FieldOutputTypes['public']['BillingSubscription']['vehicleLimit'];
     organization: public_Organization;
     readonly [RelationKeys]?: 'organization';
   };
@@ -1188,6 +1192,12 @@ type ContractBase = Omit<
           readonly table: {
             readonly BillingSubscription: {
               columns: {
+                readonly annualPriceCents: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
@@ -1199,6 +1209,18 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/uuid';
                   readonly codecId: 'pg/uuid@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly integrationLimit: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly monthlyPriceCents: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly organizationId: {
@@ -1250,6 +1272,12 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-date@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly vehicleLimit: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
               };
@@ -3767,7 +3795,7 @@ type ContractBase = Omit<
           readonly valueSet: {
             readonly BillingPlan: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['TRIAL', 'PROFESSIONAL', 'ENTERPRISE'];
+              readonly values: readonly ['TRIAL', 'STARTER', 'PROFESSIONAL', 'ENTERPRISE'];
             };
             readonly DeliveryEventType: {
               readonly kind: 'valueSet';
@@ -4025,6 +4053,10 @@ type ContractBase = Omit<
         readonly models: {
           readonly BillingSubscription: {
             readonly fields: {
+              readonly annualPriceCents: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -4036,6 +4068,14 @@ type ContractBase = Omit<
               readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly integrationLimit: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly monthlyPriceCents: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly organizationId: {
                 readonly nullable: false;
@@ -4081,6 +4121,10 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly precision: 3 };
                 };
               };
+              readonly vehicleLimit: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
             };
             readonly relations: {
               readonly organization: {
@@ -4100,8 +4144,11 @@ type ContractBase = Omit<
               readonly table: 'BillingSubscription';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly annualPriceCents: { readonly column: 'annualPriceCents' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly id: { readonly column: 'id' };
+                readonly integrationLimit: { readonly column: 'integrationLimit' };
+                readonly monthlyPriceCents: { readonly column: 'monthlyPriceCents' };
                 readonly organizationId: { readonly column: 'organizationId' };
                 readonly plan: { readonly column: 'plan' };
                 readonly providerKey: { readonly column: 'providerKey' };
@@ -4110,6 +4157,7 @@ type ContractBase = Omit<
                 readonly trialEndAt: { readonly column: 'trialEndAt' };
                 readonly trialStartAt: { readonly column: 'trialStartAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly vehicleLimit: { readonly column: 'vehicleLimit' };
               };
             };
           };
@@ -6160,6 +6208,7 @@ type ContractBase = Omit<
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'TRIAL'; readonly value: 'TRIAL' },
+              { readonly name: 'STARTER'; readonly value: 'STARTER' },
               { readonly name: 'PROFESSIONAL'; readonly value: 'PROFESSIONAL' },
               { readonly name: 'ENTERPRISE'; readonly value: 'ENTERPRISE' },
             ];
@@ -6399,6 +6448,7 @@ type ContractBase = Omit<
         readonly enumMemberTypes?: {
           readonly BillingPlan: readonly [
             { readonly name: 'TRIAL'; readonly value: 'TRIAL' },
+            { readonly name: 'STARTER'; readonly value: 'STARTER' },
             { readonly name: 'PROFESSIONAL'; readonly value: 'PROFESSIONAL' },
             { readonly name: 'ENTERPRISE'; readonly value: 'ENTERPRISE' },
           ];

@@ -38,6 +38,7 @@ import { registerFleetEntityExtractor } from "@/src/integrations/signals/entity-
 import { registerSignalPolicy } from "@/src/integrations/signals/policy";
 import { createConnectedDataRepository } from "@/src/integrations/materialize/connected-data";
 import { parseWebhookEnvelope, webhookPayloadHash } from "@/src/integrations/webhooks";
+import { assertIntegrationSlotAvailable } from "./billing-entitlements";
 import { computeIntegrationHealth } from "@/src/integrations/lifecycle";
 import { toSafeIntegrationError } from "@/src/integrations/errors";
 import type { ConnectorDescriptor } from "@/src/integrations/connector";
@@ -333,9 +334,19 @@ export async function createIntegrationConnection(
   const created = await db.transaction(async (tx) => {
     const organization = await tx.orm.public.Organization.where({
       id: organizationId,
-    }).first();
+    })
+      .forNoKeyUpdate()
+      .first();
     if (!organization) {
       return { ok: false as const, error: "The selected organization was not found." };
+    }
+
+    const integrationGate = await assertIntegrationSlotAvailable(
+      tx,
+      organizationId,
+    );
+    if (!integrationGate.ok) {
+      return { ok: false as const, error: integrationGate.error };
     }
 
     const displayName =

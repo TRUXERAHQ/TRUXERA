@@ -396,11 +396,42 @@ function ReliabilitySection({
   );
 }
 
+function formatPriceCents(cents: number | null): string | null {
+  if (cents === null) return null;
+  const dollars = cents / 100;
+  return `$${dollars.toLocaleString("en-US", {
+    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function usageLimitSuffix(limit: unknown): string {
+  if (typeof limit === "number") return ` / ${limit}`;
+  if (limit === "custom") return " / Custom";
+  if (limit === "unlimited") return " · Unlimited";
+  return "";
+}
+
 function BillingSection({ billing }: { billing: BillingOverview | null }) {
+  const monthly = billing ? formatPriceCents(billing.prices.monthlyCents) : null;
+  const annual = billing ? formatPriceCents(billing.prices.annualCents) : null;
+  const priceLabel = !billing
+    ? null
+    : billing.prices.custom
+      ? billing.plan === "TRIAL"
+        ? "Trial — no charge"
+        : "Custom"
+      : [
+          monthly ? `${monthly}/month` : null,
+          annual ? `${annual}/year billed annually` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
   return (
     <Panel
       title="Billing & Plan"
-      description="Commercial plan and entitlement state for this organization. Billing is informational in this release — no payment method is stored, no charges are made, and no billing provider is connected."
+      description="Commercial plan, pricing, and entitlement state for this organization. Billing is informational in this release — no payment method is stored, no charges are made, and no billing provider is connected. Plan changes will be available in a future billing release."
     >
       {billing ? (
         <div className="space-y-5">
@@ -427,6 +458,7 @@ function BillingSection({ billing }: { billing: BillingOverview | null }) {
 
           <dl className="space-y-2.5">
             <MetaRow label="Plan">{billing.planLabel}</MetaRow>
+            <MetaRow label="Price">{priceLabel ?? "Custom"}</MetaRow>
             <MetaRow label="Subscription">
               {billing.subscriptionStatusLabel ?? "Not configured"}
             </MetaRow>
@@ -470,17 +502,14 @@ function BillingSection({ billing }: { billing: BillingOverview | null }) {
                 (key) => (
                   <MetaRow key={key} label={USAGE_LIMIT_LABELS[key]}>
                     {billing.usage[key]}
-                    {billing.limits[key] === "unlimited"
-                      ? " · unlimited"
-                      : billing.limits[key] === null
-                        ? ""
-                        : ` / ${billing.limits[key]}`}
+                    {usageLimitSuffix(billing.limits[key])}
                   </MetaRow>
                 ),
               )}
             </dl>
             <p className="mt-2 text-xs text-slate-500">
-              Usage limits are not enforced in this release.
+              Active vehicle and integration limits are enforced by your
+              plan. Other usage is informational.
             </p>
           </div>
         </div>

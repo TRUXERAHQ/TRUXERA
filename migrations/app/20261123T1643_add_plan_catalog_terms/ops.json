@@ -1,0 +1,339 @@
+[
+  {
+    "id": "dropCheckConstraint.BillingSubscription.BillingSubscription_plan_check_b703cbe4",
+    "label": "Drop check constraint \"BillingSubscription_plan_check_b703cbe4\" on \"BillingSubscription\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "BillingSubscription_plan_check_b703cbe4",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"BillingSubscription_plan_check_b703cbe4\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "BillingSubscription_plan_check_b703cbe4",
+          "public",
+          "\"public\".\"BillingSubscription\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"BillingSubscription_plan_check_b703cbe4\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"BillingSubscription_plan_check_b703cbe4\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" DROP CONSTRAINT \"BillingSubscription_plan_check_b703cbe4\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"BillingSubscription_plan_check_b703cbe4\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "BillingSubscription_plan_check_b703cbe4",
+          "public",
+          "\"public\".\"BillingSubscription\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"BillingSubscription_plan_check_b703cbe4\" on \"BillingSubscription\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.BillingSubscription.annualPriceCents",
+    "label": "Add column \"annualPriceCents\" to \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "annualPriceCents",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"annualPriceCents\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "annualPriceCents"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"annualPriceCents\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"annualPriceCents\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD COLUMN \"annualPriceCents\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"annualPriceCents\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "annualPriceCents"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"annualPriceCents\" on \"BillingSubscription\""
+        }
+      },
+      {
+        "description": "verify column \"annualPriceCents\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "annualPriceCents",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.BillingSubscription.integrationLimit",
+    "label": "Add column \"integrationLimit\" to \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "integrationLimit",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"integrationLimit\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "integrationLimit"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"integrationLimit\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"integrationLimit\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD COLUMN \"integrationLimit\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"integrationLimit\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "integrationLimit"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"integrationLimit\" on \"BillingSubscription\""
+        }
+      },
+      {
+        "description": "verify column \"integrationLimit\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "integrationLimit",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.BillingSubscription.monthlyPriceCents",
+    "label": "Add column \"monthlyPriceCents\" to \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "monthlyPriceCents",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"monthlyPriceCents\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "monthlyPriceCents"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"monthlyPriceCents\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"monthlyPriceCents\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD COLUMN \"monthlyPriceCents\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"monthlyPriceCents\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "monthlyPriceCents"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"monthlyPriceCents\" on \"BillingSubscription\""
+        }
+      },
+      {
+        "description": "verify column \"monthlyPriceCents\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "monthlyPriceCents",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.BillingSubscription.vehicleLimit",
+    "label": "Add column \"vehicleLimit\" to \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "vehicleLimit",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"vehicleLimit\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "vehicleLimit"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"vehicleLimit\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"vehicleLimit\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD COLUMN \"vehicleLimit\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"vehicleLimit\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "vehicleLimit"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"vehicleLimit\" on \"BillingSubscription\""
+        }
+      },
+      {
+        "description": "verify column \"vehicleLimit\" has type \"integer\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "vehicleLimit",
+          "integer"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.BillingSubscription.BillingSubscription_plan_check_c4b4585e",
+    "label": "Add check constraint \"BillingSubscription_plan_check_c4b4585e\" on \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "BillingSubscription_plan_check_c4b4585e",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"BillingSubscription_plan_check_c4b4585e\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "BillingSubscription_plan_check_c4b4585e",
+          "public",
+          "\"public\".\"BillingSubscription\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"BillingSubscription_plan_check_c4b4585e\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"BillingSubscription_plan_check_c4b4585e\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD CONSTRAINT \"BillingSubscription_plan_check_c4b4585e\" CHECK (\"plan\" IN ('TRIAL', 'STARTER', 'PROFESSIONAL', 'ENTERPRISE'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"BillingSubscription_plan_check_c4b4585e\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "BillingSubscription_plan_check_c4b4585e",
+          "public",
+          "\"public\".\"BillingSubscription\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

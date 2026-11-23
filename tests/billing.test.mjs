@@ -10,26 +10,46 @@ import {
   isSubscriptionStatusKey,
   resolveBillingState,
   resolveEffectivePlan,
+  vehicleLimitErrorMessage,
+  integrationLimitErrorMessage,
 } from "../src/billing/billing.ts";
 import { resolveBillingProvider } from "../src/billing/provider.ts";
 
-test("plan catalog contains exactly TRIAL, PROFESSIONAL, ENTERPRISE", () => {
+test("plan catalog contains exactly the commercial plans", () => {
   assert.deepEqual(Object.keys(BILLING_PLANS).sort(), [
     "ENTERPRISE",
     "PROFESSIONAL",
+    "STARTER",
     "TRIAL",
   ]);
+});
+
+test("catalog prices are integer cents matching the approved pricing", () => {
+  assert.deepEqual(BILLING_PLANS.STARTER.prices, {
+    monthlyCents: 39900,
+    annualCents: 382800,
+  });
+  assert.deepEqual(BILLING_PLANS.PROFESSIONAL.prices, {
+    monthlyCents: 89900,
+    annualCents: 862800,
+  });
+  assert.equal(BILLING_PLANS.ENTERPRISE.prices, null);
+  assert.equal(BILLING_PLANS.TRIAL.prices, null);
   for (const plan of Object.values(BILLING_PLANS)) {
-    assert.ok(plan.entitlements.length > 0);
+    if (!plan.prices) continue;
+    for (const v of [plan.prices.monthlyCents, plan.prices.annualCents]) {
+      assert.equal(Number.isInteger(v), true);
+    }
   }
 });
 
-test("no plan defines a price", () => {
-  for (const plan of Object.values(BILLING_PLANS)) {
-    assert.equal("price" in plan, false);
-    assert.equal("priceCents" in plan, false);
-    assert.equal("monthlyPrice" in plan, false);
-  }
+test("catalog vehicle and integration limits match approved pricing", () => {
+  assert.equal(BILLING_PLANS.STARTER.limits.vehicles, 25);
+  assert.equal(BILLING_PLANS.STARTER.limits.integrations, 1);
+  assert.equal(BILLING_PLANS.PROFESSIONAL.limits.vehicles, 75);
+  assert.equal(BILLING_PLANS.PROFESSIONAL.limits.integrations, "unlimited");
+  assert.equal(BILLING_PLANS.ENTERPRISE.limits.vehicles, "custom");
+  assert.equal(BILLING_PLANS.ENTERPRISE.limits.integrations, "custom");
 });
 
 test("unknown or missing plan resolves to safe TRIAL default", () => {
@@ -37,40 +57,51 @@ test("unknown or missing plan resolves to safe TRIAL default", () => {
   assert.equal(resolveEffectivePlan(undefined), "TRIAL");
   assert.equal(resolveEffectivePlan("GOLD"), "TRIAL");
   assert.equal(resolveEffectivePlan("stripe_pro"), "TRIAL");
-  assert.equal(resolveEffectivePlan("PROFESSIONAL"), "PROFESSIONAL");
+  assert.equal(resolveEffectivePlan("STARTER"), "STARTER");
   assert.equal(isBillingPlanKey("ENTERPRISE"), true);
   assert.equal(isBillingPlanKey("PAST_DUE"), false);
 });
 
-test("entitlement resolution is deterministic per plan", () => {
-  assert.equal(hasEntitlement("TRIAL", "FLEET_OPERATIONS"), true);
-  assert.equal(hasEntitlement("TRIAL", "RECOVERY_INTELLIGENCE"), true);
-  assert.equal(hasEntitlement("TRIAL", "CONNECTED_INTEGRATIONS"), true);
-  assert.equal(hasEntitlement("TRIAL", "EXECUTIVE_REPORTS"), true);
-  assert.equal(hasEntitlement("TRIAL", "API_ACCESS"), false);
-  assert.equal(hasEntitlement("PROFESSIONAL", "API_ACCESS"), true);
-  assert.equal(hasEntitlement("ENTERPRISE", "API_ACCESS"), true);
-  assert.equal(hasEntitlement(null, "FLEET_OPERATIONS"), true);
-  assert.equal(hasEntitlement("NOPE", "API_ACCESS"), false);
+test("Starter entitles core features only", () => {
+  for (const key of [
+    "CORE_RISK_INTELLIGENCE",
+    "RECOVERY_RECOMMENDATIONS",
+    "LOAD_REASSIGNMENT",
+    "RECOVERY_IMPACT",
+    "OPERATIONAL_HISTORY",
+    "DAILY_SUMMARY",
+    "BASIC_REPORTING",
+  ]) {
+    assert.equal(hasEntitlement("STARTER", key), true, key);
+  }
+  for (const key of [
+    "ADVANCED_INTELLIGENCE",
+    "EXECUTIVE_REPORTING",
+    "API_ACCESS",
+    "PRIORITY_SUPPORT",
+  ]) {
+    assert.equal(hasEntitlement("STARTER", key), false, key);
+  }
 });
 
-test("all current plans have unlimited, unenforced limits", () => {
-  for (const key of ["TRIAL", "PROFESSIONAL", "ENTERPRISE"]) {
-    const limits = getPlanLimits(key);
-    for (const value of Object.values(limits)) {
-      assert.equal(value, "unlimited");
-    }
+test("Professional and Enterprise entitle advanced features", () => {
+  for (const plan of ["PROFESSIONAL", "ENTERPRISE", "TRIAL"]) {
+    assert.equal(hasEntitlement(plan, "API_ACCESS"), true, plan);
+    assert.equal(hasEntitlement(plan, "EXECUTIVE_REPORTING"), true, plan);
+    assert.equal(hasEntitlement(plan, "ADVANCED_RECOVERY"), true, plan);
+    assert.equal(hasEntitlement(plan, "PRIORITY_SUPPORT"), true, plan);
   }
 });
 
 test("limit check distinguishes enforced, exceeded, and not-enforced", () => {
+  assert.equal(checkUsageWithinLimit(25, 25), "OK");
+  assert.equal(checkUsageWithinLimit(25, 26), "EXCEEDED");
   assert.equal(checkUsageWithinLimit("unlimited", 9999), "NOT_ENFORCED");
+  assert.equal(checkUsageWithinLimit("custom", 9999), "NOT_ENFORCED");
   assert.equal(checkUsageWithinLimit(null, 5), "NOT_ENFORCED");
-  assert.equal(checkUsageWithinLimit(10, 10), "OK");
-  assert.equal(checkUsageWithinLimit(10, 11), "EXCEEDED");
 });
 
-test("subscription status validation", () => {
+test("subscription status validation rejects provider-specific states", () => {
   for (const s of ["TRIAL", "ACTIVE", "PAUSED", "CANCELED"]) {
     assert.equal(isSubscriptionStatusKey(s), true);
   }
@@ -84,27 +115,60 @@ test("resolveBillingState defaults missing subscription safely", () => {
   assert.equal(state.plan, "TRIAL");
   assert.equal(state.configured, false);
   assert.equal(state.subscriptionStatus, null);
-  assert.equal(state.subscriptionStatusLabel, null);
   assert.equal(state.trialStartAt, null);
-  assert.equal(state.trialEndAt, null);
-  assert.equal(state.providerKey, null);
-  assert.ok(state.entitlements.includes("FLEET_OPERATIONS"));
+  assert.equal(state.prices.custom, true);
+  assert.equal(state.limits.vehicles, "unlimited");
 });
 
-test("resolveBillingState reflects a configured subscription", () => {
+test("starter subscription resolves catalog prices and limits", () => {
   const state = resolveBillingState({
-    plan: "PROFESSIONAL",
+    plan: "STARTER",
     status: "ACTIVE",
     trialStartAt: null,
     trialEndAt: null,
-    providerKey: "stripe",
+    providerKey: null,
   });
-  assert.equal(state.plan, "PROFESSIONAL");
-  assert.equal(state.configured, true);
-  assert.equal(state.subscriptionStatus, "ACTIVE");
-  assert.equal(state.subscriptionStatusLabel, "Active");
-  assert.equal(state.providerKey, "stripe");
-  assert.ok(state.entitlements.includes("API_ACCESS"));
+  assert.equal(state.plan, "STARTER");
+  assert.equal(state.prices.monthlyCents, 39900);
+  assert.equal(state.prices.annualCents, 382800);
+  assert.equal(state.prices.custom, false);
+  assert.equal(state.limits.vehicles, 25);
+  assert.equal(state.limits.integrations, 1);
+});
+
+test("grandfathered overrides beat catalog without mutating it", () => {
+  const state = resolveBillingState({
+    plan: "STARTER",
+    status: "ACTIVE",
+    trialStartAt: null,
+    trialEndAt: null,
+    providerKey: null,
+    monthlyPriceCents: 29900,
+    vehicleLimit: 40,
+    integrationLimit: 2,
+  });
+  assert.equal(state.prices.monthlyCents, 29900);
+  assert.equal(state.prices.annualCents, 382800); // untouched catalog annual
+  assert.equal(state.limits.vehicles, 40);
+  assert.equal(state.limits.integrations, 2);
+  assert.equal(state.grandfatheredPricing, true);
+  // Catalog itself is unchanged — future customers still get 399/25/1.
+  assert.equal(BILLING_PLANS.STARTER.prices?.monthlyCents, 39900);
+  assert.equal(BILLING_PLANS.STARTER.limits.vehicles, 25);
+});
+
+test("enterprise custom terms stay custom unless overridden", () => {
+  const state = resolveBillingState({
+    plan: "ENTERPRISE",
+    status: "ACTIVE",
+    trialStartAt: null,
+    trialEndAt: null,
+    providerKey: null,
+    vehicleLimit: 500,
+  });
+  assert.equal(state.prices.custom, true);
+  assert.equal(state.limits.vehicles, 500);
+  assert.equal(state.limits.integrations, "custom");
 });
 
 test("trial dates pass through as ISO strings only when present", () => {
@@ -126,9 +190,19 @@ test("plan definition lookup handles unknown plans safely", () => {
   assert.equal(def.key, "TRIAL");
 });
 
+test("limit error messages are user-safe and plan-aware", () => {
+  const v = vehicleLimitErrorMessage("Starter", 25);
+  assert.match(v, /Vehicle limit reached/);
+  assert.match(v, /25 active vehicles/);
+  assert.doesNotMatch(v, /stack|SELECT|provider/i);
+  const i = integrationLimitErrorMessage("Starter", 1);
+  assert.match(i, /Integration limit reached/);
+  assert.match(i, /1 active integration\b/);
+  assert.doesNotMatch(i, /stack|SELECT|provider/i);
+});
+
 test("no billing provider resolves without credentials", () => {
   assert.equal(resolveBillingProvider({}), null);
   assert.equal(resolveBillingProvider({ BILLING_PROVIDER: "" }), null);
-  // Even a configured key resolves to null — no adapters exist yet.
   assert.equal(resolveBillingProvider({ BILLING_PROVIDER: "stripe" }), null);
 });

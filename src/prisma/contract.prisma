@@ -10,6 +10,7 @@ enum BillingPlan {
   @@type("pg/text@1")
 
   TRIAL = "TRIAL"
+  STARTER = "STARTER"
   PROFESSIONAL = "PROFESSIONAL"
   ENTERPRISE = "ENTERPRISE"
 }
@@ -254,6 +255,10 @@ model BillingSubscription {
   trialEndAt             DateTime?
   providerKey            String?
   providerSubscriptionId String?
+  monthlyPriceCents      Int?
+  annualPriceCents       Int?
+  vehicleLimit           Int?
+  integrationLimit       Int?
   createdAt              temporal.CreatedAt
   updatedAt              temporal.UpdatedAt
 

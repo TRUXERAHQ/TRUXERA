@@ -50,10 +50,14 @@ export async function getBillingOverviewForUser(
       db.orm.public.Membership.where({ organizationId })
         .aggregate((aggregate) => ({ total: aggregate.count() })),
       db.orm.public.Integration.where({ organizationId })
-        .aggregate((aggregate) => ({ total: aggregate.count() })),
+        .select("status")
+        .all(),
     ]);
 
   const state = resolveBillingState(subscription);
+  const activeIntegrations = integrations.filter(
+    (row) => row.status !== "DISCONNECTED",
+  ).length;
 
   return {
     ...state,
@@ -63,7 +67,7 @@ export async function getBillingOverviewForUser(
       loads: loads.total,
       deliveries: deliveries.total,
       members: members.total,
-      integrations: integrations.total,
+      integrations: activeIntegrations,
     },
     providerConnected: resolveBillingProvider() !== null,
   };

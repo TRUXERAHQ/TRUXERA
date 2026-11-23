@@ -5,6 +5,7 @@ import {
   ACCOUNT_SUSPENDED_ERROR,
   isAccountWritable,
 } from "@/src/account/account-status";
+import { assertVehicleSlotAvailable } from "./billing-entitlements";
 import type { TruckInput } from "@/src/trucks/truck-validation";
 
 type MutationResult<T = undefined> =
@@ -127,6 +128,9 @@ export async function createTruckForUser(
     if (!isAccountWritable(organization.status)) {
       return { ok: false, error: ACCOUNT_SUSPENDED_ERROR };
     }
+
+    const vehicleGate = await assertVehicleSlotAvailable(tx, organizationId);
+    if (!vehicleGate.ok) return { ok: false, error: vehicleGate.error };
 
     const existingTrucks = await tx.orm.public.Truck.where({
       organizationId,
@@ -256,6 +260,11 @@ export async function setTruckDeactivatedForUser(
       organizationId,
     }).first();
     if (!truck) return { ok: false, error: "This truck could not be found." };
+
+    if (!deactivated && truck.deactivatedAt !== null) {
+      const vehicleGate = await assertVehicleSlotAvailable(tx, organizationId);
+      if (!vehicleGate.ok) return { ok: false, error: vehicleGate.error };
+    }
 
     if (deactivated && truck.deactivatedAt === null) {
       const activeAssignment = await tx.orm.public.DispatchAssignment.where({
