@@ -7,6 +7,10 @@ import type {
 import type { IntegrationCredentialPayload } from "./auth.ts";
 import type { NormalizedEntity } from "./normalize.ts";
 import type { WebhookEnvelope } from "./webhooks.ts";
+import type {
+  SignalProvenance,
+  SignalSubjectKind,
+} from "./signals/types.ts";
 
 export type ConnectorAuthScheme = {
   kinds: readonly IntegrationAuthKind[];
@@ -49,8 +53,27 @@ export type SyncContext = ConnectionContext & {
   signal?: AbortSignal;
 };
 
+/**
+ * A vendor-neutral operational signal emitted by a connector during sync.
+ * `subjectExternalId` is the provider-side identity; the sync pipeline
+ * resolves it to a TRUXERA subject via linked ExternalRecords before
+ * ingestion. Provider payload shapes never appear here.
+ */
+export type ConnectorSignal = {
+  subjectKind: SignalSubjectKind;
+  subjectExternalId: string;
+  signalKind: string;
+  value: unknown;
+  provenance: SignalProvenance;
+  sourceTimestamp: string;
+  sequence?: number | null;
+  eventId?: string | null;
+  dedupeKey?: string | null;
+};
+
 export type FetchResult = {
   entities: NormalizedEntity[];
+  signals?: ConnectorSignal[];
   nextCursor?: string | null;
 };
 

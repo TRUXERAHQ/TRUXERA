@@ -31,10 +31,29 @@ export function getOperationalMapper(
   return mappers.get(providerKey)?.mapper ?? null;
 }
 
+const providerIntervals = new Map<string, number>();
+
+/**
+ * Register an expected sync interval for a provider that has no operational
+ * mapper (e.g. signal-only connectors). Used by freshness classification.
+ */
+export function registerProviderSyncInterval(
+  providerKey: string,
+  intervalMinutes: number,
+): void {
+  if (intervalMinutes > 0) {
+    providerIntervals.set(providerKey, intervalMinutes);
+  }
+}
+
 export function getProviderSyncIntervalMinutes(
   providerKey: string,
 ): number | null {
-  return mappers.get(providerKey)?.expectedSyncIntervalMinutes ?? null;
+  return (
+    mappers.get(providerKey)?.expectedSyncIntervalMinutes ??
+    providerIntervals.get(providerKey) ??
+    null
+  );
 }
 
 export function resetOperationalMapperRegistry(): void {

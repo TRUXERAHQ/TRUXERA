@@ -1,4 +1,4 @@
-import type { IntegrationConnector, SyncContext } from "./connector.ts";
+import type { IntegrationConnector, SyncContext, ConnectorSignal } from "./connector.ts";
 import type { IntegrationCredentialPayload } from "./auth.ts";
 import type { SyncTrigger } from "./types.ts";
 import { IntegrationError, toSafeIntegrationError } from "./errors.ts";
@@ -76,6 +76,7 @@ export type SyncOutcome = {
   recordsFailed: number;
   error: { code: string; message: string } | null;
   changedRecords?: ChangedRecordRef[];
+  signals?: ConnectorSignal[];
 };
 
 export async function runIntegrationSync(input: {
@@ -202,6 +203,7 @@ export async function runIntegrationSync(input: {
       recordsFailed: failed,
       error: lastError ? { code: "RECORD_FAILURES", message: lastError } : null,
       changedRecords,
+      signals: result.signals ?? [],
     };
   } catch (error) {
     const safe = toSafeIntegrationError(error);

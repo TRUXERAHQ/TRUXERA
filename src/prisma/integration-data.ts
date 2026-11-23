@@ -16,21 +16,51 @@ import {
 } from "@/src/integrations/auth";
 import { getConnector, listConnectors } from "@/src/integrations/registry";
 import { registerBuiltinConnectors } from "@/src/integrations/connectors";
-
-registerBuiltinConnectors();
-registerOperationalMapper("mcleod-track-and-trace", mcleodOperationalMapper);
 import { runIntegrationSync, type SyncBackend } from "@/src/integrations/sync";
-import { getOperationalMapper } from "@/src/integrations/materialize/registry";
+import {
+  getOperationalMapper,
+  registerOperationalMapper,
+  registerProviderSyncInterval,
+} from "@/src/integrations/materialize/registry";
 import { mcleodOperationalMapper } from "@/src/integrations/materialize/mcleod";
 import { materializeExternalRecords } from "@/src/integrations/materialize/materializer";
-import { ingestOperationalSignals, linkFleetEntities } from "./operational-signals";
+import {
+  ingestConnectorSignals,
+  ingestOperationalSignals,
+  linkFleetEntities,
+} from "./operational-signals";
+import {
+  SAMSARA_EXPECTED_SYNC_INTERVAL_MINUTES,
+  SAMSARA_PROVIDER_KEY,
+} from "@/src/integrations/connectors/samsara";
+import { samsaraFleetEntityExtractor } from "@/src/integrations/connectors/samsara-normalize";
+import { registerFleetEntityExtractor } from "@/src/integrations/signals/entity-link";
+import { registerSignalPolicy } from "@/src/integrations/signals/policy";
 import { createConnectedDataRepository } from "@/src/integrations/materialize/connected-data";
-import { registerOperationalMapper } from "@/src/integrations/materialize/registry";
 import { parseWebhookEnvelope, webhookPayloadHash } from "@/src/integrations/webhooks";
 import { computeIntegrationHealth } from "@/src/integrations/lifecycle";
 import { toSafeIntegrationError } from "@/src/integrations/errors";
 import type { ConnectorDescriptor } from "@/src/integrations/connector";
 import type { SyncTrigger } from "@/src/integrations/types";
+
+registerBuiltinConnectors();
+registerOperationalMapper("mcleod-track-and-trace", mcleodOperationalMapper);
+registerProviderSyncInterval(
+  SAMSARA_PROVIDER_KEY,
+  SAMSARA_EXPECTED_SYNC_INTERVAL_MINUTES,
+);
+registerFleetEntityExtractor(SAMSARA_PROVIDER_KEY, samsaraFleetEntityExtractor);
+for (const kind of [
+  "VEHICLE_LOCATION",
+  "VEHICLE_MOTION_STATE",
+  "DRIVER_DUTY_STATUS",
+]) {
+  registerSignalPolicy(kind, {
+    precedence: [SAMSARA_PROVIDER_KEY],
+    maxSourceAgeMinutes: 60,
+    preferFreshness: true,
+  });
+}
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -722,6 +752,22 @@ export async function runSyncForIntegration(
         }))
       : null;
 
+  // Connector-emitted operational signals resolve through the entity links
+  // established above (new TRUCK/DRIVER records link in the same sync).
+  let signalIngest = null;
+  if (outcome.signals && outcome.signals.length > 0) {
+    try {
+      signalIngest = await ingestConnectorSignals({
+        organizationId,
+        integrationId: integration.id,
+        providerKey: integration.providerKey,
+        signals: outcome.signals,
+      });
+    } catch (error) {
+      signalIngest = { error: toSafeIntegrationError(error).message };
+    }
+  }
+
   await db.orm.public.Integration.where({
     organizationId,
     id: integration.id,
@@ -749,6 +795,7 @@ export async function runSyncForIntegration(
       error: outcome.error,
       materialization,
       fleetLink,
+      signalIngest,
     },
   });
 

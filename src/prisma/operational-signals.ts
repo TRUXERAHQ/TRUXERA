@@ -445,6 +445,166 @@ export async function pruneOperationalSignalHistory(input: {
   return result.affectedRows ?? 0;
 }
 
+const SUBJECT_TO_EXTERNAL_KIND = {
+  TRUCK: "TRUCK",
+  DRIVER: "DRIVER",
+  DELIVERY: "DELIVERY",
+  LOAD: "LOAD",
+} as const;
+
+const SUBJECT_TO_INTERNAL_KIND = {
+  TRUCK: "Truck",
+  DRIVER: "Driver",
+  DELIVERY: "Delivery",
+  LOAD: "Load",
+} as const;
+
+export type ConnectorSignalIngestSummary = {
+  resolved: number;
+  unresolved: number;
+  stored: number;
+  duplicates: number;
+  rejected: number;
+};
+
+/**
+ * Ingest connector-emitted signals after entity linking. Each signal's
+ * provider-side subject id is resolved through org-scoped ExternalRecord
+ * links; unlinked subjects are skipped (counted, never guessed). Signals
+ * are validated by the shared signal schema before storage.
+ */
+export async function ingestConnectorSignals(input: {
+  organizationId: string;
+  integrationId: string;
+  providerKey: string;
+  signals: {
+    subjectKind: string;
+    subjectExternalId: string;
+    signalKind: string;
+    value: unknown;
+    provenance: string;
+    sourceTimestamp: string;
+    sequence?: number | null;
+    eventId?: string | null;
+    dedupeKey?: string | null;
+  }[];
+  now?: Date;
+}): Promise<ConnectorSignalIngestSummary> {
+  await connectDatabase();
+  const summary: ConnectorSignalIngestSummary = {
+    resolved: 0,
+    unresolved: 0,
+    stored: 0,
+    duplicates: 0,
+    rejected: 0,
+  };
+  if (input.signals.length === 0) return summary;
+
+  const records = await db.orm.public.ExternalRecord.where({
+    organizationId: input.organizationId,
+    providerKey: input.providerKey,
+  }).all();
+  const linkByKey = new Map<
+    string,
+    { internalId: string; internalKind: string }
+  >();
+  for (const rec of records) {
+    if (!rec.internalId || !rec.internalKind) continue;
+    linkByKey.set(`${rec.entityKind}|${rec.externalId}`, {
+      internalId: rec.internalId,
+      internalKind: rec.internalKind,
+    });
+  }
+
+  const subjectCache = new Map<string, boolean>();
+  const resolvedSignals: {
+    subjectKind: SignalSubjectKind;
+    subjectId: string;
+    signalKind: string;
+    value: unknown;
+    provenance: string;
+    sourceTimestamp: string;
+    sequence: number | null;
+    eventId: string | null;
+    dedupeKey: string | null;
+  }[] = [];
+  for (const signal of input.signals) {
+    if (!isSignalSubjectKind(signal.subjectKind)) {
+      summary.rejected += 1;
+      continue;
+    }
+    const link = linkByKey.get(
+      `${SUBJECT_TO_EXTERNAL_KIND[signal.subjectKind]}|${signal.subjectExternalId}`,
+    );
+    // Defense-in-depth: the linked internal kind must match the subject kind
+    // and the subject row must belong to this organization.
+    if (
+      !link ||
+      link.internalKind !== SUBJECT_TO_INTERNAL_KIND[signal.subjectKind]
+    ) {
+      summary.unresolved += 1;
+      continue;
+    }
+    const cacheKey = `${signal.subjectKind}|${link.internalId}`;
+    let exists = subjectCache.get(cacheKey);
+    if (exists === undefined) {
+      exists = await subjectExists(
+        input.organizationId,
+        signal.subjectKind,
+        link.internalId,
+      );
+      subjectCache.set(cacheKey, exists);
+    }
+    if (!exists) {
+      summary.unresolved += 1;
+      continue;
+    }
+    resolvedSignals.push({
+      subjectKind: signal.subjectKind,
+      subjectId: link.internalId,
+      signalKind: signal.signalKind,
+      value: signal.value,
+      provenance: signal.provenance,
+      sourceTimestamp: signal.sourceTimestamp,
+      sequence: signal.sequence ?? null,
+      eventId: signal.eventId ?? null,
+      dedupeKey: signal.dedupeKey ?? null,
+    });
+  }
+  summary.resolved = resolvedSignals.length;
+
+  if (resolvedSignals.length === 0) return summary;
+
+  const outcomes = await ingestOperationalSignals({
+    organizationId: input.organizationId,
+    integrationId: input.integrationId,
+    providerKey: input.providerKey,
+    signals: resolvedSignals,
+    now: input.now,
+  });
+  for (const outcome of outcomes) {
+    if (outcome.status === "stored") summary.stored += 1;
+    else if (outcome.status === "duplicate") summary.duplicates += 1;
+    else summary.rejected += 1;
+  }
+  return summary;
+}
+
+async function subjectExists(
+  organizationId: string,
+  subjectKind: SignalSubjectKind,
+  subjectId: string,
+): Promise<boolean> {
+  const model = SUBJECT_MODELS[subjectKind];
+  const row = await (
+    db.orm.public as unknown as Record<
+      string,
+      { where: (q: Record<string, string>) => { first: () => Promise<unknown> } }
+    >
+  )[model].where({ organizationId, id: subjectId }).first();
+  return row !== null;
+}
+
 export type FleetLinkOutcome =
   | { status: "linked"; internalKind: "Truck" | "Driver"; internalId: string }
   | { status: "already-linked" }
@@ -512,17 +672,20 @@ export async function linkFleetEntities(input: {
     if (match.kind === "TRUCK") {
       const unitNumber = normalizeMatchKey(match.unitNumber);
       const vin = normalizeMatchKey(match.vin);
-      const truck = unitNumber
+      const byUnit = unitNumber
         ? await db.orm.public.Truck.where({
             organizationId: input.organizationId,
             unitNumber,
           }).first()
-        : vin
+        : null;
+      const truck =
+        byUnit ??
+        (vin
           ? await db.orm.public.Truck.where({
               organizationId: input.organizationId,
               vin,
             }).first()
-          : null;
+          : null);
       internalId = truck?.id ?? null;
     } else {
       const licenseNumber = normalizeMatchKey(match.licenseNumber);
