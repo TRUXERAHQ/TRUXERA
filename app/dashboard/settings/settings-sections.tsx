@@ -18,6 +18,7 @@ import {
 } from "../ui";
 import type { OnboardingView } from "@/src/onboarding/onboarding";
 import type { AccountStatus } from "@/src/account/account-status";
+import type { ReliabilityOverview } from "@/src/prisma/reliability-data";
 
 const membershipRoles = [
   {
@@ -146,6 +147,247 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
         {children}
       </dd>
     </div>
+  );
+}
+
+function formatDurationMs(ms: number | null) {
+  if (ms === null) return "In progress";
+  if (ms < 1000) return `${ms} ms`;
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rem = seconds % 60;
+  return rem === 0 ? `${minutes}m` : `${minutes}m ${rem}s`;
+}
+
+function reliabilityTone(
+  health: string,
+): "success" | "warning" | "danger" | "neutral" {
+  switch (health) {
+    case "HEALTHY":
+      return "success";
+    case "DEGRADED":
+      return "warning";
+    case "FAILED":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
+function reliabilityLabel(health: string) {
+  switch (health) {
+    case "HEALTHY":
+      return "Healthy";
+    case "DEGRADED":
+      return "Degraded";
+    case "FAILED":
+      return "Failed";
+    case "NEVER_SYNCED":
+      return "Never synced";
+    case "DISCONNECTED":
+      return "Disconnected";
+    default:
+      return formatRole(health);
+  }
+}
+
+function freshnessTone(
+  freshness: string,
+): "success" | "warning" | "danger" | "neutral" {
+  switch (freshness) {
+    case "CURRENT":
+      return "success";
+    case "STALE":
+      return "warning";
+    case "SYNC_FAILED":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
+function freshnessLabel(freshness: string) {
+  switch (freshness) {
+    case "CURRENT":
+      return "Fresh";
+    case "STALE":
+      return "Stale";
+    case "NEVER_SYNCED":
+      return "Never synced";
+    case "SYNC_FAILED":
+      return "Sync failing";
+    case "DISCONNECTED":
+      return "Disconnected";
+    default:
+      return formatRole(freshness);
+  }
+}
+
+function ReliabilitySection({
+  reliability,
+}: {
+  reliability: ReliabilityOverview | null;
+}) {
+  return (
+    <Panel
+      title="System & Integrations Health"
+      description="Operational reliability derived from live integration and sync records. Lifecycle status, sync health, and source freshness are reported separately."
+    >
+      {reliability ? (
+        <div className="space-y-5">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+              Application
+            </p>
+            <dl className="mt-2 space-y-2">
+              <MetaRow label="Application">
+                <Badge
+                  tone={
+                    reliability.application.status === "HEALTHY"
+                      ? "success"
+                      : reliability.application.status === "DEGRADED"
+                        ? "warning"
+                        : "danger"
+                  }
+                >
+                  {reliability.application.status === "HEALTHY"
+                    ? "Healthy"
+                    : reliability.application.status === "DEGRADED"
+                      ? "Degraded"
+                      : "Unavailable"}
+                </Badge>
+              </MetaRow>
+              <MetaRow label="Database">
+                <Badge
+                  tone={
+                    reliability.application.checks.database === "HEALTHY"
+                      ? "success"
+                      : "danger"
+                  }
+                >
+                  {reliability.application.checks.database === "HEALTHY"
+                    ? "Healthy"
+                    : "Unavailable"}
+                </Badge>
+              </MetaRow>
+            </dl>
+          </div>
+
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+              Integrations
+            </p>
+            {reliability.integrations.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">
+                No integrations connected.
+              </p>
+            ) : (
+              <ul className="mt-2 divide-y divide-slate-100">
+                {reliability.integrations.map((integration) => (
+                  <li
+                    key={integration.integrationId}
+                    className="py-3 first:pt-2 last:pb-0"
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800">
+                          {integration.displayName}
+                        </p>
+                        <p className="mt-0.5 font-mono text-xs text-slate-500">
+                          {integration.providerKey} ·{" "}
+                          {formatRole(integration.type)}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                        <Badge tone="neutral">
+                          {formatRole(integration.status)}
+                        </Badge>
+                        <Badge tone={reliabilityTone(integration.reliability)}>
+                          {reliabilityLabel(integration.reliability)}
+                        </Badge>
+                        <Badge tone={freshnessTone(integration.freshness)}>
+                          {freshnessLabel(integration.freshness)}
+                          {integration.intervalAssumed ? "*" : ""}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <dl className="mt-2 grid gap-x-8 gap-y-1 sm:grid-cols-2">
+                      <MetaRow label="Last successful sync">
+                        {formatDate(integration.lastSuccessfulSyncAt)}
+                      </MetaRow>
+                      <MetaRow label="Latest sync">
+                        {integration.sync.latestStatus
+                          ? `${formatRole(integration.sync.latestStatus)} · ${formatDurationMs(integration.sync.durationMs)}`
+                          : "No sync runs"}
+                        {integration.sync.latestFinishedAt
+                          ? ` · ${formatDate(integration.sync.latestFinishedAt)}`
+                          : ""}
+                      </MetaRow>
+                      {integration.sync.latestStatus && (
+                        <MetaRow label="Records">
+                          {integration.sync.recordsSeen} seen ·{" "}
+                          {integration.sync.recordsCreated} created ·{" "}
+                          {integration.sync.recordsUpdated} updated
+                          {integration.sync.recordsFailed > 0
+                            ? ` · ${integration.sync.recordsFailed} failed`
+                            : ""}
+                        </MetaRow>
+                      )}
+                      {integration.consecutiveFailures > 0 && (
+                        <MetaRow label="Consecutive failures">
+                          {integration.consecutiveFailures}
+                        </MetaRow>
+                      )}
+                    </dl>
+
+                    {integration.indicators.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {integration.indicators.map((item) => (
+                          <Badge key={item.code} tone="warning">
+                            {item.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    {integration.feedWarnings.length > 0 && (
+                      <ul className="mt-2 space-y-0.5">
+                        {integration.feedWarnings.map((warning, index) => (
+                          <li
+                            key={`${warning.feed}-${index}`}
+                            className="text-xs text-amber-700"
+                          >
+                            {formatRole(warning.feed)} feed: {warning.message}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {(integration.sync.errorSummary ||
+                      integration.lastSyncError) && (
+                      <p className="mt-2 text-xs text-rose-700">
+                        {integration.sync.errorSummary ??
+                          integration.lastSyncError}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-3 text-xs text-slate-500">
+              * Freshness uses the provider&apos;s registered sync interval, or
+              a 24-hour default when none is configured.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">
+          Reliability information is not available for this workspace.
+        </p>
+      )}
+    </Panel>
   );
 }
 
@@ -311,6 +553,7 @@ export default function SettingsSections({
   canManageFleet,
   accountStatus,
   account,
+  reliability,
 }: {
   organizationId: string;
   organizationName: string;
@@ -330,6 +573,7 @@ export default function SettingsSections({
   canManageFleet: boolean;
   accountStatus: AccountStatus;
   account: AccountOverviewView | null;
+  reliability: ReliabilityOverview | null;
 }) {
   const [state, action, pending] = useActionState(
     updateOrganizationSettingsAction,
@@ -716,6 +960,8 @@ export default function SettingsSections({
           </p>
         )}
       </Panel>
+
+      <ReliabilitySection reliability={reliability} />
 
       <Panel
         title="Notifications"

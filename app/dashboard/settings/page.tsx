@@ -14,6 +14,7 @@ import {
 import { getConnectedSignalsOverview } from "@/src/prisma/connected-signals";
 import { getOnboardingFactsForUser } from "@/src/prisma/onboarding-data";
 import { getAccountOverviewForUser } from "@/src/prisma/organization-data";
+import { getReliabilityOverviewForUser } from "@/src/prisma/reliability-data";
 import { computeOnboardingState } from "@/src/onboarding/onboarding";
 import { PageHeader } from "../ui";
 import SettingsSections from "./settings-sections";
@@ -38,16 +39,22 @@ async function SettingsContent({ searchParams }: Props) {
   const context = await getOperationsPageContext(await searchParams);
   const session = await auth();
 
-  const [integrations, connectorCatalog, signals, accountOverview] =
-    await Promise.all([
-      listIntegrationsForOrganization(context.userId, context.organization.id),
-      listConnectorCatalog(),
-      getConnectedSignalsOverview(
-        context.userId,
-        context.organization.id,
-      ),
-      getAccountOverviewForUser(context.userId, context.organization.id),
-    ]);
+  const [
+    integrations,
+    connectorCatalog,
+    signals,
+    accountOverview,
+    reliability,
+  ] = await Promise.all([
+    listIntegrationsForOrganization(context.userId, context.organization.id),
+    listConnectorCatalog(),
+    getConnectedSignalsOverview(
+      context.userId,
+      context.organization.id,
+    ),
+    getAccountOverviewForUser(context.userId, context.organization.id),
+    getReliabilityOverviewForUser(context.userId, context.organization.id),
+  ]);
 
   const onboardingFacts = await getOnboardingFactsForUser(
     context.userId,
@@ -110,6 +117,7 @@ async function SettingsContent({ searchParams }: Props) {
                 }
               : null
           }
+          reliability={reliability}
         />
       </div>
     </TruckShell>
