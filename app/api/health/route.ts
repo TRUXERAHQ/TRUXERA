@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { connectDatabase, db } from "@/src/prisma/db";
 import { computeApplicationHealth } from "@/src/reliability/reliability";
+import { redactSecrets } from "@/src/integrations/errors";
+
+function logProbeFailure(error: unknown) {
+  const message =
+    error instanceof Error ? error.message : String(error ?? "unknown");
+  console.error(`[health] database probe failed: ${redactSecrets(message).slice(0, 300)}`);
+}
 
 /**
  * Minimal liveness/readiness probe. Unauthenticated by design — returns
@@ -13,8 +20,9 @@ export async function GET() {
     await connectDatabase();
     await db.orm.public.Organization.where({}).first();
     databaseReachable = true;
-  } catch {
+  } catch (error) {
     databaseReachable = false;
+    logProbeFailure(error);
   }
 
   const health = computeApplicationHealth({ databaseReachable });
