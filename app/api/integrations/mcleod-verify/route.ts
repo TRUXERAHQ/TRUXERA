@@ -36,6 +36,25 @@ export async function POST(request: Request) {
     );
   }
 
+  const diagnostics: Record<string, unknown> = {};
+  try {
+    const parts = accessToken.split(".");
+    if (parts.length === 3) {
+      const payload = JSON.parse(
+        Buffer.from(parts[1], "base64url").toString("utf8"),
+      ) as { exp?: number; iat?: number };
+      diagnostics.token = {
+        jwt: true,
+        expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
+        expired: payload.exp ? payload.exp * 1000 < Date.now() : null,
+      };
+    } else {
+      diagnostics.token = { jwt: false, length: accessToken.length };
+    }
+  } catch {
+    diagnostics.token = { jwt: false, length: accessToken.length };
+  }
+
   const host = "https://api.mcleodsoftware.com";
   const tenantId = process.env.MCLEOD_TNT_TENANT || "2";
   const client = createMcLeodClient({
@@ -52,7 +71,7 @@ export async function POST(request: Request) {
     ["tt-sandbox /trackandtrace/orders", "/trackandtrace-sandbox/trackandtrace/orders"],
   ];
 
-  const results: Record<string, unknown> = {};
+  const results: Record<string, unknown> = { diagnostics };
   for (const [label, path] of probes) {
     try {
       const res = await client.get(path);
