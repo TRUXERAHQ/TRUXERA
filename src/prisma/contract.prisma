@@ -254,6 +254,7 @@ model BillingSubscription {
   trialStartAt           DateTime?
   trialEndAt             DateTime?
   providerKey            String?
+  providerCustomerId     String?
   providerSubscriptionId String?
   monthlyPriceCents      Int?
   annualPriceCents       Int?
@@ -263,6 +264,20 @@ model BillingSubscription {
   updatedAt              temporal.UpdatedAt
 
   organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+}
+
+model BillingWebhookEvent {
+  id              Uuid               @id @onCreate(uuid(7))
+  providerKey     String
+  providerEventId String
+  type            String
+  organizationId  Uuid?
+  status          String             @default("RECEIVED")
+  error           String?
+  createdAt       temporal.CreatedAt
+  updatedAt       temporal.UpdatedAt
+
+  @@unique([providerKey, providerEventId])
 }
 
 model User {

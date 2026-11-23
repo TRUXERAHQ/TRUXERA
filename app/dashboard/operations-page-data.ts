@@ -24,6 +24,7 @@ export type OperationsSearchParams = {
   view?: string | string[];
   replied?: string | string[];
   resolved?: string | string[];
+  billing?: string | string[];
 };
 
 function firstValue(value?: string | string[]) {

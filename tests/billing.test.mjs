@@ -204,5 +204,16 @@ test("limit error messages are user-safe and plan-aware", () => {
 test("no billing provider resolves without credentials", () => {
   assert.equal(resolveBillingProvider({}), null);
   assert.equal(resolveBillingProvider({ BILLING_PROVIDER: "" }), null);
-  assert.equal(resolveBillingProvider({ BILLING_PROVIDER: "stripe" }), null);
+  assert.equal(resolveBillingProvider({ BILLING_PROVIDER: " " }), null);
+  // Stripe resolves when its key is configured.
+  assert.deepEqual(
+    resolveBillingProvider({ STRIPE_SECRET_KEY: "sk_test_x" }),
+    { key: "stripe" },
+  );
+  // Explicit provider selection still works.
+  assert.deepEqual(resolveBillingProvider({ BILLING_PROVIDER: "stripe" }), {
+    key: "stripe",
+  });
+  // Unknown providers resolve to null rather than fabricating one.
+  assert.equal(resolveBillingProvider({ BILLING_PROVIDER: "paypal" }), null);
 });

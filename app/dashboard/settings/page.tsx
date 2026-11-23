@@ -37,7 +37,16 @@ export default function SettingsPage({ searchParams }: Props) {
 }
 
 async function SettingsContent({ searchParams }: Props) {
-  const context = await getOperationsPageContext(await searchParams);
+  const params = await searchParams;
+  const context = await getOperationsPageContext(params);
+  const billingReturnValue = Array.isArray(params.billing)
+    ? params.billing[0]
+    : params.billing;
+  const billingReturn =
+    billingReturnValue === "checkout_success" ||
+    billingReturnValue === "checkout_canceled"
+      ? billingReturnValue
+      : null;
   const session = await auth();
 
   const [
@@ -122,6 +131,7 @@ async function SettingsContent({ searchParams }: Props) {
           }
           reliability={reliability}
           billing={billing}
+          billingReturn={billingReturn}
         />
       </div>
     </TruckShell>

@@ -1,0 +1,159 @@
+[
+  {
+    "id": "table.BillingWebhookEvent",
+    "label": "Create table \"BillingWebhookEvent\"",
+    "summary": "Creates table \"BillingWebhookEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "BillingWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"BillingWebhookEvent\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"BillingWebhookEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"BillingWebhookEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"BillingWebhookEvent\"",
+        "sql": "CREATE TABLE \"public\".\"BillingWebhookEvent\" (\n  \"createdAt\" timestamptz(3) NOT NULL,\n  \"error\" text,\n  \"id\" uuid NOT NULL,\n  \"organizationId\" uuid,\n  \"providerEventId\" text NOT NULL,\n  \"providerKey\" text NOT NULL,\n  \"status\" text DEFAULT 'RECEIVED' NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"BillingWebhookEvent\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"BillingWebhookEvent\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"BillingWebhookEvent\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.BillingSubscription.providerCustomerId",
+    "label": "Add column \"providerCustomerId\" to \"BillingSubscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "providerCustomerId",
+        "table": "BillingSubscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"providerCustomerId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "providerCustomerId"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"providerCustomerId\" on \"BillingSubscription\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"providerCustomerId\"",
+        "sql": "ALTER TABLE \"public\".\"BillingSubscription\" ADD COLUMN \"providerCustomerId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"providerCustomerId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "providerCustomerId"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"providerCustomerId\" on \"BillingSubscription\""
+        }
+      },
+      {
+        "description": "verify column \"providerCustomerId\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "BillingSubscription",
+          "providerCustomerId",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.BillingWebhookEvent.BillingWebhookEvent_providerKey_providerEventId_key",
+    "label": "Add unique constraint on \"BillingWebhookEvent\" (providerKey, providerEventId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "BillingWebhookEvent_providerKey_providerEventId_key",
+        "table": "BillingWebhookEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"BillingWebhookEvent_providerKey_providerEventId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "BillingWebhookEvent_providerKey_providerEventId_key",
+          "public",
+          "\"public\".\"BillingWebhookEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"BillingWebhookEvent_providerKey_providerEventId_key\" on \"BillingWebhookEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"BillingWebhookEvent_providerKey_providerEventId_key\"",
+        "sql": "ALTER TABLE \"public\".\"BillingWebhookEvent\" ADD CONSTRAINT \"BillingWebhookEvent_providerKey_providerEventId_key\" UNIQUE (\"providerKey\", \"providerEventId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"BillingWebhookEvent_providerKey_providerEventId_key\" exists on (providerKey, providerEventId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "BillingWebhookEvent_providerKey_providerEventId_key",
+          "public",
+          "\"public\".\"BillingWebhookEvent\"",
+          "u",
+          "[\"providerKey\",\"providerEventId\"]"
+        ]
+      }
+    ]
+  }
+]

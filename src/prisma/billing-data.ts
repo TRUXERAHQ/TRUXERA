@@ -8,6 +8,7 @@ import {
   type UsageLimitKey,
 } from "../billing/billing";
 import { resolveBillingProvider } from "../billing/provider";
+import { getStripeClient } from "../billing/stripe/client";
 
 export type BillingUsage = Record<UsageLimitKey, number>;
 
@@ -58,6 +59,12 @@ export async function getBillingOverviewForUser(
   const activeIntegrations = integrations.filter(
     (row) => row.status !== "DISCONNECTED",
   ).length;
+  const provider = resolveBillingProvider();
+  // A resolved provider only counts as connected when its adapter is
+  // actually usable (e.g. a test-mode Stripe key is present).
+  const providerConnected =
+    provider !== null &&
+    (provider.key !== "stripe" || getStripeClient() !== null);
 
   return {
     ...state,
@@ -69,6 +76,6 @@ export async function getBillingOverviewForUser(
       members: members.total,
       integrations: activeIntegrations,
     },
-    providerConnected: resolveBillingProvider() !== null,
+    providerConnected,
   };
 }

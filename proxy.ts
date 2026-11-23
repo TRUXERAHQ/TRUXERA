@@ -18,6 +18,6 @@ export default auth((request) => {
 
 export const config = {
   matcher: [
-    "/((?!api/auth(?:/|$)|api/health(?:/|$)|api/integrations(?:/|$)|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/((?!api/auth(?:/|$)|api/health(?:/|$)|api/integrations(?:/|$)|api/webhooks(?:/|$)|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };

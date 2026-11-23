@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'300ce5325c8c5bddd17d3e0a25a6868c62140556702255fbcd1fd3df601e13ef'>;
+  StorageHashBase<'6a494d6e54e0095e853009b688661a4771d8672c155d22b6ddcab23b71461154'>;
 export type ExecutionHash =
-  ExecutionHashBase<'02eb8b53ee797efa623c70f7a72ed1a7b51354b14d3457f1b10c2246f6f54eb9'>;
+  ExecutionHashBase<'0f166a2faafff4e68df27b1769265fa31ec8f774e2bd1f059251b492d2d9f611'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -801,6 +801,7 @@ export namespace Models {
     monthlyPriceCents: FieldOutputTypes['public']['BillingSubscription']['monthlyPriceCents'];
     organizationId: FieldOutputTypes['public']['BillingSubscription']['organizationId'];
     plan: FieldOutputTypes['public']['BillingSubscription']['plan'];
+    providerCustomerId: FieldOutputTypes['public']['BillingSubscription']['providerCustomerId'];
     providerKey: FieldOutputTypes['public']['BillingSubscription']['providerKey'];
     providerSubscriptionId: FieldOutputTypes['public']['BillingSubscription']['providerSubscriptionId'];
     status: FieldOutputTypes['public']['BillingSubscription']['status'];
@@ -810,6 +811,18 @@ export namespace Models {
     vehicleLimit: FieldOutputTypes['public']['BillingSubscription']['vehicleLimit'];
     organization: public_Organization;
     readonly [RelationKeys]?: 'organization';
+  };
+  export type public_BillingWebhookEvent = {
+    createdAt: FieldOutputTypes['public']['BillingWebhookEvent']['createdAt'];
+    error: FieldOutputTypes['public']['BillingWebhookEvent']['error'];
+    id: FieldOutputTypes['public']['BillingWebhookEvent']['id'];
+    organizationId: FieldOutputTypes['public']['BillingWebhookEvent']['organizationId'];
+    providerEventId: FieldOutputTypes['public']['BillingWebhookEvent']['providerEventId'];
+    providerKey: FieldOutputTypes['public']['BillingWebhookEvent']['providerKey'];
+    status: FieldOutputTypes['public']['BillingWebhookEvent']['status'];
+    type: FieldOutputTypes['public']['BillingWebhookEvent']['type'];
+    updatedAt: FieldOutputTypes['public']['BillingWebhookEvent']['updatedAt'];
+    readonly [RelationKeys]?: never;
   };
   export type public_Delivery = {
     createdAt: FieldOutputTypes['public']['Delivery']['createdAt'];
@@ -1149,6 +1162,7 @@ export namespace Models {
 export declare const models: {
   public: {
     BillingSubscription: Models.public_BillingSubscription;
+    BillingWebhookEvent: Models.public_BillingWebhookEvent;
     Delivery: Models.public_Delivery;
     DeliveryEvent: Models.public_DeliveryEvent;
     DispatchAssignment: Models.public_DispatchAssignment;
@@ -1235,6 +1249,12 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly providerCustomerId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly providerKey: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -1298,6 +1318,74 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly BillingWebhookEvent: {
+              columns: {
+                readonly createdAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+                readonly error: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly id: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly organizationId: {
+                  readonly dataType: 'pg/uuid';
+                  readonly codecId: 'pg/uuid@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly providerEventId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly providerKey: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'RECEIVED'>;
+                  };
+                  readonly many: false;
+                };
+                readonly type: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly updatedAt: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly precision: 3 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['providerKey', 'providerEventId'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
             };
             readonly Delivery: {
               columns: {
@@ -3984,6 +4072,10 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'BillingSubscription';
     };
+    readonly BillingWebhookEvent: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'BillingWebhookEvent';
+    };
     readonly Delivery: { readonly namespace: 'public' & NamespaceId; readonly model: 'Delivery' };
     readonly DeliveryEvent: {
       readonly namespace: 'public' & NamespaceId;
@@ -4085,6 +4177,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly providerCustomerId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly providerKey: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -4151,6 +4247,7 @@ type ContractBase = Omit<
                 readonly monthlyPriceCents: { readonly column: 'monthlyPriceCents' };
                 readonly organizationId: { readonly column: 'organizationId' };
                 readonly plan: { readonly column: 'plan' };
+                readonly providerCustomerId: { readonly column: 'providerCustomerId' };
                 readonly providerKey: { readonly column: 'providerKey' };
                 readonly providerSubscriptionId: { readonly column: 'providerSubscriptionId' };
                 readonly status: { readonly column: 'status' };
@@ -4158,6 +4255,70 @@ type ContractBase = Omit<
                 readonly trialStartAt: { readonly column: 'trialStartAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
                 readonly vehicleLimit: { readonly column: 'vehicleLimit' };
+              };
+            };
+          };
+          readonly BillingWebhookEvent: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+              readonly error: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly organizationId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/uuid@1' };
+              };
+              readonly providerEventId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly providerKey: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly type: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-date@1';
+                  readonly typeParams: { readonly precision: 3 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'BillingWebhookEvent';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly error: { readonly column: 'error' };
+                readonly id: { readonly column: 'id' };
+                readonly organizationId: { readonly column: 'organizationId' };
+                readonly providerEventId: { readonly column: 'providerEventId' };
+                readonly providerKey: { readonly column: 'providerKey' };
+                readonly status: { readonly column: 'status' };
+                readonly type: { readonly column: 'type' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };
           };
@@ -6684,6 +6845,43 @@ type ContractBase = Omit<
           };
           readonly ref: {
             readonly entry: 'BillingSubscription';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'BillingWebhookEvent';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv7'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'BillingWebhookEvent';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly onUpdate: {
+            readonly id: 'timestampNow';
+            readonly kind: 'generator';
+            readonly params: { readonly precision: 3 };
+          };
+          readonly ref: {
+            readonly entry: 'BillingWebhookEvent';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

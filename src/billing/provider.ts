@@ -6,7 +6,9 @@
  * and is selected by configuration — core logic only sees the resolved
  * provider key stored on BillingSubscription.providerKey.
  *
- * No provider is configured in this phase, so resolution returns null.
+ * Stripe resolves when STRIPE_SECRET_KEY is configured. The adapter
+ * itself refuses non-test keys, so a misconfigured live key can never
+ * reach the Stripe API from this codebase.
  */
 
 export interface BillingProvider {
@@ -16,20 +18,27 @@ export interface BillingProvider {
 
 export type BillingProviderEnv = {
   BILLING_PROVIDER?: string | undefined;
+  STRIPE_SECRET_KEY?: string | undefined;
 };
 
 /**
  * Resolves the configured billing provider. Returns null when billing is
  * not configured — the expected state until a provider adapter ships.
+ * BILLING_PROVIDER, when set, must name a supported provider; an unknown
+ * value resolves to null rather than fabricating a provider.
  */
 export function resolveBillingProvider(
   env: BillingProviderEnv = {
     BILLING_PROVIDER: process.env["BILLING_PROVIDER"],
+    STRIPE_SECRET_KEY: process.env["STRIPE_SECRET_KEY"],
   },
 ): BillingProvider | null {
-  const key = env.BILLING_PROVIDER?.trim();
-  if (!key) return null;
-  // No provider adapters exist yet; an unknown key resolves to null rather
-  // than fabricating a provider.
+  const explicit = env.BILLING_PROVIDER?.trim();
+  if (explicit) {
+    return explicit === "stripe" ? { key: "stripe" } : null;
+  }
+  if (env.STRIPE_SECRET_KEY?.trim()) {
+    return { key: "stripe" };
+  }
   return null;
 }
