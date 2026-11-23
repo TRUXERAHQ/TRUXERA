@@ -47,10 +47,9 @@ export async function POST(request: Request) {
 
   const probes: Array<[string, string]> = [
     ["tt-sandbox /orders", "/trackandtrace-sandbox/orders"],
-    ["tt-sandbox /orders/", "/trackandtrace-sandbox/orders/"],
-    ["tt-sandbox root", "/trackandtrace-sandbox"],
-    ["tt-sandbox /v1/orders", "/trackandtrace-sandbox/v1/orders"],
-    ["tt-sandbox /orders?status", "/trackandtrace-sandbox/orders?status=InProgress"],
+    ["tt-live-path /orders", "/trackandtrace/orders"],
+    ["tt-live-path /orders/", "/trackandtrace/orders/"],
+    ["tt-sandbox /trackandtrace/orders", "/trackandtrace-sandbox/trackandtrace/orders"],
   ];
 
   const results: Record<string, unknown> = {};
