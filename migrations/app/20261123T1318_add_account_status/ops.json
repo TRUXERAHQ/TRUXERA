@@ -1,0 +1,216 @@
+[
+  {
+    "id": "dropCheckConstraint.IntegrationEvent.IntegrationEvent_kind_check_cb9dddca",
+    "label": "Drop check constraint \"IntegrationEvent_kind_check_cb9dddca\" on \"IntegrationEvent\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "IntegrationEvent_kind_check_cb9dddca",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"IntegrationEvent_kind_check_cb9dddca\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationEvent_kind_check_cb9dddca",
+          "public",
+          "\"public\".\"IntegrationEvent\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"IntegrationEvent_kind_check_cb9dddca\" on \"IntegrationEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"IntegrationEvent_kind_check_cb9dddca\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationEvent\" DROP CONSTRAINT \"IntegrationEvent_kind_check_cb9dddca\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"IntegrationEvent_kind_check_cb9dddca\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationEvent_kind_check_cb9dddca",
+          "public",
+          "\"public\".\"IntegrationEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"IntegrationEvent_kind_check_cb9dddca\" on \"IntegrationEvent\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.Organization.status",
+    "label": "Add column \"status\" to \"Organization\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "status",
+        "table": "Organization"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"status\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Organization",
+          "status"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"status\" on \"Organization\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"status\"",
+        "sql": "ALTER TABLE \"public\".\"Organization\" ADD COLUMN \"status\" text DEFAULT 'ACTIVE' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"status\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Organization",
+          "status"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"status\" on \"Organization\""
+        }
+      },
+      {
+        "description": "verify column \"status\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Organization",
+          "status",
+          "text"
+        ]
+      },
+      {
+        "description": "verify column \"status\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Organization",
+          "status",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.IntegrationEvent.IntegrationEvent_kind_check_61abe518",
+    "label": "Add check constraint \"IntegrationEvent_kind_check_61abe518\" on \"IntegrationEvent\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "IntegrationEvent_kind_check_61abe518",
+        "table": "IntegrationEvent"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"IntegrationEvent_kind_check_61abe518\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "IntegrationEvent_kind_check_61abe518",
+          "public",
+          "\"public\".\"IntegrationEvent\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"IntegrationEvent_kind_check_61abe518\" on \"IntegrationEvent\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"IntegrationEvent_kind_check_61abe518\"",
+        "sql": "ALTER TABLE \"public\".\"IntegrationEvent\" ADD CONSTRAINT \"IntegrationEvent_kind_check_61abe518\" CHECK (\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED', 'EXTERNAL_RECORD_MAPPED', 'EXTERNAL_RECORD_MAPPING_FAILED', 'ACCOUNT_STATUS_CHANGED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"IntegrationEvent_kind_check_61abe518\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "IntegrationEvent_kind_check_61abe518",
+          "public",
+          "\"public\".\"IntegrationEvent\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Organization.Organization_status_check_1527ac15",
+    "label": "Add check constraint \"Organization_status_check_1527ac15\" on \"Organization\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Organization_status_check_1527ac15",
+        "table": "Organization"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Organization_status_check_1527ac15\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Organization_status_check_1527ac15",
+          "public",
+          "\"public\".\"Organization\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Organization_status_check_1527ac15\" on \"Organization\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Organization_status_check_1527ac15\"",
+        "sql": "ALTER TABLE \"public\".\"Organization\" ADD CONSTRAINT \"Organization_status_check_1527ac15\" CHECK (\"status\" IN ('ACTIVE', 'SUSPENDED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Organization_status_check_1527ac15\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Organization_status_check_1527ac15",
+          "public",
+          "\"public\".\"Organization\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

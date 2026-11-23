@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8490377061788be334493616526a859184e01343ec760f07394425dfba2a2b30'>;
+  StorageHashBase<'879e25aca4ee97932ef634f7fb219bb4355b245e20a2ebac0bdb84cc8225862c'>;
 export type ExecutionHash =
   ExecutionHashBase<'0b9aa424d25b81912b57c9c0a348b422da22f3bf2710fde1cadbbff882f0e46a'>;
 export type ProfileHash =
@@ -414,7 +414,8 @@ type FieldTypeOverrides = {
             | 'WEBHOOK_PROCESSED'
             | 'WEBHOOK_FAILED'
             | 'EXTERNAL_RECORD_MAPPED'
-            | 'EXTERNAL_RECORD_MAPPING_FAILED';
+            | 'EXTERNAL_RECORD_MAPPING_FAILED'
+            | 'ACCOUNT_STATUS_CHANGED';
           readonly input:
             | 'CONNECTED'
             | 'DISCONNECTED'
@@ -429,7 +430,8 @@ type FieldTypeOverrides = {
             | 'WEBHOOK_PROCESSED'
             | 'WEBHOOK_FAILED'
             | 'EXTERNAL_RECORD_MAPPED'
-            | 'EXTERNAL_RECORD_MAPPING_FAILED';
+            | 'EXTERNAL_RECORD_MAPPING_FAILED'
+            | 'ACCOUNT_STATUS_CHANGED';
         };
       };
       readonly IntegrationSyncRun: {
@@ -464,6 +466,12 @@ type FieldTypeOverrides = {
         readonly subjectKind: {
           readonly output: 'TRUCK' | 'DRIVER' | 'DELIVERY' | 'LOAD';
           readonly input: 'TRUCK' | 'DRIVER' | 'DELIVERY' | 'LOAD';
+        };
+      };
+      readonly Organization: {
+        readonly status: {
+          readonly output: 'ACTIVE' | 'SUSPENDED';
+          readonly input: 'ACTIVE' | 'SUSPENDED';
         };
       };
       readonly SupportMessage: {
@@ -655,7 +663,8 @@ type ColumnTypeOverrides = {
           | 'WEBHOOK_PROCESSED'
           | 'WEBHOOK_FAILED'
           | 'EXTERNAL_RECORD_MAPPED'
-          | 'EXTERNAL_RECORD_MAPPING_FAILED';
+          | 'EXTERNAL_RECORD_MAPPING_FAILED'
+          | 'ACCOUNT_STATUS_CHANGED';
         readonly input:
           | 'CONNECTED'
           | 'DISCONNECTED'
@@ -670,7 +679,8 @@ type ColumnTypeOverrides = {
           | 'WEBHOOK_PROCESSED'
           | 'WEBHOOK_FAILED'
           | 'EXTERNAL_RECORD_MAPPED'
-          | 'EXTERNAL_RECORD_MAPPING_FAILED';
+          | 'EXTERNAL_RECORD_MAPPING_FAILED'
+          | 'ACCOUNT_STATUS_CHANGED';
       };
     };
     readonly IntegrationSyncRun: {
@@ -705,6 +715,12 @@ type ColumnTypeOverrides = {
       readonly subjectKind: {
         readonly output: 'TRUCK' | 'DRIVER' | 'DELIVERY' | 'LOAD';
         readonly input: 'TRUCK' | 'DRIVER' | 'DELIVERY' | 'LOAD';
+      };
+    };
+    readonly Organization: {
+      readonly status: {
+        readonly output: 'ACTIVE' | 'SUSPENDED';
+        readonly input: 'ACTIVE' | 'SUSPENDED';
       };
     };
     readonly SupportMessage: {
@@ -1028,6 +1044,7 @@ export namespace Models {
     id: FieldOutputTypes['public']['Organization']['id'];
     name: FieldOutputTypes['public']['Organization']['name'];
     slug: FieldOutputTypes['public']['Organization']['slug'];
+    status: FieldOutputTypes['public']['Organization']['status'];
     timezone: FieldOutputTypes['public']['Organization']['timezone'];
     updatedAt: FieldOutputTypes['public']['Organization']['updatedAt'];
     readonly [RelationKeys]?: never;
@@ -3188,6 +3205,16 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
+                readonly status: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'ACTIVE'>;
+                  };
+                  readonly many: false;
+                };
                 readonly timezone: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -3698,6 +3725,7 @@ type ContractBase = Omit<
                 'WEBHOOK_FAILED',
                 'EXTERNAL_RECORD_MAPPED',
                 'EXTERNAL_RECORD_MAPPING_FAILED',
+                'ACCOUNT_STATUS_CHANGED',
               ];
             };
             readonly IntegrationStatus: {
@@ -3736,6 +3764,10 @@ type ContractBase = Omit<
             readonly MembershipRole: {
               readonly kind: 'valueSet';
               readonly values: readonly ['OWNER', 'ADMIN', 'DISPATCHER', 'DRIVER', 'VIEWER'];
+            };
+            readonly OrganizationStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['ACTIVE', 'SUSPENDED'];
             };
             readonly RiskLevel: {
               readonly kind: 'valueSet';
@@ -5517,6 +5549,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly timezone: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -5539,6 +5575,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly name: { readonly column: 'name' };
                 readonly slug: { readonly column: 'slug' };
+                readonly status: { readonly column: 'status' };
                 readonly timezone: { readonly column: 'timezone' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
@@ -5980,6 +6017,7 @@ type ContractBase = Omit<
                 readonly name: 'EXTERNAL_RECORD_MAPPING_FAILED';
                 readonly value: 'EXTERNAL_RECORD_MAPPING_FAILED';
               },
+              { readonly name: 'ACCOUNT_STATUS_CHANGED'; readonly value: 'ACCOUNT_STATUS_CHANGED' },
             ];
           };
           readonly IntegrationStatus: {
@@ -6038,6 +6076,13 @@ type ContractBase = Omit<
               { readonly name: 'DISPATCHER'; readonly value: 'DISPATCHER' },
               { readonly name: 'DRIVER'; readonly value: 'DRIVER' },
               { readonly name: 'VIEWER'; readonly value: 'VIEWER' },
+            ];
+          };
+          readonly OrganizationStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
             ];
           };
           readonly RiskLevel: {
@@ -6176,6 +6221,7 @@ type ContractBase = Omit<
               readonly name: 'EXTERNAL_RECORD_MAPPING_FAILED';
               readonly value: 'EXTERNAL_RECORD_MAPPING_FAILED';
             },
+            { readonly name: 'ACCOUNT_STATUS_CHANGED'; readonly value: 'ACCOUNT_STATUS_CHANGED' },
           ];
           readonly IntegrationStatus: readonly [
             { readonly name: 'CONNECTING'; readonly value: 'CONNECTING' },
@@ -6216,6 +6262,10 @@ type ContractBase = Omit<
             { readonly name: 'DISPATCHER'; readonly value: 'DISPATCHER' },
             { readonly name: 'DRIVER'; readonly value: 'DRIVER' },
             { readonly name: 'VIEWER'; readonly value: 'VIEWER' },
+          ];
+          readonly OrganizationStatus: readonly [
+            { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+            { readonly name: 'SUSPENDED'; readonly value: 'SUSPENDED' },
           ];
           readonly RiskLevel: readonly [
             { readonly name: 'LOW'; readonly value: 'LOW' },

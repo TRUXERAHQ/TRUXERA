@@ -1,6 +1,10 @@
 import { getMembershipForUserInOrganization } from "./organization-data";
 import { connectDatabase, db } from "./db";
 import { authorizeFleetAccess, hasDuplicateUnitNumber } from "@/src/trucks/truck-policy";
+import {
+  ACCOUNT_SUSPENDED_ERROR,
+  isAccountWritable,
+} from "@/src/account/account-status";
 import type { TruckInput } from "@/src/trucks/truck-validation";
 
 type MutationResult<T = undefined> =
@@ -120,6 +124,9 @@ export async function createTruckForUser(
     if (!organization) {
       return { ok: false, error: "The selected organization was not found." };
     }
+    if (!isAccountWritable(organization.status)) {
+      return { ok: false, error: ACCOUNT_SUSPENDED_ERROR };
+    }
 
     const existingTrucks = await tx.orm.public.Truck.where({
       organizationId,
@@ -172,6 +179,9 @@ export async function updateTruckForUser(
       .first();
     if (!organization) {
       return { ok: false, error: "The selected organization was not found." };
+    }
+    if (!isAccountWritable(organization.status)) {
+      return { ok: false, error: ACCOUNT_SUSPENDED_ERROR };
     }
 
     const truck = await tx.orm.public.Truck.where({
@@ -236,6 +246,9 @@ export async function setTruckDeactivatedForUser(
       .first();
     if (!organization) {
       return { ok: false, error: "The selected organization was not found." };
+    }
+    if (!isAccountWritable(organization.status)) {
+      return { ok: false, error: ACCOUNT_SUSPENDED_ERROR };
     }
 
     const truck = await tx.orm.public.Truck.where({

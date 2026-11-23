@@ -309,6 +309,10 @@
               {
                 "name": "EXTERNAL_RECORD_MAPPING_FAILED",
                 "value": "EXTERNAL_RECORD_MAPPING_FAILED"
+              },
+              {
+                "name": "ACCOUNT_STATUS_CHANGED",
+                "value": "ACCOUNT_STATUS_CHANGED"
               }
             ]
           },
@@ -451,6 +455,19 @@
               {
                 "name": "VIEWER",
                 "value": "VIEWER"
+              }
+            ]
+          },
+          "OrganizationStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "SUSPENDED",
+                "value": "SUSPENDED"
               }
             ]
           },
@@ -3449,6 +3466,19 @@
                   "kind": "scalar"
                 }
               },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "OrganizationStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "timezone": {
                 "nullable": false,
                 "type": {
@@ -3481,6 +3511,9 @@
                 },
                 "slug": {
                   "column": "slug"
+                },
+                "status": {
+                  "column": "status"
                 },
                 "timezone": {
                   "column": "timezone"
@@ -5650,8 +5683,8 @@
             "IntegrationEvent": {
               "checks": [
                 {
-                  "expression": "\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED', 'EXTERNAL_RECORD_MAPPED', 'EXTERNAL_RECORD_MAPPING_FAILED')",
-                  "name": "IntegrationEvent_kind_check_cb9dddca",
+                  "expression": "\"kind\" IN ('CONNECTED', 'DISCONNECTED', 'CONFIG_UPDATED', 'CREDENTIAL_STORED', 'CREDENTIAL_ROTATED', 'CREDENTIAL_REVOKED', 'SYNC_STARTED', 'SYNC_COMPLETED', 'SYNC_FAILED', 'WEBHOOK_RECEIVED', 'WEBHOOK_PROCESSED', 'WEBHOOK_FAILED', 'EXTERNAL_RECORD_MAPPED', 'EXTERNAL_RECORD_MAPPING_FAILED', 'ACCOUNT_STATUS_CHANGED')",
+                  "name": "IntegrationEvent_kind_check_61abe518",
                   "prefix": "IntegrationEvent_kind_check"
                 }
               ],
@@ -6832,6 +6865,13 @@
               ]
             },
             "Organization": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('ACTIVE', 'SUSPENDED')",
+                  "name": "Organization_status_check_1527ac15",
+                  "prefix": "Organization_status_check"
+                }
+              ],
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-date@1",
@@ -6855,6 +6895,21 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVE"
+                  },
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "OrganizationStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "timezone": {
                   "codecId": "pg/text@1",
@@ -7539,7 +7594,8 @@
                 "WEBHOOK_PROCESSED",
                 "WEBHOOK_FAILED",
                 "EXTERNAL_RECORD_MAPPED",
-                "EXTERNAL_RECORD_MAPPING_FAILED"
+                "EXTERNAL_RECORD_MAPPING_FAILED",
+                "ACCOUNT_STATUS_CHANGED"
               ]
             },
             "IntegrationStatus": {
@@ -7598,6 +7654,13 @@
                 "DISPATCHER",
                 "DRIVER",
                 "VIEWER"
+              ]
+            },
+            "OrganizationStatus": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVE",
+                "SUSPENDED"
               ]
             },
             "RiskLevel": {
@@ -7677,7 +7740,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "8490377061788be334493616526a859184e01343ec760f07394425dfba2a2b30"
+    "storageHash": "879e25aca4ee97932ef634f7fb219bb4355b245e20a2ebac0bdb84cc8225862c"
   },
   "execution": {
     "executionHash": "0b9aa424d25b81912b57c9c0a348b422da22f3bf2710fde1cadbbff882f0e46a",

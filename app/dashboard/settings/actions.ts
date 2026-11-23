@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { isUuid } from "@/src/trucks/truck-policy";
 import { parseOrganizationSettingsInput } from "@/src/settings/organization-settings";
-import { updateOrganizationSettingsForUser } from "@/src/prisma/organization-data";
+import {
+  setOrganizationStatusForUser,
+  updateOrganizationSettingsForUser,
+} from "@/src/prisma/organization-data";
 
 export type SettingsActionState = {
   error?: string;
@@ -37,5 +40,32 @@ export async function updateOrganizationSettingsAction(
 
   redirect(
     `/dashboard/settings?organizationId=${encodeURIComponent(organizationId)}&updated=1`,
+  );
+}
+
+export async function updateAccountStatusAction(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  const organizationId = formData.get("organizationId");
+  if (!isUuid(organizationId)) {
+    return { error: "The selected organization could not be found." };
+  }
+
+  const result = await setOrganizationStatusForUser(
+    session.user.id,
+    organizationId,
+    {
+      status: formData.get("status"),
+      confirm: formData.get("confirm"),
+    },
+  );
+  if (!result.ok) return { error: result.error };
+
+  redirect(
+    `/dashboard/settings?organizationId=${encodeURIComponent(organizationId)}&accountUpdated=1`,
   );
 }

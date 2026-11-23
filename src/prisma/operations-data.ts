@@ -29,6 +29,10 @@ import {
   authorizeFleetAccess,
   isUuid,
 } from "@/src/trucks/truck-policy";
+import {
+  ACCOUNT_SUSPENDED_ERROR,
+  isAccountWritable,
+} from "@/src/account/account-status";
 
 type AuthorizationFailure = { ok: false; error: string };
 
@@ -72,6 +76,9 @@ async function authorizeWrite(
     .first();
   if (!organization) {
     return { ok: false, error: "The selected organization was not found." };
+  }
+  if (!isAccountWritable(organization.status)) {
+    return { ok: false, error: ACCOUNT_SUSPENDED_ERROR };
   }
 
   return null;

@@ -1,4 +1,11 @@
 // use prisma-8
+enum OrganizationStatus {
+  @@type("pg/text@1")
+
+  ACTIVE = "ACTIVE"
+  SUSPENDED = "SUSPENDED"
+}
+
 enum MembershipRole {
   @@type("pg/text@1")
 
@@ -179,6 +186,7 @@ enum IntegrationEventKind {
   WEBHOOK_FAILED = "WEBHOOK_FAILED"
   EXTERNAL_RECORD_MAPPED = "EXTERNAL_RECORD_MAPPED"
   EXTERNAL_RECORD_MAPPING_FAILED = "EXTERNAL_RECORD_MAPPING_FAILED"
+  ACCOUNT_STATUS_CHANGED = "ACCOUNT_STATUS_CHANGED"
 }
 
 enum IntegrationWebhookStatus {
@@ -215,6 +223,7 @@ model Organization {
   name      String
   slug      String             @unique
   timezone  String             @default("UTC")
+  status    OrganizationStatus @default(ACTIVE)
   createdAt temporal.CreatedAt
   updatedAt temporal.UpdatedAt
 }

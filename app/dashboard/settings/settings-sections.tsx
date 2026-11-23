@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
-import { updateOrganizationSettingsAction } from "./actions";
+import { useActionState, useState } from "react";
+import {
+  updateAccountStatusAction,
+  updateOrganizationSettingsAction,
+} from "./actions";
 import {
   Badge,
+  buttonDangerClass,
   buttonPrimaryClass,
   buttonSecondaryClass,
   inputClass,
@@ -13,6 +17,7 @@ import {
   Panel,
 } from "../ui";
 import type { OnboardingView } from "@/src/onboarding/onboarding";
+import type { AccountStatus } from "@/src/account/account-status";
 
 const membershipRoles = [
   {
@@ -60,6 +65,19 @@ type ConnectorCatalogItem = {
   displayName: string;
   type: string;
   description?: string;
+};
+
+type AccountOverviewView = {
+  owner: { name: string; email: string } | null;
+  adminCount: number;
+  memberCount: number;
+  counts: {
+    activeTrucks: number;
+    drivers: number;
+    loads: number;
+    deliveries: number;
+  };
+  createdAt: string | null;
 };
 
 type SignalSummaryItem = {
@@ -131,6 +149,149 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
+function AccountStatusSection({
+  organizationId,
+  organizationName,
+  accountStatus,
+  account,
+  canAdminister,
+}: {
+  organizationId: string;
+  organizationName: string;
+  accountStatus: AccountStatus;
+  account: AccountOverviewView | null;
+  canAdminister: boolean;
+}) {
+  const [state, action, pending] = useActionState(
+    updateAccountStatusAction,
+    {},
+  );
+  const [confirmingSuspend, setConfirmingSuspend] = useState(false);
+  const suspended = accountStatus === "SUSPENDED";
+
+  return (
+    <Panel
+      title="Account status"
+      description="Lifecycle state for this TRUXERA organization. Suspension is non-destructive — no fleet, load, delivery, integration, or history data is removed."
+    >
+      <div className="space-y-5">
+        {suspended && (
+          <Notice tone="danger">
+            This account is suspended. Operational changes are blocked for
+            all members. Read access to fleet and operational history is
+            preserved.
+          </Notice>
+        )}
+
+        <dl className="space-y-2.5">
+          <MetaRow label="Organization">{organizationName}</MetaRow>
+          <MetaRow label="Account status">
+            <Badge tone={suspended ? "danger" : "success"}>
+              {suspended ? "Suspended" : "Active"}
+            </Badge>
+          </MetaRow>
+          {account && (
+            <>
+              <MetaRow label="Created">
+                {formatDate(account.createdAt)}
+              </MetaRow>
+              <MetaRow label="Primary owner">
+                {account.owner
+                  ? `${account.owner.name} · ${account.owner.email}`
+                  : "Not available"}
+              </MetaRow>
+              <MetaRow label="Administrative access">
+                {account.adminCount} of {account.memberCount}{" "}
+                {account.memberCount === 1 ? "member" : "members"} can
+                administer this workspace
+              </MetaRow>
+              <MetaRow label="Fleet baseline">
+                {account.counts.activeTrucks} active{" "}
+                {account.counts.activeTrucks === 1 ? "truck" : "trucks"} ·{" "}
+                {account.counts.drivers}{" "}
+                {account.counts.drivers === 1 ? "driver" : "drivers"}
+              </MetaRow>
+              <MetaRow label="Operations">
+                {account.counts.loads}{" "}
+                {account.counts.loads === 1 ? "load" : "loads"} ·{" "}
+                {account.counts.deliveries}{" "}
+                {account.counts.deliveries === 1 ? "delivery" : "deliveries"}
+              </MetaRow>
+            </>
+          )}
+        </dl>
+
+        {canAdminister ? (
+          suspended ? (
+            <form action={action}>
+              <input
+                type="hidden"
+                name="organizationId"
+                value={organizationId}
+              />
+              <input type="hidden" name="status" value="ACTIVE" />
+              <button
+                type="submit"
+                disabled={pending}
+                className={buttonPrimaryClass}
+              >
+                {pending ? "Reactivating…" : "Reactivate account"}
+              </button>
+            </form>
+          ) : confirmingSuspend ? (
+            <form action={action} className="space-y-3">
+              <input
+                type="hidden"
+                name="organizationId"
+                value={organizationId}
+              />
+              <input type="hidden" name="status" value="SUSPENDED" />
+              <input type="hidden" name="confirm" value="SUSPEND" />
+              <Notice tone="warning">
+                Suspending this account blocks operational changes for all
+                members until it is reactivated. All trucks, drivers, loads,
+                deliveries, integrations, and history are preserved.
+              </Notice>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className={buttonDangerClass}
+                >
+                  {pending ? "Suspending…" : "Confirm suspension"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingSuspend(false)}
+                  className={buttonSecondaryClass}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div>
+              <button
+                type="button"
+                onClick={() => setConfirmingSuspend(true)}
+                className={buttonSecondaryClass}
+              >
+                Suspend account
+              </button>
+            </div>
+          )
+        ) : (
+          <p className="text-xs text-slate-500">
+            Only organization owners and admins can change the account status.
+          </p>
+        )}
+
+        {state.error && <Notice tone="danger">{state.error}</Notice>}
+      </div>
+    </Panel>
+  );
+}
+
 export default function SettingsSections({
   organizationId,
   organizationName,
@@ -148,6 +309,8 @@ export default function SettingsSections({
   connectorCatalog,
   onboarding,
   canManageFleet,
+  accountStatus,
+  account,
 }: {
   organizationId: string;
   organizationName: string;
@@ -165,6 +328,8 @@ export default function SettingsSections({
   connectorCatalog: ConnectorCatalogItem[];
   onboarding: OnboardingView | null;
   canManageFleet: boolean;
+  accountStatus: AccountStatus;
+  account: AccountOverviewView | null;
 }) {
   const [state, action, pending] = useActionState(
     updateOrganizationSettingsAction,
@@ -302,6 +467,14 @@ export default function SettingsSections({
           {preferencesPanel}
         </>
       )}
+
+      <AccountStatusSection
+        organizationId={organizationId}
+        organizationName={organizationName}
+        accountStatus={accountStatus}
+        account={account}
+        canAdminister={canAdminister}
+      />
 
       {onboarding && (
         <Panel

@@ -13,6 +13,7 @@ import {
 } from "@/src/prisma/integration-data";
 import { getConnectedSignalsOverview } from "@/src/prisma/connected-signals";
 import { getOnboardingFactsForUser } from "@/src/prisma/onboarding-data";
+import { getAccountOverviewForUser } from "@/src/prisma/organization-data";
 import { computeOnboardingState } from "@/src/onboarding/onboarding";
 import { PageHeader } from "../ui";
 import SettingsSections from "./settings-sections";
@@ -37,14 +38,16 @@ async function SettingsContent({ searchParams }: Props) {
   const context = await getOperationsPageContext(await searchParams);
   const session = await auth();
 
-  const [integrations, connectorCatalog, signals] = await Promise.all([
-    listIntegrationsForOrganization(context.userId, context.organization.id),
-    listConnectorCatalog(),
-    getConnectedSignalsOverview(
-      context.userId,
-      context.organization.id,
-    ),
-  ]);
+  const [integrations, connectorCatalog, signals, accountOverview] =
+    await Promise.all([
+      listIntegrationsForOrganization(context.userId, context.organization.id),
+      listConnectorCatalog(),
+      getConnectedSignalsOverview(
+        context.userId,
+        context.organization.id,
+      ),
+      getAccountOverviewForUser(context.userId, context.organization.id),
+    ]);
 
   const onboardingFacts = await getOnboardingFactsForUser(
     context.userId,
@@ -93,6 +96,20 @@ async function SettingsContent({ searchParams }: Props) {
           connectorCatalog={connectorCatalog}
           onboarding={onboarding}
           canManageFleet={canManageFleet(context.membership.role)}
+          accountStatus={context.organization.status}
+          account={
+            accountOverview
+              ? {
+                  owner: accountOverview.owner,
+                  adminCount: accountOverview.adminCount,
+                  memberCount: accountOverview.memberCount,
+                  counts: accountOverview.counts,
+                  createdAt:
+                    accountOverview.organization.createdAt?.toISOString() ??
+                    null,
+                }
+              : null
+          }
         />
       </div>
     </TruckShell>
