@@ -167,10 +167,54 @@ sets API entitlements and rate limits." Framework already classifies 429 →
 5. Phase 1B-B: api1 connector for drivers/tractors/movements/customers
    once a real tenant exists.
 
+### Sandbox verification result (2026-11-23, staging Preview)
+
+Live read-only verification executed against
+`https://api.mcleodsoftware.com/trackandtrace-sandbox` from the Preview
+deployment using Preview-scoped `MCLEOD_TNT_*` env credentials
+(token-gated temporary route; route removed afterward; no secrets
+printed or committed).
+
+- **Authentication: PASS at the gateway.** All three required headers
+  (`Authorization: Bearer`, `X-Api-Key`, `X-Mcld-Tenant: 2`) are accepted —
+  the sandbox product does not return 401/403 for `/orders` requests.
+  Control probe: the same credentials against the *live* path
+  `/trackandtrace/orders` correctly return `401 Authorization Failed`,
+  confirming the token is sandbox-scoped. Bearer token is a valid JWT,
+  unexpired at verification time.
+- **`GET /orders`: provider-side 404.** Every orders path variant
+  (`/orders`, `/orders/`, `/v1/orders`, `/orders?status=…`) reaches the
+  upstream service, which responds
+  `404 {"message":"Not Found", … "Page Not Found"}` with self-link
+  `/-sandbox/orders`. The sandbox gateway strips `trackandtrace` and
+  forwards `-sandbox/…`, which the upstream does not route — a
+  **McLeod-side sandbox provisioning/routing issue**, not a client or
+  credential defect. Product root returns Tyk `403 forbidden` (expected —
+  not an entitled endpoint).
+- **Order count / live mapping: UNVERIFIED** — blocked by the upstream
+  404. Mapping logic is covered by 23 mocked tests using the documented
+  response shape.
+- **Schema correction found during verification:** the official
+  documentation *example* response wraps orders in `{"items": [...]}`
+  while the OpenAPI declares a bare array; the connector now accepts
+  array, `{items}`, and `{orders}` envelopes. Documented example stops
+  may omit `sequenceNumber` (fallback externalId used) and orders may
+  carry `linehaul` (stored raw in the LOAD payload).
+
+**Action required (human/McLeod):** retry with a fresh quick-access
+token from `controlhub.mcleodsoftware.com/?action=Sandbox` and confirm
+the trial key was issued for the *Track and Trace* product; if the 404
+persists, report to McLeod Innovation Hub support — the sandbox upstream
+appears to lack the orders routes. Live mapping verification resumes
+once the sandbox returns 200.
+
 ## 9. Blockers / unresolved questions
 
-- **BLOCKER (human):** Innovation Hub account + T&T trial key + sandbox
-  bearer token. Nothing else can proceed to live verification without them.
+- **PARTIALLY RESOLVED:** sandbox credentials obtained and configured
+  (Preview env `MCLEOD_TNT_API_KEY` / `MCLEOD_TNT_ACCESS_TOKEN` /
+  `MCLEOD_TNT_TENANT=2`, Encrypted). Gateway auth verified; upstream
+  `/orders` returns 404 — see §8 verification result. Needs fresh token
+  or McLeod support if it persists.
 - Production auth flow for T&T (OAuth client credentials vs static token)
   — confirm when production key is issued.
 - Whether sandbox Order Detail returns `progressUpdates` populated —
