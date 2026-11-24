@@ -81,6 +81,20 @@ export async function startBillingCheckoutAction(
     organizationId,
   }).first();
 
+  // Self-serve checkout only creates NEW subscriptions. There is no
+  // upgrade/downgrade/proration workflow yet, so allowing checkout while
+  // a provider subscription is live would create a second Paddle
+  // subscription and double-bill the customer.
+  if (
+    subscription?.providerSubscriptionId &&
+    subscription.status !== "CANCELED"
+  ) {
+    return {
+      error:
+        "You already have an active subscription. Plan changes are not yet self-serve — contact support.",
+    };
+  }
+
   const headerList = await headers();
   const host =
     headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "";
