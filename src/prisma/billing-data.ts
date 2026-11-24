@@ -9,13 +9,16 @@ import {
 } from "../billing/billing";
 import { resolveBillingProvider } from "../billing/provider";
 import { getStripeClient } from "../billing/stripe/client";
+import { getPaddleClient } from "../billing/paddle/client";
 
 export type BillingUsage = Record<UsageLimitKey, number>;
 
 export type BillingOverview = BillingState & {
   usage: BillingUsage;
-  /** Whether a billing provider adapter is configured (always false today). */
+  /** Whether a billing provider adapter is configured. */
   providerConnected: boolean;
+  /** Resolved provider key when connected ("paddle" | "stripe"), else null. */
+  billingProvider: string | null;
 };
 
 /**
@@ -61,10 +64,15 @@ export async function getBillingOverviewForUser(
   ).length;
   const provider = resolveBillingProvider();
   // A resolved provider only counts as connected when its adapter is
-  // actually usable (e.g. a test-mode Stripe key is present).
+  // actually usable (e.g. a test-mode Stripe key or Paddle Sandbox key
+  // is present).
   const providerConnected =
     provider !== null &&
-    (provider.key !== "stripe" || getStripeClient() !== null);
+    (provider.key === "stripe"
+      ? getStripeClient() !== null
+      : provider.key === "paddle"
+        ? getPaddleClient() !== null
+        : false);
 
   return {
     ...state,
@@ -77,5 +85,6 @@ export async function getBillingOverviewForUser(
       integrations: activeIntegrations,
     },
     providerConnected,
+    billingProvider: providerConnected ? (provider?.key ?? null) : null,
   };
 }

@@ -1,4 +1,5 @@
 import type { BillingInterval, BillingPlanKey } from "../billing.ts";
+import { CHECKOUT_PLANS } from "../checkout-request.ts";
 
 /**
  * TRUXERA plan + billing interval → Stripe Price ID.
@@ -24,10 +25,7 @@ const PRICE_ENV_VARS: Partial<
   },
 };
 
-export const CHECKOUT_PLANS: readonly BillingPlanKey[] = [
-  "STARTER",
-  "PROFESSIONAL",
-];
+export { CHECKOUT_PLANS, isCheckoutPlan } from "../checkout-request.ts";
 
 export type PriceEnv = Record<string, string | undefined>;
 
@@ -61,7 +59,4 @@ export function resolvePlanIntervalFromPriceId(
   return null;
 }
 
-/** First configured price for a plan/interval pair, for catalog display. */
-export function isCheckoutPlan(plan: BillingPlanKey): boolean {
-  return CHECKOUT_PLANS.includes(plan);
-}
+

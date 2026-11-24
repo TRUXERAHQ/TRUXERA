@@ -11,11 +11,13 @@ import { canAdministerOrganizationSettings } from "@/src/settings/organization-s
 import { getMembershipForUserInOrganization } from "@/src/prisma/organization-data";
 import { connectDatabase, db } from "@/src/prisma/db";
 import { resolveBillingProvider } from "@/src/billing/provider";
+import { parseCheckoutRequest } from "@/src/billing/checkout-request";
 import {
   createCheckoutSession,
   getStripeClient,
-  parseCheckoutRequest,
 } from "@/src/billing/stripe/checkout";
+import { createPaddleCheckout } from "@/src/billing/paddle/checkout";
+import { getPaddleClient } from "@/src/billing/paddle/client";
 
 export type CheckoutActionState = {
   error?: string;
@@ -23,11 +25,12 @@ export type CheckoutActionState = {
 };
 
 /**
- * Starts a Stripe Checkout session for the caller's organization.
+ * Starts a provider checkout session for the caller's organization.
  * OWNER/ADMIN only, active organizations only, plan/interval validated
- * against the catalog, Price ID resolved server-side. Returns the
- * Stripe-hosted checkout URL for the client to navigate to — the
- * browser never supplies a price, customer, or session identifier.
+ * against the catalog, Price ID resolved server-side by the configured
+ * provider (Paddle or Stripe). Returns the provider-hosted checkout URL
+ * for the client to navigate to — the browser never supplies a price,
+ * customer, or session identifier.
  */
 export async function startBillingCheckoutAction(
   _previousState: CheckoutActionState,
@@ -47,11 +50,8 @@ export async function startBillingCheckoutAction(
   });
   if (!parsed.ok) return { error: parsed.error };
 
-  if (resolveBillingProvider()?.key !== "stripe") {
-    return { error: "Billing is not configured for this workspace." };
-  }
-  const stripe = getStripeClient();
-  if (!stripe) {
+  const provider = resolveBillingProvider()?.key;
+  if (provider !== "stripe" && provider !== "paddle") {
     return { error: "Billing is not configured for this workspace." };
   }
 
@@ -90,15 +90,31 @@ export async function startBillingCheckoutAction(
     return { error: "Checkout could not be started." };
   }
 
-  const result = await createCheckoutSession({
-    stripe,
+  const checkoutInput = {
     organizationId,
     plan: parsed.plan,
     interval: parsed.interval,
-    customerId: subscription?.providerCustomerId ?? null,
-    customerEmail: session.user.email ?? null,
-    baseUrl,
-  });
+  };
+  let result: { ok: true; url: string } | { ok: false; error: string };
+  if (provider === "stripe") {
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return { error: "Billing is not configured for this workspace." };
+    }
+    result = await createCheckoutSession({
+      stripe,
+      ...checkoutInput,
+      customerId: subscription?.providerCustomerId ?? null,
+      customerEmail: session.user.email ?? null,
+      baseUrl,
+    });
+  } else {
+    const paddle = getPaddleClient();
+    if (!paddle) {
+      return { error: "Billing is not configured for this workspace." };
+    }
+    result = await createPaddleCheckout({ paddle, ...checkoutInput });
+  }
 
   if (!result.ok) return { error: result.error };
   return { url: result.url };

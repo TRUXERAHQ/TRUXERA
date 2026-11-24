@@ -1,7 +1,8 @@
 import type Stripe from "stripe";
 import type { BillingInterval, BillingPlanKey } from "../billing.ts";
 import { getStripeClient } from "./client.ts";
-import { isCheckoutPlan, resolveStripePriceId } from "./prices.ts";
+import { resolveStripePriceId } from "./prices.ts";
+import { parseCheckoutRequest } from "../checkout-request.ts";
 
 export type CheckoutRequest = {
   plan: unknown;
@@ -12,30 +13,7 @@ export type CheckoutResult =
   | { ok: true; url: string }
   | { ok: false; error: string };
 
-/**
- * Validates a checkout request against the authoritative catalog. The
- * client may only name plan + interval — the Stripe Price ID is always
- * resolved server-side from environment configuration.
- */
-export function parseCheckoutRequest(input: CheckoutRequest):
-  | { ok: true; plan: BillingPlanKey; interval: BillingInterval }
-  | { ok: false; error: string } {
-  const plan = input.plan;
-  const interval = input.interval;
-  if (
-    typeof plan !== "string" ||
-    (plan !== "STARTER" && plan !== "PROFESSIONAL")
-  ) {
-    return { ok: false, error: "Select a valid plan." };
-  }
-  if (interval !== "MONTHLY" && interval !== "ANNUAL") {
-    return { ok: false, error: "Select a valid billing interval." };
-  }
-  if (!isCheckoutPlan(plan)) {
-    return { ok: false, error: "This plan is not available for checkout." };
-  }
-  return { ok: true, plan, interval };
-}
+export { parseCheckoutRequest };
 
 /**
  * Creates a Stripe Checkout Session for a subscription. Metadata carries

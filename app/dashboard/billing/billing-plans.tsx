@@ -381,11 +381,13 @@ export default function BillingPlansView({
           <div>
             <p className="text-sm text-slate-500">Billing provider</p>
             <p className="mt-0.5 text-sm font-medium text-slate-800">
-              {billing.providerConnected
-                ? billing.providerKey === "stripe"
-                  ? "Stripe"
-                  : (billing.providerKey ?? "Connected")
-                : "Not connected"}
+              {billing.billingProvider === "stripe"
+                ? "Stripe"
+                : billing.billingProvider === "paddle"
+                  ? "Paddle"
+                  : billing.providerConnected
+                    ? "Connected"
+                    : "Not connected"}
             </p>
           </div>
         </div>
