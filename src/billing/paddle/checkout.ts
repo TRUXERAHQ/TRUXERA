@@ -1,6 +1,16 @@
 import type { Paddle } from "@paddle/paddle-node-sdk";
 import type { BillingInterval, BillingPlanKey } from "../billing.ts";
+import { redactSecrets } from "../../integrations/errors.ts";
 import { resolvePaddlePriceId } from "./prices.ts";
+
+function logCheckoutFailure(context: string, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  // Paddle API errors describe request problems only — never secrets.
+  console.error(
+    `[billing:paddle] checkout failed (${context}):`,
+    redactSecrets(message).slice(0, 300),
+  );
+}
 
 export type PaddleCheckoutResult =
   | { ok: true; url: string }
@@ -48,10 +58,14 @@ export async function createPaddleCheckout(input: {
     });
     const url = transaction.checkout?.url ?? null;
     if (!url) {
+      // Paddle omits checkout.url when no approved default payment link
+      // is configured for the account.
+      logCheckoutFailure("missing-checkout-url", transaction.status);
       return { ok: false, error: "Checkout could not be started." };
     }
     return { ok: true, url };
-  } catch {
+  } catch (error) {
+    logCheckoutFailure("transactions.create", error);
     return { ok: false, error: "Checkout could not be started." };
   }
 }
