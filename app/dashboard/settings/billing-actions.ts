@@ -113,7 +113,11 @@ export async function startBillingCheckoutAction(
     if (!paddle) {
       return { error: "Billing is not configured for this workspace." };
     }
-    result = await createPaddleCheckout({ paddle, ...checkoutInput });
+    result = await createPaddleCheckout({
+      paddle,
+      ...checkoutInput,
+      checkoutPageUrl: `${baseUrl}/checkout/paddle`,
+    });
   }
 
   if (!result.ok) return { error: result.error };

@@ -36,6 +36,13 @@ export async function createPaddleCheckout(input: {
   organizationId: string;
   plan: BillingPlanKey;
   interval: BillingInterval;
+  /**
+   * Approved-domain URL of our Paddle.js checkout page. Paddle composes
+   * the returned checkout URL as `<checkoutPageUrl>?_ptxn=<txn-id>`;
+   * Paddle.js on that page opens the checkout overlay. Must be a domain
+   * approved in the Paddle dashboard.
+   */
+  checkoutPageUrl: string;
 }): Promise<PaddleCheckoutResult> {
   const priceId = resolvePaddlePriceId(input.plan, input.interval);
   if (!priceId) {
@@ -55,6 +62,7 @@ export async function createPaddleCheckout(input: {
     const transaction = await input.paddle.transactions.create({
       items: [{ priceId, quantity: 1 }],
       customData,
+      checkout: { url: input.checkoutPageUrl },
     });
     const url = transaction.checkout?.url ?? null;
     if (!url) {

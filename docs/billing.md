@@ -36,6 +36,7 @@ Adapter: `src/billing/paddle/` (`client.ts`, `prices.ts`, `checkout.ts`,
 | Variable | Purpose |
 |---|---|
 | `PADDLE_API_KEY` | Sandbox API key (`pdl_sdbx_apikey_…`) — server-only |
+| `PADDLE_CLIENT_TOKEN` | Paddle.js client-side token (`test_…`) — public by design, used only by `/checkout/paddle` |
 | `PADDLE_WEBHOOK_SECRET` | Notification destination secret (`pdl_ntfset_…`) |
 | `PADDLE_PRICE_STARTER_MONTHLY` | Paddle Price ID (`pri_…`) for $399/mo |
 | `PADDLE_PRICE_STARTER_ANNUAL` | Price ID for $3,828/yr |
@@ -52,10 +53,19 @@ can only request plan + interval, never a price ID.
 validates plan/interval via `parseCheckoutRequest`, enforces
 OWNER/ADMIN + ACTIVE organization, resolves the Paddle Price ID
 server-side, and creates a Paddle transaction (`items: [{priceId,
-quantity: 1}]`, `customData: {organizationId, plan, interval}`). The
-Paddle-hosted `checkout.url` is returned for redirect. Paddle requires an
-approved **default payment link** in Checkout settings for
-`checkout.url` to be generated.
+quantity: 1}]`, `customData: {organizationId, plan, interval}`,
+`checkout.url` set to `<base>/checkout/paddle`).
+
+Paddle does not host a checkout page: `checkout.url` is composed as
+`<approved-domain-url>?_ptxn=<txn-id>` and the target page must run
+Paddle.js, which auto-opens the checkout overlay. TRUXERA serves that
+page at `/checkout/paddle` (`app/checkout/paddle/`), initialized with
+`PADDLE_CLIENT_TOKEN`. The domain (e.g. `staging.truxera.net`) must be
+approved under Paddle → Checkout → Website approval, and the token's
+environment (sandbox `test_…` vs live) must match `PADDLE_API_KEY`.
+`checkout.completed` returns the customer to
+`/dashboard/billing?billing=checkout_success`; subscription state still
+syncs only via webhooks.
 
 ### Webhooks
 
