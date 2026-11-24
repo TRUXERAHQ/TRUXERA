@@ -232,15 +232,18 @@ export async function handlePaddleWebhook(
 ): Promise<PaddleWebhookResult> {
   const webhookSecret = getPaddleWebhookSecret();
   if (!webhookSecret) {
+    console.error("[billing:paddle] webhook rejected: secret not configured");
     return {
       status: 503,
       body: { error: "Billing webhooks are not configured." },
     };
   }
   if (!signature) {
+    console.warn("[billing:paddle] webhook rejected: missing signature");
     return { status: 400, body: { error: "Missing webhook signature." } };
   }
   if (!verifyPaddleSignature({ rawBody, signature, secret: webhookSecret })) {
+    console.warn("[billing:paddle] webhook rejected: invalid signature");
     return { status: 400, body: { error: "Invalid webhook signature." } };
   }
 
@@ -261,6 +264,9 @@ export async function handlePaddleWebhook(
   }
 
   if (!HANDLED_EVENTS.has(eventType)) {
+    console.log(
+      `[billing:paddle] webhook ignored: unhandled type=${eventType || "unknown"} id=${eventId}`,
+    );
     return { status: 200, body: { received: true, ignored: true } };
   }
 
@@ -273,6 +279,9 @@ export async function handlePaddleWebhook(
     organizationId: data ? notificationOrganizationId(data) : null,
   });
   if (claim === "duplicate") {
+    console.log(
+      `[billing:paddle] webhook duplicate: type=${eventType} id=${eventId}`,
+    );
     return { status: 200, body: { received: true, duplicate: true } };
   }
 
@@ -284,8 +293,15 @@ export async function handlePaddleWebhook(
       organizationId,
       status: "PROCESSED",
     });
+    console.log(
+      `[billing:paddle] webhook processed: type=${eventType} id=${eventId} org=${organizationId ?? "none"}`,
+    );
     return { status: 200, body: { received: true } };
   } catch (error) {
+    console.error(
+      `[billing:paddle] webhook processing failed: type=${eventType} id=${eventId}`,
+      safeError(error),
+    );
     await recordEvent({
       providerEventId: eventId,
       type: eventType,
