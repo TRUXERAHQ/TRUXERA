@@ -23,18 +23,38 @@ import {
 
 type BillingInterval = "MONTHLY" | "ANNUAL";
 
+function formatDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function usagePercent(used: number, limit: unknown): number | null {
+  if (typeof limit !== "number" || limit <= 0) return null;
+  return Math.min(100, Math.round((used / limit) * 100));
+}
+
+function statusBadgeTone(status: string | null) {
+  if (status === "ACTIVE" || status === "TRIAL") return "success" as const;
+  if (status === "PAUSED") return "warning" as const;
+  return "neutral" as const;
+}
+
 function CheckoutButton({
   organizationId,
   plan,
   interval,
   label,
-  disabled,
 }: {
   organizationId: string;
   plan: BillingPlanKey;
   interval: BillingInterval;
   label: string;
-  disabled?: boolean;
 }) {
   const [state, action, pending] = useActionState<
     CheckoutActionState,
@@ -46,19 +66,20 @@ function CheckoutButton({
   }, [state.url]);
 
   return (
-    <form action={action} className="inline">
+    <form action={action}>
       <input type="hidden" name="organizationId" value={organizationId} />
       <input type="hidden" name="plan" value={plan} />
       <input type="hidden" name="interval" value={interval} />
       <button
         type="submit"
-        disabled={pending || disabled}
-        className={buttonPrimaryClass}
+        disabled={pending}
+        aria-busy={pending}
+        className={`${buttonPrimaryClass} w-full`}
       >
-        {pending ? "Redirecting…" : label}
+        {pending ? "Redirecting to secure checkout…" : label}
       </button>
       {state.error && (
-        <span className="mt-1 block text-xs text-rose-600">{state.error}</span>
+        <p className="mt-2 text-center text-xs text-rose-600">{state.error}</p>
       )}
     </form>
   );
@@ -87,66 +108,93 @@ function PlanCard({
   const isEnterprise = planKey === "ENTERPRISE";
   const savings = annualSavingsPercent(planKey);
 
+  // Current plan displays its effective (possibly grandfathered) terms.
+  const displayMonthly = isCurrent
+    ? (effectiveMonthlyCents ?? plan.prices?.monthlyCents ?? null)
+    : (plan.prices?.monthlyCents ?? null);
+  const displayAnnual = isCurrent
+    ? (effectiveAnnualCents ?? plan.prices?.annualCents ?? null)
+    : (plan.prices?.annualCents ?? null);
+  const isCustomPrice =
+    isEnterprise ||
+    (displayMonthly === null && displayAnnual === null) ||
+    plan.prices === null;
+
   const price =
     interval === "MONTHLY"
-      ? formatPlanPrice(plan.prices?.monthlyCents ?? null)
-      : formatPlanPrice(plan.prices?.annualCents ?? null);
+      ? formatPlanPrice(displayMonthly)
+      : formatPlanPrice(displayAnnual);
   const priceSuffix =
     interval === "MONTHLY" ? "/month" : "/year billed annually";
+  const ctaPrice =
+    interval === "MONTHLY" ? displayMonthly : displayAnnual;
+  const ctaLabel = isCustomPrice
+    ? null
+    : `Subscribe — ${formatPlanPrice(ctaPrice)}${interval === "MONTHLY" ? "/mo" : "/yr"}`;
 
   return (
     <div
-      className={`flex flex-col rounded-xl border p-6 ${
-        isRecommended
-          ? "border-blue-300 bg-blue-50/40 shadow-sm"
-          : "border-slate-200 bg-white"
+      className={`relative flex flex-col rounded-xl border p-6 transition-shadow ${
+        isCurrent
+          ? "border-emerald-300 bg-emerald-50/30 shadow-sm"
+          : isRecommended
+            ? "border-blue-400 bg-blue-50/50 shadow-md ring-1 ring-blue-300"
+            : "border-slate-200 bg-white shadow-sm"
       }`}
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">{plan.label}</h3>
-        <div className="flex gap-1.5">
-          {isCurrent && <Badge tone="success">Current plan</Badge>}
-          {isRecommended && !isCurrent && (
-            <Badge tone="info">Recommended</Badge>
-          )}
-        </div>
-      </div>
-      <p className="mt-1 text-sm text-slate-500">{plan.description}</p>
+      {isRecommended && !isCurrent && (
+        <span className="absolute -top-3 left-6 rounded-full bg-blue-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+          Recommended
+        </span>
+      )}
 
-      <div className="mt-4">
-        {isEnterprise || plan.prices === null ? (
-          <p className="text-2xl font-semibold text-slate-900">Custom</p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="text-lg font-semibold tracking-tight text-slate-900">
+            {plan.label}
+          </h3>
+          <p className="mt-1 text-sm leading-6 text-slate-500">
+            {plan.description}
+          </p>
+        </div>
+        {isCurrent && <Badge tone="success">Current plan</Badge>}
+      </div>
+
+      <div className="mt-5">
+        {isCustomPrice ? (
+          <p className="text-3xl font-semibold tracking-tight text-slate-900">
+            Custom
+          </p>
         ) : (
-          <p className="text-2xl font-semibold text-slate-900">
+          <p className="text-3xl font-semibold tracking-tight text-slate-900">
             {price}
-            <span className="text-sm font-normal text-slate-500">
-              {" "}
+            <span className="ml-1 text-sm font-normal text-slate-500">
               {priceSuffix}
             </span>
           </p>
         )}
-        {interval === "ANNUAL" && savings !== null && !isEnterprise && (
-          <p className="mt-1 text-xs font-medium text-emerald-700">
-            Save {savings}% with annual billing
+        {interval === "ANNUAL" && savings !== null && !isCustomPrice && (
+          <p className="mt-1.5 text-xs font-semibold text-emerald-700">
+            Save {savings}% vs monthly billing
           </p>
         )}
-        {isCurrent && (effectiveMonthlyCents !== null || effectiveAnnualCents !== null) &&
-          ((interval === "MONTHLY" && effectiveMonthlyCents !== plan.prices?.monthlyCents) ||
-            (interval === "ANNUAL" && effectiveAnnualCents !== plan.prices?.annualCents)) && (
-            <p className="mt-1 text-xs text-slate-500">
+        {isCurrent &&
+          (displayMonthly !== plan.prices?.monthlyCents ||
+            displayAnnual !== plan.prices?.annualCents) && (
+            <p className="mt-1.5 text-xs font-medium text-slate-500">
               Custom pricing applies to your subscription.
             </p>
           )}
       </div>
 
-      <dl className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 text-sm">
-        <div className="flex justify-between">
-          <dt className="text-slate-500">Vehicles</dt>
+      <dl className="mt-5 space-y-2 border-t border-slate-200/70 pt-4 text-sm">
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="text-slate-500">Active vehicles</dt>
           <dd className="font-medium text-slate-800">
             {formatAllowance(plan.limits.vehicles, "vehicles")}
           </dd>
         </div>
-        <div className="flex justify-between">
+        <div className="flex items-baseline justify-between gap-3">
           <dt className="text-slate-500">Integrations</dt>
           <dd className="font-medium text-slate-800">
             {plan.limits.integrations === "unlimited"
@@ -156,13 +204,13 @@ function PlanCard({
         </div>
       </dl>
 
-      <ul className="mt-4 flex-1 space-y-1.5">
+      <ul className="mt-4 flex-1 space-y-2">
         {planFeatureBullets(planKey).map((feature) => (
           <li
             key={feature}
-            className="flex items-start gap-2 text-sm text-slate-600"
+            className="flex items-start gap-2 text-sm leading-6 text-slate-600"
           >
-            <span className="mt-0.5 text-emerald-600" aria-hidden="true">
+            <span className="mt-0.5 shrink-0 text-emerald-600" aria-hidden="true">
               ✓
             </span>
             {feature}
@@ -170,10 +218,10 @@ function PlanCard({
         ))}
       </ul>
 
-      <div className="mt-6">
+      <div className="mt-6 min-h-[2.75rem]">
         {isCurrent ? (
-          <p className="text-center text-sm text-slate-500">
-            This is your current plan.
+          <p className="rounded-lg bg-emerald-50 px-4 py-2.5 text-center text-sm font-medium text-emerald-800">
+            This is your current plan
           </p>
         ) : isEnterprise ? (
           <Link
@@ -182,19 +230,67 @@ function PlanCard({
           >
             Contact Sales
           </Link>
-        ) : checkoutEnabled ? (
+        ) : checkoutEnabled && ctaLabel ? (
           <CheckoutButton
             organizationId={organizationId}
             plan={planKey}
             interval={interval}
-            label={`Subscribe — ${price}${interval === "MONTHLY" ? "/mo" : "/yr"}`}
+            label={ctaLabel}
           />
         ) : (
-          <p className="text-center text-sm text-slate-500">
-            Online checkout is currently unavailable.
+          <p className="rounded-lg border border-dashed border-slate-200 px-4 py-2.5 text-center text-sm text-slate-400">
+            Checkout unavailable
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+function UsageMeter({
+  label,
+  used,
+  limit,
+}: {
+  label: string;
+  used: number;
+  limit: unknown;
+}) {
+  const percent = usagePercent(used, limit);
+  const limitText =
+    typeof limit === "number"
+      ? `/ ${limit}`
+      : limit === "custom"
+        ? " / Custom"
+        : limit === "unlimited"
+          ? " · Unlimited"
+          : "";
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <dt className="text-slate-500">{label}</dt>
+        <dd className="font-medium text-slate-800">
+          {used}
+          <span className="font-normal text-slate-400">{limitText}</span>
+        </dd>
+      </div>
+      {percent !== null && (
+        <div
+          className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"
+          role="progressbar"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${label} usage`}
+        >
+          <div
+            className={`h-full rounded-full ${
+              percent >= 90 ? "bg-rose-500" : "bg-indigo-500"
+            }`}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -214,88 +310,85 @@ export default function BillingPlansView({
   const checkoutEnabled =
     billing.providerConnected && canAdminister && accountActive;
 
-  const usageLine = (label: string, used: number, limitText: string) => (
-    <div className="flex items-center justify-between">
-      <dt className="text-slate-500">{label}</dt>
-      <dd className="font-medium text-slate-800">
-        {used} <span className="text-slate-400">{limitText}</span>
-      </dd>
-    </div>
-  );
+  const priceSummary = billing.prices.custom
+    ? billing.plan === "TRIAL"
+      ? "Trial — no charge"
+      : "Custom pricing"
+    : [
+        billing.prices.monthlyCents !== null
+          ? `${formatPlanPrice(billing.prices.monthlyCents)}/month`
+          : null,
+        billing.prices.annualCents !== null
+          ? `${formatPlanPrice(billing.prices.annualCents)}/year billed annually`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
 
-  const vehicleLimit =
-    typeof billing.limits.vehicles === "number"
-      ? `/ ${billing.limits.vehicles}`
-      : billing.limits.vehicles === "custom"
-        ? " / Custom"
-        : billing.limits.vehicles === "unlimited"
-          ? " · Unlimited"
-          : "";
-  const integrationLimit =
-    typeof billing.limits.integrations === "number"
-      ? `/ ${billing.limits.integrations}`
-      : billing.limits.integrations === "custom"
-        ? " / Custom"
-        : billing.limits.integrations === "unlimited"
-          ? " · Unlimited"
-          : "";
+  const trialStart = formatDate(billing.trialStartAt);
+  const trialEnd = formatDate(billing.trialEndAt);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      {/* Current plan summary */}
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-base font-semibold text-slate-900">
-            Current plan
-          </h2>
-          <Badge tone="info">{billing.planLabel}</Badge>
-          {billing.subscriptionStatusLabel && (
-            <Badge
-              tone={
-                billing.subscriptionStatus === "ACTIVE" ||
-                billing.subscriptionStatus === "TRIAL"
-                  ? "success"
-                  : billing.subscriptionStatus === "PAUSED"
-                    ? "warning"
-                    : "neutral"
-              }
-            >
-              {billing.subscriptionStatusLabel}
-            </Badge>
+    <div className="mx-auto max-w-6xl space-y-8">
+      {/* Current subscription summary */}
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-cyan-50/50 px-6 py-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+              <span
+                aria-hidden="true"
+                className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500"
+              />
+              Current plan
+            </h2>
+            <Badge tone="info">{billing.planLabel}</Badge>
+            {billing.subscriptionStatusLabel && (
+              <Badge tone={statusBadgeTone(billing.subscriptionStatus)}>
+                {billing.subscriptionStatusLabel}
+              </Badge>
+            )}
+            {billing.grandfatheredPricing && (
+              <Badge tone="neutral">Custom pricing</Badge>
+            )}
+            {!billing.configured && <Badge tone="neutral">Trial</Badge>}
+          </div>
+          {priceSummary && (
+            <p className="mt-1.5 text-sm font-medium text-slate-700">
+              {priceSummary}
+            </p>
           )}
-          {billing.grandfatheredPricing && (
-            <Badge tone="neutral">Custom pricing</Badge>
-          )}
-          {!billing.configured && <Badge tone="neutral">Trial</Badge>}
         </div>
 
-        <dl className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-          {usageLine("Active vehicles", billing.usage.vehicles, vehicleLimit)}
-          {usageLine(
-            "Connected integrations",
-            billing.usage.integrations,
-            integrationLimit,
-          )}
-          {billing.trialStartAt || billing.trialEndAt ? (
-            <div className="flex items-center justify-between">
-              <dt className="text-slate-500">Trial period</dt>
-              <dd className="font-medium text-slate-800">
-                {billing.trialStartAt?.slice(0, 10)} →{"n"}
-                {billing.trialEndAt?.slice(0, 10)}
-              </dd>
-            </div>
-          ) : null}
-          <div className="flex items-center justify-between">
-            <dt className="text-slate-500">Billing provider</dt>
-            <dd className="font-medium text-slate-800">
+        <div className="grid gap-6 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
+          <UsageMeter
+            label="Active vehicles"
+            used={billing.usage.vehicles}
+            limit={billing.limits.vehicles}
+          />
+          <UsageMeter
+            label="Integrations"
+            used={billing.usage.integrations}
+            limit={billing.limits.integrations}
+          />
+          <div>
+            <p className="text-sm text-slate-500">Trial period</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-800">
+              {trialStart || trialEnd
+                ? `${trialStart ?? "—"} → ${trialEnd ?? "—"}`
+                : "None"}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-slate-500">Billing provider</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-800">
               {billing.providerConnected
                 ? billing.providerKey === "stripe"
                   ? "Stripe"
                   : (billing.providerKey ?? "Connected")
                 : "Not connected"}
-            </dd>
+            </p>
           </div>
-        </dl>
+        </div>
       </section>
 
       {!accountActive && (
@@ -305,12 +398,22 @@ export default function BillingPlansView({
         </Notice>
       )}
 
-      {/* Plan selector */}
+      {!billing.providerConnected && accountActive && (
+        <Notice tone="info">
+          Online checkout is currently unavailable. Plan details below reflect
+          your organization&apos;s current catalog — billing changes will be
+          available once checkout is enabled.
+        </Notice>
+      )}
+
+      {/* Plan selection */}
       <section>
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Plans</h2>
-            <p className="text-sm text-slate-500">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900">
+              Plans
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
               Choose the plan that fits your fleet.
             </p>
           </div>
@@ -324,6 +427,7 @@ export default function BillingPlansView({
                 key={value}
                 type="button"
                 onClick={() => setInterval(value)}
+                aria-pressed={interval === value}
                 className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
                   interval === value
                     ? "bg-white text-slate-900 shadow-sm"
@@ -331,6 +435,11 @@ export default function BillingPlansView({
                 }`}
               >
                 {value === "MONTHLY" ? "Monthly" : "Annual"}
+                {value === "ANNUAL" && (
+                  <span className="ml-1.5 text-xs font-semibold text-emerald-700">
+                    −20%
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -342,7 +451,7 @@ export default function BillingPlansView({
           </p>
         )}
 
-        <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
           {(["STARTER", "PROFESSIONAL", "ENTERPRISE"] as const).map((key) => (
             <PlanCard
               key={key}
@@ -361,11 +470,9 @@ export default function BillingPlansView({
           ))}
         </div>
 
-        {!checkoutEnabled && (
+        {billing.providerConnected && !canAdminister && accountActive && (
           <p className="mt-4 text-sm text-slate-500">
-            {billing.providerConnected
-              ? "Only organization owners and admins can manage billing."
-              : "Online checkout is currently unavailable."}
+            Only organization owners and admins can manage billing.
           </p>
         )}
       </section>
