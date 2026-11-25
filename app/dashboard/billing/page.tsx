@@ -6,6 +6,9 @@ import { Badge, Notice, PageHeader } from "../ui";
 import { getBillingOverviewForUser } from "@/src/prisma/billing-data";
 import { canAdministerOrganizationSettings } from "@/src/settings/organization-settings";
 import { isAccountWritable } from "@/src/account/account-status";
+import { getPaddleClient } from "@/src/billing/paddle/client";
+import { getPaddleSubscriptionInterval } from "@/src/billing/paddle/subscription";
+import type { BillingInterval } from "@/src/billing/billing";
 import BillingPlansView from "./billing-plans";
 import type { OperationsSearchParams } from "../operations-page-data";
 
@@ -43,6 +46,21 @@ async function BillingContent({ searchParams }: Props) {
   const billingReturn = Array.isArray(params.billing)
     ? params.billing[0]
     : params.billing;
+
+  // The active billing interval lives only on the provider subscription
+  // (never persisted locally). Resolve it live for Paddle so the UI can
+  // mark the correct interval as current; null means "unknown" and the
+  // UI falls back to plan-level display.
+  let currentInterval: BillingInterval | null = null;
+  if (billing.billingProvider === "paddle" && billing.providerSubscriptionId) {
+    const paddle = getPaddleClient();
+    if (paddle) {
+      currentInterval = await getPaddleSubscriptionInterval(
+        paddle,
+        billing.providerSubscriptionId,
+      );
+    }
+  }
 
   return (
     <TruckShell
@@ -98,6 +116,7 @@ async function BillingContent({ searchParams }: Props) {
           billing={billing}
           canAdminister={canAdminister}
           accountActive={accountActive}
+          currentInterval={currentInterval}
         />
       </div>
     </TruckShell>

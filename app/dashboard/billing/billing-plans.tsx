@@ -89,6 +89,7 @@ function PlanCard({
   planKey,
   interval,
   currentPlan,
+  currentInterval,
   organizationId,
   checkoutEnabled,
   effectiveMonthlyCents,
@@ -97,13 +98,20 @@ function PlanCard({
   planKey: BillingPlanKey;
   interval: BillingInterval;
   currentPlan: BillingPlanKey;
+  /** Provider-reported interval of the active subscription, or null. */
+  currentInterval: BillingInterval | null;
   organizationId: string;
   checkoutEnabled: boolean;
   effectiveMonthlyCents: number | null;
   effectiveAnnualCents: number | null;
 }) {
   const plan = BILLING_PLANS[planKey];
-  const isCurrent = currentPlan === planKey;
+  // "Current" requires both the plan AND the displayed billing interval
+  // to match the active subscription. When the provider interval is
+  // unknown we fall back to plan-level matching.
+  const isCurrent =
+    currentPlan === planKey &&
+    (currentInterval === null || currentInterval === interval);
   const isRecommended = planKey === "PROFESSIONAL";
   const isEnterprise = planKey === "ENTERPRISE";
   const savings = annualSavingsPercent(planKey);
@@ -300,11 +308,14 @@ export default function BillingPlansView({
   billing,
   canAdminister,
   accountActive,
+  currentInterval,
 }: {
   organizationId: string;
   billing: BillingOverview;
   canAdminister: boolean;
   accountActive: boolean;
+  /** Provider-reported interval of the active subscription, or null. */
+  currentInterval: BillingInterval | null;
 }) {
   const [interval, setInterval] = useState<BillingInterval>("MONTHLY");
   const checkoutEnabled =
@@ -314,16 +325,20 @@ export default function BillingPlansView({
     ? billing.plan === "TRIAL"
       ? "Trial — no charge"
       : "Custom pricing"
-    : [
-        billing.prices.monthlyCents !== null
-          ? `${formatPlanPrice(billing.prices.monthlyCents)}/month`
-          : null,
-        billing.prices.annualCents !== null
-          ? `${formatPlanPrice(billing.prices.annualCents)}/year billed annually`
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" · ");
+    : currentInterval === "ANNUAL" && billing.prices.annualCents !== null
+      ? `${formatPlanPrice(billing.prices.annualCents)}/year billed annually`
+      : currentInterval === "MONTHLY" && billing.prices.monthlyCents !== null
+        ? `${formatPlanPrice(billing.prices.monthlyCents)}/month`
+        : [
+            billing.prices.monthlyCents !== null
+              ? `${formatPlanPrice(billing.prices.monthlyCents)}/month`
+              : null,
+            billing.prices.annualCents !== null
+              ? `${formatPlanPrice(billing.prices.annualCents)}/year billed annually`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ");
 
   const trialStart = formatDate(billing.trialStartAt);
   const trialEnd = formatDate(billing.trialEndAt);
@@ -460,6 +475,7 @@ export default function BillingPlansView({
               planKey={key}
               interval={interval}
               currentPlan={billing.plan}
+              currentInterval={currentInterval}
               organizationId={organizationId}
               checkoutEnabled={checkoutEnabled}
               effectiveMonthlyCents={

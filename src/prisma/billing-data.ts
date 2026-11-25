@@ -19,6 +19,8 @@ export type BillingOverview = BillingState & {
   providerConnected: boolean;
   /** Resolved provider key when connected ("paddle" | "stripe"), else null. */
   billingProvider: string | null;
+  /** Provider subscription ID, when the org has a provider subscription. */
+  providerSubscriptionId: string | null;
 };
 
 /**
@@ -86,5 +88,6 @@ export async function getBillingOverviewForUser(
     },
     providerConnected,
     billingProvider: providerConnected ? (provider?.key ?? null) : null,
+    providerSubscriptionId: subscription?.providerSubscriptionId ?? null,
   };
 }

@@ -1,0 +1,10 @@
+import pg from "pg";
+const c = new pg.Client({ connectionString: process.env.PGURL });
+await c.connect();
+const org = await c.query(`select id, name, status from "Organization" where name ilike '%truxera.ai%' or name ilike '%TRUXERA%'`);
+console.log("== Orgs =="); console.log(JSON.stringify(org.rows));
+const subs = await c.query(`select * from "BillingSubscription" order by "updatedAt" desc`);
+console.log("== All BillingSubscription =="); console.log(JSON.stringify(subs.rows, null, 1));
+const ev = await c.query(`select "providerEventId","type","status","organizationId","error","createdAt" from "BillingWebhookEvent" order by "createdAt" desc limit 20`);
+console.log("== BillingWebhookEvent =="); console.log(JSON.stringify(ev.rows, null, 1));
+await c.end();
