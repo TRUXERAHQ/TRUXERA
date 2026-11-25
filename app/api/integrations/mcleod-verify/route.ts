@@ -39,6 +39,50 @@ export async function POST(request: Request) {
   const client = createMcLeodClient({ baseUrl, tenantId, apiKey, accessToken });
   const out: Record<string, unknown> = {};
 
+  // Read-only path probes to isolate whether the 404 is path- or
+  // credential-scoped. GET requests only — no side effects.
+  const probes: Array<[string, string]> = [
+    ["sandbox-orders", "/orders"],
+    ["sandbox-root", "/"],
+  ];
+  for (const [label, path] of probes) {
+    try {
+      const probe = await client.get(path);
+      out[`${label}Status`] = probe.status;
+      out[`${label}Body`] =
+        probe.status >= 200 && probe.status < 300
+          ? `ok type=${Array.isArray(probe.body) ? "array" : typeof probe.body}`
+          : redactSecrets(
+              typeof probe.body === "string"
+                ? probe.body
+                : JSON.stringify(probe.body ?? null),
+            ).slice(0, 200);
+    } catch (error) {
+      out[`${label}Error`] =
+        error instanceof Error ? error.message.slice(0, 200) : "request failed";
+    }
+  }
+
+  // Alternate base path probe (non-sandbox) — same read-only GET.
+  try {
+    const prodClient = createMcLeodClient({
+      baseUrl: "https://api.mcleodsoftware.com/trackandtrace",
+      tenantId,
+      apiKey,
+      accessToken,
+    });
+    const probe = await prodClient.get("/orders");
+    out.prodOrdersStatus = probe.status;
+    out.prodOrdersBody = redactSecrets(
+      typeof probe.body === "string"
+        ? probe.body
+        : JSON.stringify(probe.body ?? null),
+    ).slice(0, 200);
+  } catch (error) {
+    out.prodOrdersError =
+      error instanceof Error ? error.message.slice(0, 200) : "request failed";
+  }
+
   try {
     const probe = await client.get("/orders");
     out.ordersStatus = probe.status;
