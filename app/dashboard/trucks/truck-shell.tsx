@@ -1,8 +1,9 @@
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { signOutUser } from "@/app/auth-actions";
 import type { Models } from "@/src/prisma/contract";
 import { buttonSecondaryClass } from "../ui";
+import DashboardNav from "../dashboard-nav";
 
 export type ActiveSection =
   | "dashboard"
@@ -29,124 +30,6 @@ type Props = {
   hero?: ReactNode;
 };
 
-type IconName =
-  | "grid"
-  | "calendar"
-  | "chart"
-  | "clock"
-  | "truck"
-  | "users"
-  | "box"
-  | "dispatch"
-  | "message"
-  | "support"
-  | "help"
-  | "settings"
-  | "billing"
-  | "account";
-
-function NavIcon({ name }: { name: IconName }) {
-  const paths: Record<IconName, ReactNode> = {
-    grid: (
-      <>
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </>
-    ),
-    calendar: (
-      <>
-        <rect x="3" y="4" width="18" height="17" rx="2" />
-        <path d="M8 2v4M16 2v4M3 10h18" />
-      </>
-    ),
-    chart: <path d="M3 3v18h18M8 16v-5M13 16V8M18 16v-8" />,
-    clock: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 3" />
-      </>
-    ),
-    truck: (
-      <>
-        <path d="M1 8h13v9H1zM14 11h4l3 3v3h-7" />
-        <circle cx="6" cy="19" r="2" />
-        <circle cx="17" cy="19" r="2" />
-      </>
-    ),
-    users: (
-      <>
-        <circle cx="9" cy="8" r="3.5" />
-        <path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.5 2.6 3.5 5.5" />
-      </>
-    ),
-    box: (
-      <>
-        <path d="M21 8l-9-5-9 5v8l9 5 9-5z" />
-        <path d="M3 8l9 5 9-5M12 13v8" />
-      </>
-    ),
-    dispatch: (
-      <>
-        <path d="M5 17h14M7 17l1.5-6h7L17 17" />
-        <circle cx="8" cy="19" r="1.5" />
-        <circle cx="16" cy="19" r="1.5" />
-        <path d="M9 11V7h4v4" />
-      </>
-    ),
-    message: (
-      <path d="M4 5h16v11H8l-4 4V5z" />
-    ),
-    support: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <circle cx="12" cy="12" r="4" />
-        <path d="M5.6 5.6l3 3M18.4 5.6l-3 3M5.6 18.4l3-3M18.4 18.4l-3-3" />
-      </>
-    ),
-    help: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.7" />
-        <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
-      </>
-    ),
-    billing: (
-      <>
-        <rect x="2" y="5" width="20" height="14" rx="2" />
-        <path d="M2 10h20" />
-      </>
-    ),
-    account: (
-      <>
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
-      </>
-    ),
-  };
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4 shrink-0"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
-
 export default function TruckShell({
   organizations,
   organization,
@@ -155,189 +38,12 @@ export default function TruckShell({
   hero,
 }: Props) {
   const orgQuery = `organizationId=${encodeURIComponent(organization.id)}`;
-  const navGroups = [
-    {
-      label: "Core Operations",
-      items: [
-        { id: "command-center", label: "Command Center", icon: "grid" as IconName, href: `/dashboard/command-center?${orgQuery}` },
-        { id: "loads", label: "Loads", icon: "box" as IconName, href: `/dashboard/loads?${orgQuery}` },
-        { id: "dispatch", label: "Dispatch", icon: "dispatch" as IconName, href: `/dashboard/dispatch?${orgQuery}` },
-        { id: "trucks", label: "Fleet", icon: "truck" as IconName, href: `/dashboard/trucks?${orgQuery}` },
-        { id: "drivers", label: "Drivers", icon: "users" as IconName, href: `/dashboard/drivers?${orgQuery}` },
-      ],
-    },
-    {
-      label: "Intelligence & Reports",
-      items: [
-        { id: "daily-summary", label: "Daily Summary", icon: "calendar" as IconName, href: `/dashboard/daily-summary?${orgQuery}` },
-        { id: "executive-report", label: "Executive Report", icon: "chart" as IconName, href: `/dashboard/executive-report?${orgQuery}` },
-        { id: "operational-history", label: "History", icon: "clock" as IconName, href: `/dashboard/operational-history?${orgQuery}` },
-      ],
-    },
-  ];
-  const auxNavGroups = [
-    {
-      label: "Customer & Assistance",
-      items: [
-        { id: "feedback", label: "Feedback", icon: "message" as IconName, href: `/dashboard/feedback?${orgQuery}` },
-        { id: "support", label: "Support", icon: "support" as IconName, href: `/dashboard/support?${orgQuery}` },
-        { id: "help", label: "Help", icon: "help" as IconName, href: `/dashboard/help?${orgQuery}` },
-      ],
-    },
-    {
-      label: "Account & Administration",
-      items: [
-        { id: "settings", label: "Settings", icon: "settings" as IconName, href: `/dashboard/settings?${orgQuery}` },
-        { id: "billing", label: "Billing", icon: "billing" as IconName, href: `/dashboard/billing?${orgQuery}` },
-        { id: "account", label: "Account", icon: "account" as IconName, href: `/dashboard/account?${orgQuery}` },
-      ],
-    },
-  ];
   const sectionPath =
     activeSection === "dashboard" ? "/" : `/dashboard/${activeSection}`;
 
-  const desktopNavItems = (
-    <>
-      {navGroups.map((group, groupIndex) => (
-        <div key={group.label} className="contents">
-          {groupIndex > 0 && (
-            <span
-              className="mx-1 h-5 w-px shrink-0 self-center bg-slate-200"
-              aria-hidden="true"
-            />
-          )}
-          {groupIndex === 0 && (
-            <Link
-              href={`/?${orgQuery}`}
-              aria-current={activeSection === "dashboard" ? "page" : undefined}
-              className={`whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-medium transition-colors ${
-                activeSection === "dashboard"
-                  ? "border-indigo-600 bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
-                  : "border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-              }`}
-            >
-              Dashboard
-            </Link>
-          )}
-          {group.items.map((section) => {
-            const active = activeSection === section.id;
-            return (
-              <Link
-                key={section.id}
-                href={section.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-indigo-600 bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
-                    : "border-slate-200 bg-slate-100 text-slate-800 shadow-sm hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-                }`}
-              >
-                <span className="hidden min-[1600px]:inline-flex">
-                  <NavIcon name={section.icon} />
-                </span>
-                {section.label}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
-      {auxNavGroups.map((group) => (
-        <div key={group.label} className="contents">
-          <span
-            className="mx-1.5 h-5 w-px shrink-0 self-center bg-slate-300"
-            aria-hidden="true"
-          />
-          {group.items.map((section) => {
-            const active = activeSection === section.id;
-            return (
-              <Link
-                key={section.id}
-                href={section.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-indigo-600 bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
-                    : "border-slate-200 bg-white text-slate-600 shadow-sm hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-                }`}
-              >
-                <span className="hidden min-[1600px]:inline-flex">
-                  <NavIcon name={section.icon} />
-                </span>
-                {section.label}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
-    </>
-  );
-
-  const mobileNavItems = (
-    <>
-      <Link
-        href={`/?${orgQuery}`}
-        aria-current={activeSection === "dashboard" ? "page" : undefined}
-        className={`flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium ${
-          activeSection === "dashboard"
-            ? "border-indigo-600 bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
-            : "border-slate-200 bg-slate-100 text-slate-700"
-        }`}
-      >
-        <NavIcon name="grid" />
-        Dashboard
-      </Link>
-      {navGroups.flatMap((group) =>
-        group.items.map((section) => {
-          const active = activeSection === section.id;
-          return (
-            <Link
-              key={section.id}
-              href={section.href}
-              aria-current={active ? "page" : undefined}
-              className={`flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium ${
-                active
-                  ? "border-indigo-600 bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
-                  : "border-slate-200 bg-slate-100 text-slate-700"
-              }`}
-            >
-              <NavIcon name={section.icon} />
-              {section.label}
-            </Link>
-          );
-        }),
-      )}
-      {auxNavGroups.map((group) => (
-        <Fragment key={group.label}>
-          <span
-            className="mx-1 h-5 w-px shrink-0 self-center bg-slate-300"
-            aria-hidden="true"
-          />
-          {group.items.map((section) => {
-            const active = activeSection === section.id;
-            return (
-              <Link
-                key={section.id}
-                href={section.href}
-                aria-current={active ? "page" : undefined}
-                className={`flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium ${
-                  active
-                    ? "border-indigo-600 bg-indigo-600 font-semibold text-white shadow-sm shadow-indigo-950/20"
-                    : "border-slate-200 bg-white text-slate-600"
-                }`}
-              >
-                <NavIcon name={section.icon} />
-                {section.label}
-              </Link>
-            );
-          })}
-        </Fragment>
-      ))}
-    </>
-  );
-
   return (
-    <main className="min-h-screen bg-background text-slate-900">
-      <header className="sticky top-0 z-20 border-b border-indigo-100 bg-gradient-to-b from-white to-indigo-50/40 backdrop-blur">
+    <main className="min-h-screen bg-background text-[var(--text)]">
+      <header className="sticky top-0 z-20 border-b border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur">
         <div className="mx-auto max-w-[1680px] px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-6">
@@ -346,10 +52,10 @@ export default function TruckShell({
                 className="flex shrink-0 items-center gap-2"
                 aria-label="TRUXERA dashboard"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--primary-strong)] text-xs font-bold text-white">
                   T
                 </span>
-                <span className="text-base font-bold tracking-tight text-slate-950">
+                <span className="text-base font-bold tracking-tight text-[var(--text)]">
                   TRUXERA
                 </span>
               </Link>
@@ -365,7 +71,7 @@ export default function TruckShell({
                     id="truck-organization"
                     name="organizationId"
                     defaultValue={organization.id}
-                    className="max-w-40 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-700 lg:max-w-52"
+                    className="max-w-40 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-2.5 py-1.5 text-sm text-[var(--text)] lg:max-w-52"
                   >
                     {organizations.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -376,7 +82,7 @@ export default function TruckShell({
                   <button className={buttonSecondaryClass}>Switch</button>
                 </form>
               )}
-              <span className="hidden max-w-40 truncate text-sm text-slate-600 xl:block">
+              <span className="hidden max-w-40 truncate text-sm text-[var(--text-muted)] xl:block">
                 {organization.name}
               </span>
               <form action={signOutUser}>
@@ -384,22 +90,7 @@ export default function TruckShell({
               </form>
             </div>
           </div>
-          {!hero && (
-            <>
-              <nav
-                aria-label="Primary navigation"
-                className="hidden flex-nowrap items-center justify-center gap-x-0.5 border-t border-indigo-100 bg-white/60 px-0 py-2 xl:flex"
-              >
-                {desktopNavItems}
-              </nav>
-              <nav
-                aria-label="Primary navigation"
-                className="flex gap-1 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] xl:hidden [&::-webkit-scrollbar]:hidden"
-              >
-                {mobileNavItems}
-              </nav>
-            </>
-          )}
+          {!hero && <DashboardNav orgQuery={orgQuery} activeSection={activeSection} />}
         </div>
       </header>
       {hero && (
@@ -407,18 +98,11 @@ export default function TruckShell({
           <div className="mx-auto max-w-[1680px] px-4 pt-4 sm:px-6 lg:px-8">
             {hero}
           </div>
-          <nav
-            aria-label="Primary navigation"
-            className="sticky top-14 z-20 mx-auto mt-3 hidden w-full max-w-[1680px] flex-nowrap items-center justify-center gap-x-0.5 border-t border-indigo-100 bg-white/60 px-4 py-2 sm:px-6 lg:px-8 xl:flex"
-          >
-            {desktopNavItems}
-          </nav>
-          <nav
-            aria-label="Primary navigation"
-            className="sticky top-14 z-20 mx-auto mt-2 hidden w-full max-w-[1680px] gap-1 overflow-x-auto px-4 pb-2 pt-1 [scrollbar-width:none] sm:px-6 xl:hidden [&::-webkit-scrollbar]:hidden"
-          >
-            {mobileNavItems}
-          </nav>
+          <div className="sticky top-14 z-20 border-t border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur">
+            <div className="mx-auto max-w-[1680px] px-4 sm:px-6 lg:px-8">
+              <DashboardNav orgQuery={orgQuery} activeSection={activeSection} />
+            </div>
+          </div>
         </>
       )}
       <div className="mx-auto max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">

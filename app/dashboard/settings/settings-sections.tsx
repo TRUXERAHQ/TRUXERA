@@ -16,6 +16,7 @@ import {
   Notice,
   Panel,
 } from "../ui";
+import ThemeSelector from "./theme-selector";
 import type { OnboardingView } from "@/src/onboarding/onboarding";
 import type { AccountStatus } from "@/src/account/account-status";
 import type { ReliabilityOverview } from "@/src/prisma/reliability-data";
@@ -711,6 +712,13 @@ export default function SettingsSections({
           {preferencesPanel}
         </>
       )}
+
+      <Panel
+        title="Appearance"
+        description="Choose the TRUXERA visual theme. Your selection applies instantly and is remembered on this device."
+      >
+        <ThemeSelector />
+      </Panel>
 
       <AccountStatusSection
         organizationId={organizationId}

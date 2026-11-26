@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const buttonPrimaryClass =
-  "inline-flex items-center justify-center rounded-lg bg-gradient-to-b from-indigo-600 to-indigo-700 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-600/25 transition-colors hover:from-indigo-700 hover:to-indigo-800";
+  "inline-flex items-center justify-center rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--nav-active-text)] shadow-sm transition-colors hover:bg-[var(--primary-hover)]";
 
 export const buttonSecondaryClass =
-  "inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm transition-colors hover:border-indigo-300 hover:bg-indigo-100";
+  "inline-flex items-center justify-center rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] shadow-sm transition-colors hover:bg-[var(--surface-2)]";
 
 export const buttonAccentClass =
   "inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-600";
@@ -14,17 +14,17 @@ export const buttonDangerClass =
   "inline-flex items-center justify-center rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition-colors hover:border-red-400 hover:bg-red-100";
 
 export const inputClass =
-  "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition-colors placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100";
+  "mt-1 block w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text)] transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-soft)]";
 
 export const labelClass =
-  "block text-xs font-medium uppercase tracking-wide text-slate-500";
+  "block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]";
 
 export const tableClass = "w-full text-left text-sm";
 export const tableHeadClass =
-  "border-b border-indigo-200 bg-indigo-100/60 text-xs font-semibold uppercase tracking-wide text-indigo-900";
-export const tableCellClass = "py-2.5 pr-4 align-top text-slate-700";
+  "border-b border-[var(--border)] bg-[var(--surface-2)] text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]";
+export const tableCellClass = "py-2.5 pr-4 align-top text-[var(--text)]";
 export const tableRowClass =
-  "border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/60";
+  "border-b border-[var(--border)] transition-colors last:border-0 hover:bg-[var(--surface-2)]";
 
 export type BadgeTone =
   | "neutral"
@@ -34,11 +34,15 @@ export type BadgeTone =
   | "info";
 
 const badgeTones: Record<BadgeTone, string> = {
-  neutral: "border-slate-200 bg-slate-50 text-slate-600",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-700",
-  danger: "border-rose-200 bg-rose-50 text-rose-700",
-  info: "border-blue-200 bg-blue-50 text-blue-700",
+  neutral:
+    "border-[var(--tone-neutral-border)] bg-[var(--tone-neutral-bg)] text-[var(--tone-neutral-text)]",
+  success:
+    "border-[var(--tone-success-border)] bg-[var(--tone-success-bg)] text-[var(--tone-success-text)]",
+  warning:
+    "border-[var(--tone-warning-border)] bg-[var(--tone-warning-bg)] text-[var(--tone-warning-text)]",
+  danger:
+    "border-[var(--tone-danger-border)] bg-[var(--tone-danger-bg)] text-[var(--tone-danger-text)]",
+  info: "border-[var(--tone-info-border)] bg-[var(--tone-info-bg)] text-[var(--tone-info-text)]",
 };
 
 export function Badge({
@@ -124,15 +128,21 @@ export function PageHeader({
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
         {eyebrow && (
-          <p className="text-sm font-semibold text-indigo-600">{eyebrow}</p>
+          <p className="text-sm font-semibold text-[var(--primary)]">
+            {eyebrow}
+          </p>
         )}
-        <h1 className="mt-1 text-4xl font-bold tracking-tight text-slate-950">
+        <h1 className="mt-1 text-4xl font-bold tracking-tight text-[var(--text)]">
           {title}
         </h1>
         {description && (
-          <p className="mt-2 text-sm text-slate-600">{description}</p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
+            {description}
+          </p>
         )}
-        {meta && <div className="mt-1 text-xs text-slate-500">{meta}</div>}
+        {meta && (
+          <div className="mt-1 text-xs text-[var(--text-muted)]">{meta}</div>
+        )}
       </div>
       {actions && <div className="flex flex-wrap items-end gap-2">{actions}</div>}
     </div>
@@ -152,21 +162,23 @@ export function Panel({
 }) {
   return (
     <section
-      className={`overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
+      className={`overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm ${className}`}
     >
       {title || description ? (
-        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-cyan-50/50 px-5 py-4">
+        <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-5 py-4">
           {title && (
-            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900">
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-[var(--text)]">
               <span
                 aria-hidden="true"
-                className="inline-block h-2 w-2 rounded-[3px] bg-indigo-500"
+                className="inline-block h-2 w-2 rounded-[3px] bg-[var(--primary)]"
               />
               {title}
             </h2>
           )}
           {description && (
-            <p className="mt-1 text-xs text-slate-600">{description}</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
+              {description}
+            </p>
           )}
         </div>
       ) : null}
@@ -176,11 +188,15 @@ export function Panel({
 }
 
 const statTones = {
-  default: "border-indigo-100 border-l-indigo-300 bg-indigo-50/40",
-  info: "border-blue-200 border-l-blue-400 bg-blue-50/40",
-  success: "border-emerald-200 border-l-emerald-400 bg-emerald-50/40",
-  warning: "border-amber-200 border-l-amber-400 bg-amber-50/40",
-  danger: "border-rose-200 border-l-rose-400 bg-rose-50/40",
+  default:
+    "border-[var(--border)] border-l-[var(--primary)] bg-[var(--primary-soft)]",
+  info: "border-[var(--tone-info-border)] border-l-[var(--tone-info-text)] bg-[var(--tone-info-bg)]",
+  success:
+    "border-[var(--tone-success-border)] border-l-[var(--tone-success-text)] bg-[var(--tone-success-bg)]",
+  warning:
+    "border-[var(--tone-warning-border)] border-l-[var(--tone-warning-text)] bg-[var(--tone-warning-bg)]",
+  danger:
+    "border-[var(--tone-danger-border)] border-l-[var(--tone-danger-text)] bg-[var(--tone-danger-bg)]",
 } as const;
 
 export function Stat({
@@ -196,11 +212,13 @@ export function Stat({
 }) {
   return (
     <div className={`rounded-lg border border-l-2 px-4 py-3 ${statTones[tone]}`}>
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+      <dt className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
         {label}
       </dt>
-      <dd className="mt-1 text-xl font-bold text-slate-900">{value}</dd>
-      {hint && <dd className="mt-0.5 text-xs text-slate-500">{hint}</dd>}
+      <dd className="mt-1 text-xl font-bold text-[var(--text)]">{value}</dd>
+      {hint && (
+        <dd className="mt-0.5 text-xs text-[var(--text-muted)]">{hint}</dd>
+      )}
     </div>
   );
 }
@@ -227,10 +245,10 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 to-cyan-50/40 px-6 py-10 text-center">
-      <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-6 py-10 text-center">
+      <h2 className="text-base font-semibold text-[var(--text)]">{title}</h2>
       {description && (
-        <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">
+        <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[var(--text-muted)]">
           {description}
         </p>
       )}
@@ -247,10 +265,13 @@ export function Notice({
   children: ReactNode;
 }) {
   const tones = {
-    info: "border-blue-200 bg-blue-50 text-blue-900",
-    warning: "border-amber-200 bg-amber-50 text-amber-900",
-    danger: "border-rose-200 bg-rose-50 text-rose-800",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    info: "border-[var(--tone-info-border)] bg-[var(--tone-info-bg)] text-[var(--tone-info-text)]",
+    warning:
+      "border-[var(--tone-warning-border)] bg-[var(--tone-warning-bg)] text-[var(--tone-warning-text)]",
+    danger:
+      "border-[var(--tone-danger-border)] bg-[var(--tone-danger-bg)] text-[var(--tone-danger-text)]",
+    success:
+      "border-[var(--tone-success-border)] bg-[var(--tone-success-bg)] text-[var(--tone-success-text)]",
   } as const;
   return (
     <p
@@ -272,7 +293,7 @@ export function BackLink({
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+      className="text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]"
     >
       ← {children}
     </Link>

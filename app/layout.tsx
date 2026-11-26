@@ -17,12 +17,18 @@ export const metadata: Metadata = {
   description: "Fleet operations and delivery monitoring for TRUXERA.",
 };
 
+const themeInitScript = `try{var t=localStorage.getItem("truxera-theme");document.documentElement.dataset.theme=["light","dark","binance","purple","terminal"].indexOf(t)>-1?t:"light";}catch(e){document.documentElement.dataset.theme="light";}`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
