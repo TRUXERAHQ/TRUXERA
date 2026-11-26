@@ -2,19 +2,19 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const buttonPrimaryClass =
-  "inline-flex items-center justify-center rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--nav-active-text)] shadow-sm transition-colors hover:bg-[var(--primary-hover)]";
+  "inline-flex items-center justify-center rounded-[var(--radius)] bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--nav-active-text)] shadow-sm transition-colors hover:bg-[var(--primary-hover)]";
 
 export const buttonSecondaryClass =
-  "inline-flex items-center justify-center rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] shadow-sm transition-colors hover:bg-[var(--surface-2)]";
+  "inline-flex items-center justify-center rounded-[var(--radius)] border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] shadow-sm transition-colors hover:bg-[var(--surface-2)]";
 
 export const buttonAccentClass =
-  "inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-600";
+  "inline-flex items-center justify-center rounded-[var(--radius)] bg-emerald-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-600";
 
 export const buttonDangerClass =
-  "inline-flex items-center justify-center rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition-colors hover:border-red-400 hover:bg-red-100";
+  "inline-flex items-center justify-center rounded-[var(--radius)] border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition-colors hover:border-red-400 hover:bg-red-100";
 
 export const inputClass =
-  "mt-1 block w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text)] transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-soft)]";
+  "mt-1 block w-full rounded-[var(--radius)] border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text)] transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-soft)]";
 
 export const labelClass =
   "block text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]";
@@ -162,7 +162,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-sm ${className}`}
+      className={`overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-sm ${className}`}
     >
       {title || description ? (
         <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-5 py-4">
@@ -211,7 +211,7 @@ export function Stat({
   tone?: keyof typeof statTones;
 }) {
   return (
-    <div className={`rounded-lg border border-l-2 px-4 py-3 ${statTones[tone]}`}>
+    <div className={`rounded-[var(--radius)] border border-l-2 px-4 py-3 ${statTones[tone]}`}>
       <dt className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
         {label}
       </dt>
@@ -245,7 +245,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-6 py-10 text-center">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-2)] px-6 py-10 text-center">
       <h2 className="text-base font-semibold text-[var(--text)]">{title}</h2>
       {description && (
         <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[var(--text-muted)]">
@@ -275,7 +275,7 @@ export function Notice({
   } as const;
   return (
     <p
-      className={`rounded-lg border px-4 py-3 text-sm ${tones[tone]}`}
+      className={`rounded-[var(--radius)] border px-4 py-3 text-sm ${tones[tone]}`}
       role={tone === "danger" ? "alert" : undefined}
     >
       {children}

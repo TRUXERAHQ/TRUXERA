@@ -135,13 +135,14 @@ type NavNode =
       label: string;
       icon: IconName;
       activeIds: string[];
+      menuAlign?: "left" | "right";
       children: Leaf[];
     };
 
 const linkIdle =
   "flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-medium transition-colors border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]";
 const linkActive =
-  "flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-semibold transition-colors border-transparent bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] shadow-sm";
+  "nav-active flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-semibold transition-colors border-transparent bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] shadow-sm";
 
 function Chevron({ open }: { open: boolean }) {
   return (
@@ -252,6 +253,7 @@ function DashboardNav({
       label: "Help",
       icon: "help",
       activeIds: ["help", "support", "feedback"],
+      menuAlign: "right",
       children: [
         {
           id: "help",
@@ -329,7 +331,7 @@ function DashboardNav({
   const mobileLinkClass = (active: boolean) =>
     `flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium transition-colors ${
       active
-        ? "border-transparent bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
+        ? "nav-active border-transparent bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
         : "border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)]"
     }`;
 
@@ -374,7 +376,7 @@ function DashboardNav({
       <nav
         ref={navRef}
         aria-label="Primary navigation"
-        className="hidden flex-nowrap items-center justify-center gap-x-1 overflow-x-auto border-t border-[var(--header-border)] bg-[var(--header-bg)] px-4 py-2 backdrop-blur xl:flex"
+        className="hidden flex-nowrap items-center justify-center gap-x-1 border-t border-[var(--header-border)] bg-[var(--header-bg)] px-4 py-2 backdrop-blur xl:flex [overflow-x:clip]"
       >
         {nodes.map((node) => {
           if (node.kind === "link") {
@@ -386,7 +388,9 @@ function DashboardNav({
                 aria-current={active ? "page" : undefined}
                 className={active ? linkActive : linkIdle}
               >
-                <NavIcon name={node.icon} />
+                <span className="hidden min-[1536px]:inline-flex">
+                  <NavIcon name={node.icon} />
+                </span>
                 {node.label}
               </Link>
             );
@@ -403,14 +407,18 @@ function DashboardNav({
                 onClick={() => setOpenMenu(open ? null : node.id)}
                 className={active ? linkActive : linkIdle}
               >
-                <NavIcon name={node.icon} />
+                <span className="hidden min-[1536px]:inline-flex">
+                  <NavIcon name={node.icon} />
+                </span>
                 {node.label}
                 <Chevron open={open} />
               </button>
               {open && (
                 <div
                   role="menu"
-                  className="absolute left-0 top-full z-30 mt-1 min-w-48 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--elevated)] py-1 shadow-lg"
+                  className={`absolute top-full z-30 mt-1 max-h-[calc(100vh-7rem)] min-w-48 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--elevated)] py-1 shadow-lg ${
+                    node.menuAlign === "right" ? "right-0" : "left-0"
+                  }`}
                 >
                   {node.children.map((child) => {
                     const childActive = activeSection === child.id;
@@ -500,7 +508,7 @@ function DashboardNav({
                     onClick={() => toggleAccordion(node.id)}
                     className={`flex w-full items-center justify-between rounded-lg border px-3.5 py-2.5 text-sm font-medium transition-colors ${
                       active
-                        ? "border-transparent bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
+                        ? "nav-active border-transparent bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
                         : "border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)]"
                     }`}
                   >

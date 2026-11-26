@@ -35,7 +35,7 @@ export const THEMES = [
     id: "terminal",
     label: "TRUXERA Terminal",
     description: "Dark operations console with orange accents",
-    swatch: ["#0B0E12", "#12161C", "#F59E0B"],
+    swatch: ["#0B0D10", "#141920", "#F97316"],
     isDefault: false,
   },
 ] as const;
