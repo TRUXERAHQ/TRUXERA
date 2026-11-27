@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 import {
   useCallback,
   useEffect,
@@ -194,7 +195,24 @@ function DashboardNav({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock background scrolling while the mobile drawer is open. The drawer is
+  // portaled to document.body so it escapes the header's backdrop-filter
+  // containing block and always paints above page content.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
 
   const refreshUnreadCount = useCallback(async () => {
     try {
@@ -552,21 +570,21 @@ function DashboardNav({
         </button>
       </div>
 
-      {/* Mobile drawer backdrop */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 top-14 z-20 bg-black/40 xl:hidden"
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div
-          id="mobile-nav-drawer"
-          className="fixed inset-x-0 bottom-0 top-14 z-30 overflow-y-auto border-t border-[var(--border)] bg-[var(--app-bg)] p-4 xl:hidden"
-        >
+      {/* Mobile drawer backdrop + drawer — portaled to body so the header's
+          backdrop-filter stacking context cannot trap them below page content */}
+      {mounted &&
+        mobileOpen &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 top-14 z-40 bg-black/40 xl:hidden"
+              onClick={() => setMobileOpen(false)}
+              aria-hidden="true"
+            />
+            <div
+              id="mobile-nav-drawer"
+              className="fixed inset-x-0 bottom-0 top-14 z-50 overflow-y-auto border-t border-[var(--border)] bg-[var(--app-bg)] p-4 xl:hidden"
+            >
           <nav aria-label="Mobile navigation" className="mx-auto max-w-md space-y-4">
             {nodes.map((node) => {
               if (node.kind === "link") {
@@ -605,8 +623,10 @@ function DashboardNav({
               );
             })}
           </nav>
-        </div>
-      )}
+            </div>
+          </>,
+          document.body,
+        )}
     </>
   );
 }
