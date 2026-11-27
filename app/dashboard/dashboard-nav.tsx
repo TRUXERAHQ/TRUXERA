@@ -2,7 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  isUnread,
+  loadReadMap,
+  NOTIFICATIONS_CHANGED_EVENT,
+} from "./notifications/read-state";
+import type { AppNotification } from "@/src/notifications/notifications";
 
 type IconName =
   | "grid"
@@ -18,7 +30,8 @@ type IconName =
   | "help"
   | "settings"
   | "billing"
-  | "account";
+  | "account"
+  | "bell";
 
 function NavIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -103,6 +116,12 @@ function NavIcon({ name }: { name: IconName }) {
         <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" />
       </>
     ),
+    bell: (
+      <>
+        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+      </>
+    ),
   };
   return (
     <svg
@@ -163,16 +182,57 @@ function Chevron({ open }: { open: boolean }) {
 
 function DashboardNav({
   orgQuery,
+  organizationId,
   activeSection,
 }: {
   orgQuery: string;
+  organizationId: string;
   activeSection: string;
 }) {
   const pathname = usePathname();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navRef = useRef<HTMLElement>(null);
+
+  const refreshUnreadCount = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `/api/notifications?organizationId=${encodeURIComponent(organizationId)}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) {
+        setUnreadCount(0);
+        return;
+      }
+      const data = (await response.json()) as {
+        notifications?: AppNotification[];
+      };
+      const readMap = loadReadMap();
+      setUnreadCount(
+        (data.notifications ?? []).filter((notification) =>
+          isUnread(readMap, notification),
+        ).length,
+      );
+    } catch {
+      setUnreadCount(0);
+    }
+  }, [organizationId]);
+
+  useEffect(() => {
+    void refreshUnreadCount();
+  }, [refreshUnreadCount, pathname]);
+
+  useEffect(() => {
+    const onChanged = () => void refreshUnreadCount();
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, onChanged);
+    window.addEventListener("storage", onChanged);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, onChanged);
+      window.removeEventListener("storage", onChanged);
+    };
+  }, [refreshUnreadCount]);
 
   const href = (path: string) => `${path}?${orgQuery}`;
 
@@ -277,6 +337,13 @@ function DashboardNav({
     },
     {
       kind: "link",
+      id: "notifications",
+      label: "Notifications",
+      icon: "bell",
+      href: href("/dashboard/notifications"),
+    },
+    {
+      kind: "link",
       id: "settings",
       label: "Settings",
       icon: "settings",
@@ -335,6 +402,13 @@ function DashboardNav({
         : "border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)]"
     }`;
 
+  const unreadBadge =
+    unreadCount > 0 ? (
+      <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nav-active-bg)] px-1 text-[10px] font-bold leading-none text-[var(--nav-active-text)]">
+        {unreadCount > 99 ? "99+" : unreadCount}
+      </span>
+    ) : null;
+
   const renderLeaf = (leaf: Leaf, mobile = false) => {
     const active = activeSection === leaf.id;
     return (
@@ -358,6 +432,7 @@ function DashboardNav({
       >
         <NavIcon name={leaf.icon} />
         {leaf.label}
+        {leaf.id === "notifications" ? unreadBadge : null}
       </Link>
     );
   };
@@ -392,6 +467,7 @@ function DashboardNav({
                   <NavIcon name={node.icon} />
                 </span>
                 {node.label}
+                {node.id === "notifications" ? unreadBadge : null}
               </Link>
             );
           }

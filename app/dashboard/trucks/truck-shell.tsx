@@ -20,7 +20,8 @@ export type ActiveSection =
   | "help"
   | "settings"
   | "billing"
-  | "account";
+  | "account"
+  | "notifications";
 
 type Props = {
   organizations: Models.public_Organization[];
@@ -90,7 +91,13 @@ export default function TruckShell({
               </form>
             </div>
           </div>
-          {!hero && <DashboardNav orgQuery={orgQuery} activeSection={activeSection} />}
+          {!hero && (
+            <DashboardNav
+              orgQuery={orgQuery}
+              organizationId={organization.id}
+              activeSection={activeSection}
+            />
+          )}
         </div>
       </header>
       {hero && (
@@ -100,7 +107,11 @@ export default function TruckShell({
           </div>
           <div className="sticky top-14 z-20 border-t border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur">
             <div className="mx-auto max-w-[1680px] px-4 sm:px-6 lg:px-8">
-              <DashboardNav orgQuery={orgQuery} activeSection={activeSection} />
+              <DashboardNav
+                orgQuery={orgQuery}
+                organizationId={organization.id}
+                activeSection={activeSection}
+              />
             </div>
           </div>
         </>

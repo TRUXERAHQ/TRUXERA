@@ -31,7 +31,8 @@ export type BadgeTone =
   | "success"
   | "warning"
   | "danger"
-  | "info";
+  | "info"
+  | "intelligence";
 
 const badgeTones: Record<BadgeTone, string> = {
   neutral:
@@ -43,6 +44,8 @@ const badgeTones: Record<BadgeTone, string> = {
   danger:
     "border-[var(--tone-danger-border)] bg-[var(--tone-danger-bg)] text-[var(--tone-danger-text)]",
   info: "border-[var(--tone-info-border)] bg-[var(--tone-info-bg)] text-[var(--tone-info-text)]",
+  intelligence:
+    "border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)]",
 };
 
 export function Badge({
