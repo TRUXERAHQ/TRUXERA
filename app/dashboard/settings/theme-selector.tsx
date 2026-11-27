@@ -19,7 +19,7 @@ export const THEMES = [
   },
   {
     id: "binance",
-    label: "Binance-inspired",
+    label: "TRUXERA Terminal",
     description: "Dark high-contrast data-focused skin",
     swatch: ["#0B0E11", "#181A20", "#F0B90B"],
     isDefault: false,
@@ -33,7 +33,7 @@ export const THEMES = [
   },
   {
     id: "terminal",
-    label: "TRUXERA Terminal",
+    label: "TRUXERA Ops",
     description: "Dark operations console with orange accents",
     swatch: ["#0B0D10", "#141920", "#F97316"],
     isDefault: false,

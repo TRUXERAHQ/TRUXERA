@@ -77,6 +77,36 @@ const intelligenceStages = [
   "Generate Summary",
 ] as const;
 
+const intelligenceStageStyles: Record<
+  (typeof intelligenceStages)[number],
+  { chip: string; index: string }
+> = {
+  Detect: {
+    chip: "border-blue-200 bg-blue-50/60 text-blue-800",
+    index: "text-blue-600",
+  },
+  Predict: {
+    chip: "border-amber-200 bg-amber-50/60 text-amber-800",
+    index: "text-amber-600",
+  },
+  Recommend: {
+    chip: "border-indigo-200 bg-indigo-50/60 text-indigo-800",
+    index: "text-indigo-600",
+  },
+  Recover: {
+    chip: "border-violet-200 bg-violet-50 text-violet-800",
+    index: "text-violet-600",
+  },
+  "Measure Impact": {
+    chip: "border-cyan-200 bg-cyan-50 text-cyan-800",
+    index: "text-cyan-600",
+  },
+  "Generate Summary": {
+    chip: "border-emerald-200 bg-emerald-50/60 text-emerald-800",
+    index: "text-emerald-600",
+  },
+};
+
 const deliveryStatusChips: Record<string, string> = {
   Planned: "border-slate-200 bg-slate-50 text-slate-600",
   Assigned: "border-blue-200 bg-blue-50 text-blue-700",
@@ -1093,13 +1123,17 @@ async function Dashboard({ searchParams }: HomeProps) {
                 {index > 0 && (
                   <span
                     aria-hidden="true"
-                    className="mx-1.5 text-indigo-300"
+                    className="mx-1.5 text-slate-300"
                   >
                     →
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-indigo-200 bg-indigo-50/70 px-2.5 py-1 text-[11px] font-semibold text-indigo-800">
-                  <span className="font-mono text-[9px] text-indigo-400">
+                <span
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-1 text-[11px] font-semibold ${intelligenceStageStyles[stage].chip}`}
+                >
+                  <span
+                    className={`font-mono text-[9px] ${intelligenceStageStyles[stage].index}`}
+                  >
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   {stage}

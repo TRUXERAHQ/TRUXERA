@@ -579,12 +579,24 @@ html:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
 }
 :is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
   :is(.text-indigo-500, .text-indigo-600, .text-indigo-700,
-  .text-indigo-800, .text-indigo-900, .text-indigo-950,
-  .text-violet-500, .text-violet-600, .text-violet-700, .text-violet-800,
-  .text-violet-900, .text-purple-500, .text-purple-600, .text-purple-700,
-  .text-purple-800, .text-purple-900, .text-fuchsia-600,
-  .text-fuchsia-700, .text-pink-600, .text-pink-700) {
+  .text-indigo-800, .text-indigo-900, .text-indigo-950) {
   color: var(--primary);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-violet-500, .text-violet-600, .text-violet-700,
+  .text-violet-800, .text-violet-900) {
+  color: #c4b5fd;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-purple-500, .text-purple-600, .text-purple-700,
+  .text-purple-800, .text-purple-900) {
+  color: #d8b4fe;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-fuchsia-500, .text-fuchsia-600, .text-fuchsia-700,
+  .text-fuchsia-800, .text-pink-500, .text-pink-600, .text-pink-700,
+  .text-pink-800) {
+  color: #f0abfc;
 }
 
 /* tinted rings → hue-tinted focus rings */
