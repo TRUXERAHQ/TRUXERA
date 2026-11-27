@@ -82,21 +82,6 @@ type AccountOverviewView = {
   createdAt: string | null;
 };
 
-type SignalSummaryItem = {
-  integrationId: string;
-  providerKey: string;
-  displayName: string;
-  status: string;
-  freshness: string;
-  intervalAssumed: boolean;
-  lastSyncAt: string | null;
-  lastSuccessfulSyncAt: string | null;
-  linkedRecords: number;
-  linkedFleetEntities: number;
-  mappingFailedRecords: number;
-  staleRecords: number;
-};
-
 const plannedIntegrations = [
   "TMS Integration",
   "ELD Integration",
@@ -190,6 +175,49 @@ function reliabilityLabel(health: string) {
       return "Disconnected";
     default:
       return formatRole(health);
+  }
+}
+
+function integrationPurposeLabel(type: string) {
+  switch (type) {
+    case "TMS":
+      return "TMS / Track & Trace";
+    case "GPS_TELEMATICS":
+      return "ELD / Telematics";
+    default:
+      return formatRole(type);
+  }
+}
+
+function connectionStatusBadge(status: string | null) {
+  switch (status) {
+    case "CONNECTED":
+      return { tone: "success" as const, label: "Connected" };
+    case "CONNECTING":
+      return { tone: "info" as const, label: "Connecting" };
+    case "SYNCING":
+      return { tone: "info" as const, label: "Syncing" };
+    case "DEGRADED":
+      return { tone: "warning" as const, label: "Degraded" };
+    case "ERROR":
+      return { tone: "danger" as const, label: "Error" };
+    case "DISCONNECTED":
+      return { tone: "neutral" as const, label: "Disconnected" };
+    default:
+      return { tone: "warning" as const, label: "Pending" };
+  }
+}
+
+function syncHealthBadge(health: string) {
+  switch (health) {
+    case "HEALTHY":
+      return { tone: "success" as const, label: "Healthy" };
+    case "DEGRADED":
+      return { tone: "warning" as const, label: "Degraded" };
+    case "ERROR":
+      return { tone: "danger" as const, label: "Error" };
+    default:
+      return { tone: "neutral" as const, label: formatRole(health) };
   }
 }
 
@@ -548,7 +576,6 @@ export default function SettingsSections({
   userName,
   userEmail,
   integrations,
-  signalSummaries,
   connectorCatalog,
   onboarding,
   canManageFleet,
@@ -568,7 +595,6 @@ export default function SettingsSections({
   userName: string | null;
   userEmail: string | null;
   integrations: IntegrationListItem[];
-  signalSummaries: SignalSummaryItem[];
   connectorCatalog: ConnectorCatalogItem[];
   onboarding: OnboardingView | null;
   canManageFleet: boolean;
@@ -873,69 +899,92 @@ export default function SettingsSections({
       </Panel>
 
       <Panel
-        title="Integrations"
-        description="Connect your fleet systems. TRUXERA connects to external TMS, ELD, and telematics providers and normalizes their data for fleet intelligence — your existing systems remain the source of record."
+        title="Connections"
+        description="External provider connections for this workspace. TRUXERA connects to TMS, ELD, and telematics providers and normalizes their data for fleet intelligence — your existing systems remain the source of record. Credentials are stored encrypted server-side and never exposed here."
       >
-        {integrations.length > 0 ? (
-          <ul className="divide-y divide-slate-100">
-            {integrations.map((integration) => {
-              const signal = signalSummaries.find(
-                (entry) => entry.integrationId === integration.id,
+        {connectorCatalog.length > 0 ? (
+          <ul className="space-y-3">
+            {connectorCatalog.map((connector) => {
+              const integration = integrations.find(
+                (item) => item.providerKey === connector.key,
               );
+              const connection = connectionStatusBadge(
+                integration?.status ?? null,
+              );
+              const syncHealth = integration
+                ? syncHealthBadge(integration.health)
+                : null;
               return (
-              <li
-                key={integration.id}
-                className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800">
-                    {integration.displayName}
-                  </p>
-                  <p className="mt-0.5 font-mono text-xs text-slate-500">
-                    {integration.providerKey} · {formatRole(integration.type)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {integration.recordsProcessed} records processed
-                    {integration.recordsFailed > 0
-                      ? ` · ${integration.recordsFailed} failed`
-                      : ""}
-                    {integration.linkedRecords > 0
-                      ? ` · ${integration.linkedRecords} operational records linked`
-                      : ""}
-                    {" · "}Last sync {formatDate(integration.lastSyncAt)}
-                  </p>
-                  {signal && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      Data source: {formatRole(signal.freshness)}
-                      {signal.intervalAssumed ? " (default interval)" : ""}
-                      {signal.linkedFleetEntities > 0
-                        ? ` · ${signal.linkedFleetEntities} fleet ${signal.linkedFleetEntities === 1 ? "entity" : "entities"} linked`
-                        : ""}
-                      {signal.mappingFailedRecords > 0
-                        ? ` · ${signal.mappingFailedRecords} mapping failure${signal.mappingFailedRecords === 1 ? "" : "s"}`
-                        : ""}
-                      {signal.staleRecords > 0
-                        ? ` · ${signal.staleRecords} stale record${signal.staleRecords === 1 ? "" : "s"}`
-                        : ""}
+                <li
+                  key={connector.key}
+                  className="rounded-lg border border-slate-200 p-4"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-800">
+                        {connector.displayName}
+                      </p>
+                      <p className="mt-0.5 text-xs font-medium text-slate-600">
+                        {integrationPurposeLabel(connector.type)}
+                      </p>
+                      {connector.description && (
+                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                          {connector.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <Badge tone={connection.tone}>
+                        {connection.label}
+                      </Badge>
+                      {syncHealth && (
+                        <Badge tone={syncHealth.tone}>
+                          Sync: {syncHealth.label}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {integration ? (
+                    <>
+                      <dl className="mt-3 grid gap-2 border-t border-slate-100 pt-3 sm:grid-cols-2">
+                        <MetaRow label="Last successful sync">
+                          {formatDate(integration.lastSuccessfulSyncAt)}
+                        </MetaRow>
+                        <MetaRow label="Last sync">
+                          {formatDate(integration.lastSyncAt)}
+                        </MetaRow>
+                        <MetaRow label="Records">
+                          {integration.recordsProcessed} processed
+                          {integration.recordsFailed > 0
+                            ? ` · ${integration.recordsFailed} failed`
+                            : ""}
+                          {integration.linkedRecords > 0
+                            ? ` · ${integration.linkedRecords} operational records linked`
+                            : ""}
+                        </MetaRow>
+                        <MetaRow label="Connection">
+                          {formatRole(integration.status)}
+                        </MetaRow>
+                      </dl>
+                      {integration.lastSyncError && (
+                        <p className="mt-2 text-xs text-rose-700">
+                          Last sync error: {integration.lastSyncError}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-5 text-slate-500">
+                      Pending — no active connection. Provider credentials and
+                      approval are required before TRUXERA can sync. Status will
+                      update here once the connection is established.
                     </p>
                   )}
-                  {integration.lastSyncError && (
-                    <p className="mt-1 text-xs text-amber-700">
-                      {integration.lastSyncError}
-                    </p>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Badge tone={integration.health === "HEALTHY" ? "success" : integration.health === "ERROR" ? "danger" : "neutral"}>
-                    {formatRole(integration.health)}
-                  </Badge>
-                  <Badge tone="neutral">{formatRole(integration.status)}</Badge>
-                </div>
-              </li>
+                </li>
               );
             })}
           </ul>
-        ) : (
+        ) : integrations.length === 0 ? (
           <div>
             <p className="text-sm font-medium text-slate-800">
               Connect your fleet systems
@@ -955,18 +1004,65 @@ export default function SettingsSections({
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-xs text-slate-500">
-              No integrations are connected yet. When a connector is released,
-              credentials are stored encrypted server-side and never exposed to
-              the browser.
-            </p>
           </div>
-        )}
-        {connectorCatalog.length > 0 && integrations.length === 0 && (
-          <p className="mt-3 text-xs text-slate-500">
-            Available connectors: {connectorCatalog.map((c) => c.displayName).join(", ")}
-          </p>
-        )}
+        ) : null}
+
+        {(() => {
+          const catalogKeys = new Set(
+            connectorCatalog.map((connector) => connector.key),
+          );
+          const otherIntegrations = integrations.filter(
+            (integration) => !catalogKeys.has(integration.providerKey),
+          );
+          return otherIntegrations.length > 0 ? (
+            <ul className="mt-3 divide-y divide-slate-100 border-t border-slate-100">
+              {otherIntegrations.map((integration) => (
+                <li
+                  key={integration.id}
+                  className="flex flex-col gap-2 py-3 first:pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800">
+                      {integration.displayName}
+                    </p>
+                    <p className="mt-0.5 font-mono text-xs text-slate-500">
+                      {integration.providerKey} ·{" "}
+                      {formatRole(integration.type)}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {integration.recordsProcessed} records processed
+                      {integration.recordsFailed > 0
+                        ? ` · ${integration.recordsFailed} failed`
+                        : ""}
+                      {" · "}Last sync {formatDate(integration.lastSyncAt)}
+                    </p>
+                    {integration.lastSyncError && (
+                      <p className="mt-1 text-xs text-amber-700">
+                        {integration.lastSyncError}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge
+                      tone={
+                        integration.health === "HEALTHY"
+                          ? "success"
+                          : integration.health === "ERROR"
+                            ? "danger"
+                            : "neutral"
+                      }
+                    >
+                      {formatRole(integration.health)}
+                    </Badge>
+                    <Badge tone="neutral">
+                      {formatRole(integration.status)}
+                    </Badge>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : null;
+        })()}
       </Panel>
 
       <ReliabilitySection reliability={reliability} />
