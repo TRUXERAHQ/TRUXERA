@@ -15,7 +15,7 @@
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   --text: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #556b82;
   --primary: #06b6d4;
   --primary-hover: #0891b2;
   --primary-strong: #0b1220;
@@ -169,7 +169,7 @@
   --border: #e0e2f2;
   --border-strong: #c7c9e8;
   --text: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #5d6b80;
   --primary: #4f46e5;
   --primary-hover: #4338ca;
   --primary-strong: #312e81;
@@ -447,4 +447,188 @@ html:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
   .focus\:border-indigo-500:focus {
   --tw-ring-color: var(--primary-soft);
   border-color: var(--primary);
+}
+
+/* ---------- tinted semantic remaps (dark themes) ----------
+   Pages use literal Tailwind tinted utilities (bg-*-50, text-*-700,
+   border-*-200 …). On dark surfaces the light tints stay near-white
+   while text turns light → light-on-light. These rules retint every
+   tinted family to translucent hue surfaces + readable ink. */
+
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-rose-50, .bg-rose-50\/20, .bg-rose-50\/30, .bg-rose-50\/40,
+  .bg-rose-50\/50, .bg-rose-50\/60, .bg-rose-100, .bg-red-50,
+  .bg-red-50\/20, .bg-red-50\/30, .bg-red-50\/40, .bg-red-50\/50,
+  .bg-red-50\/60, .bg-red-100) {
+  background-color: rgb(244 63 94 / 0.12);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-amber-50, .bg-amber-50\/20, .bg-amber-50\/30, .bg-amber-50\/40,
+  .bg-amber-50\/50, .bg-amber-50\/60, .bg-amber-100, .bg-yellow-50,
+  .bg-yellow-50\/30, .bg-yellow-100) {
+  background-color: rgb(245 158 11 / 0.12);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-emerald-50, .bg-emerald-50\/20, .bg-emerald-50\/30,
+  .bg-emerald-50\/40, .bg-emerald-50\/50, .bg-emerald-50\/60,
+  .bg-emerald-100, .bg-green-50, .bg-green-50\/40, .bg-green-100) {
+  background-color: rgb(16 185 129 / 0.12);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-teal-50, .bg-teal-50\/40, .bg-teal-100, .bg-cyan-50,
+  .bg-cyan-50\/20, .bg-cyan-50\/30, .bg-cyan-50\/40, .bg-cyan-50\/50,
+  .bg-cyan-100) {
+  background-color: rgb(6 182 212 / 0.12);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-sky-50, .bg-sky-50\/30, .bg-sky-50\/40, .bg-sky-100,
+  .bg-blue-50, .bg-blue-50\/20, .bg-blue-50\/30, .bg-blue-50\/40,
+  .bg-blue-50\/50, .bg-blue-50\/60, .bg-blue-100) {
+  background-color: rgb(14 165 233 / 0.12);
+}
+/* indigo/violet = TRUXERA intelligence accent → primary-soft tint */
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-indigo-50, .bg-indigo-50\/20, .bg-indigo-50\/30,
+  .bg-indigo-50\/40, .bg-indigo-50\/50, .bg-indigo-50\/60,
+  .bg-indigo-50\/70, .bg-indigo-50\/80, .bg-indigo-100,
+  .bg-violet-50, .bg-violet-50\/40, .bg-violet-100, .bg-purple-50,
+  .bg-purple-50\/40, .bg-purple-100, .bg-fuchsia-50\/40,
+  .bg-pink-50\/40) {
+  background-color: var(--primary-soft);
+}
+/* neutral opacity variants missed by the exact-class rules */
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-white\/80, .bg-slate-50\/60, .bg-slate-50\/70,
+  .bg-slate-100\/70) {
+  background-color: var(--surface-2);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.bg-slate-300, .bg-slate-400) {
+  background-color: var(--border-strong);
+}
+
+/* tinted borders → translucent hue borders */
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.border-rose-200, .border-rose-300, .border-red-200,
+  .border-red-300, .border-red-400) {
+  border-color: rgb(244 63 94 / 0.4);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.border-amber-200, .border-amber-300, .border-yellow-200,
+  .border-yellow-300) {
+  border-color: rgb(245 158 11 / 0.4);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.border-emerald-200, .border-emerald-300, .border-green-200,
+  .border-green-300) {
+  border-color: rgb(16 185 129 / 0.4);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.border-teal-200, .border-teal-300, .border-cyan-100,
+  .border-cyan-200, .border-cyan-300) {
+  border-color: rgb(6 182 212 / 0.4);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.border-sky-200, .border-sky-300, .border-blue-200,
+  .border-blue-300, .border-blue-400) {
+  border-color: rgb(14 165 233 / 0.4);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.border-violet-200, .border-violet-300, .border-purple-200,
+  .border-purple-300, .border-fuchsia-200, .border-pink-200) {
+  border-color: rgb(139 92 246 / 0.45);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  .border-slate-200\/70 {
+  border-color: var(--border);
+}
+
+/* tinted text → readable light-ink variants (500–900 shades) */
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-rose-500, .text-rose-600, .text-rose-700, .text-rose-800,
+  .text-rose-900, .text-red-500, .text-red-600, .text-red-700,
+  .text-red-800, .text-red-900) {
+  color: #fda4af;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-amber-500, .text-amber-600, .text-amber-700, .text-amber-800,
+  .text-amber-900, .text-yellow-500, .text-yellow-600, .text-yellow-700,
+  .text-yellow-800, .text-yellow-900) {
+  color: #fbbf24;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-emerald-500, .text-emerald-600, .text-emerald-700,
+  .text-emerald-800, .text-emerald-900, .text-green-500, .text-green-600,
+  .text-green-700, .text-green-800, .text-green-900) {
+  color: #34d399;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-teal-500, .text-teal-600, .text-teal-700, .text-teal-800,
+  .text-cyan-500, .text-cyan-600, .text-cyan-700, .text-cyan-800) {
+  color: #22d3ee;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-sky-500, .text-sky-600, .text-sky-700, .text-sky-800,
+  .text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800,
+  .text-blue-900) {
+  color: #60a5fa;
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.text-indigo-500, .text-indigo-600, .text-indigo-700,
+  .text-indigo-800, .text-indigo-900, .text-indigo-950,
+  .text-violet-500, .text-violet-600, .text-violet-700, .text-violet-800,
+  .text-violet-900, .text-purple-500, .text-purple-600, .text-purple-700,
+  .text-purple-800, .text-purple-900, .text-fuchsia-600,
+  .text-fuchsia-700, .text-pink-600, .text-pink-700) {
+  color: var(--primary);
+}
+
+/* tinted rings → hue-tinted focus rings */
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.ring-rose-200, .ring-red-200, .ring-amber-200, .ring-amber-300,
+  .ring-emerald-200, .ring-cyan-200, .ring-sky-200, .ring-blue-200,
+  .ring-blue-300, .ring-violet-200, .ring-purple-200) {
+  --tw-ring-color: rgb(148 163 184 / 0.3);
+}
+
+/* light tinted gradient stops → flatten to surfaces (extended) */
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.from-red-50, .from-red-50\/60, .from-red-50\/80, .from-blue-50,
+  .from-blue-50\/60, .from-blue-50\/80, .from-violet-50,
+  .from-violet-50\/60, .from-violet-50\/80, .from-emerald-50,
+  .from-emerald-50\/60, .from-emerald-50\/80, .from-cyan-50,
+  .from-cyan-50\/60, .from-cyan-50\/80, .from-amber-50,
+  .from-amber-50\/60, .from-sky-50, .from-sky-50\/60,
+  .from-teal-50, .from-green-50) {
+  --tw-gradient-from: var(--surface-2) var(--tw-gradient-from-position);
+  --tw-gradient-to: var(--surface) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.via-red-50, .via-blue-50, .via-violet-50, .via-emerald-50,
+  .via-cyan-50, .via-amber-50, .via-sky-50, .via-indigo-50,
+  .via-indigo-50\/40, .via-teal-50, .via-green-50) {
+  --tw-gradient-via: var(--surface) var(--tw-gradient-via-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via),
+    var(--tw-gradient-to);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.to-red-50, .to-red-50\/40, .to-red-50\/60, .to-blue-50,
+  .to-blue-50\/40, .to-blue-50\/60, .to-violet-50, .to-violet-50\/40,
+  .to-violet-50\/60, .to-emerald-50, .to-emerald-50\/40,
+  .to-emerald-50\/60, .to-cyan-50\/60, .to-cyan-50\/70,
+  .to-amber-50, .to-amber-50\/40, .to-amber-50\/60, .to-sky-50,
+  .to-sky-50\/40, .to-teal-50, .to-green-50) {
+  --tw-gradient-to: var(--surface) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+/* ---------- light-theme muted-text readability ----------
+   slate-300/400 are too faint on light surfaces; bump them to a
+   readable muted tone. Dark themes already map these to --text-muted. */
+html:not([data-theme="dark"]):not([data-theme="binance"]):not(
+    [data-theme="terminal"]
+  )
+  :is(.text-slate-300, .text-slate-400, .text-slate-500) {
+  color: var(--text-muted);
 }
