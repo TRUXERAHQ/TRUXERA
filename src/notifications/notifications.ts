@@ -315,3 +315,46 @@ export async function getNotificationsForOrganization(input: {
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
     .slice(0, MAX_NOTIFICATIONS);
 }
+
+const NOTIFICATIONS_CACHE_TTL_MS = 45_000;
+const notificationsCache = new Map<
+  string,
+  { expiresAt: number; notifications: AppNotification[] }
+>();
+
+/**
+ * Cached variant of {@link getNotificationsForOrganization} for high-frequency
+ * callers such as the navigation unread badge. The full derivation loads the
+ * dispatch board and reliability overview, so results are memoized per
+ * organization for a short TTL. Membership is still verified on every call;
+ * only the expensive derivation is cached. Returns null without membership.
+ */
+export async function getCachedNotificationsForOrganization(input: {
+  userId: string;
+  organizationId: string;
+  now?: Date;
+}): Promise<AppNotification[] | null> {
+  const membership = await getMembershipForUserInOrganization(
+    input.userId,
+    input.organizationId,
+  );
+  if (!membership) return null;
+
+  const nowMs = Date.now();
+  const cached = notificationsCache.get(input.organizationId);
+  if (cached && cached.expiresAt > nowMs) {
+    return cached.notifications;
+  }
+
+  const notifications = await getNotificationsForOrganization(input);
+  if (notifications) {
+    if (notificationsCache.size >= 200) {
+      notificationsCache.clear();
+    }
+    notificationsCache.set(input.organizationId, {
+      expiresAt: nowMs + NOTIFICATIONS_CACHE_TTL_MS,
+      notifications,
+    });
+  }
+  return notifications;
+}

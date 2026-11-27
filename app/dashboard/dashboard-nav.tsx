@@ -13,8 +13,8 @@ import {
   isUnread,
   loadReadMap,
   NOTIFICATIONS_CHANGED_EVENT,
+  type NotificationLike,
 } from "./notifications/read-state";
-import type { AppNotification } from "@/src/notifications/notifications";
 
 type IconName =
   | "grid"
@@ -199,7 +199,7 @@ function DashboardNav({
   const refreshUnreadCount = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/notifications?organizationId=${encodeURIComponent(organizationId)}`,
+        `/api/notifications?summary=1&organizationId=${encodeURIComponent(organizationId)}`,
         { cache: "no-store" },
       );
       if (!response.ok) {
@@ -207,7 +207,7 @@ function DashboardNav({
         return;
       }
       const data = (await response.json()) as {
-        notifications?: AppNotification[];
+        notifications?: NotificationLike[];
       };
       const readMap = loadReadMap();
       setUnreadCount(

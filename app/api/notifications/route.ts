@@ -2,7 +2,10 @@ import { connection } from "next/server";
 import { auth } from "@/auth";
 import { getOrganizationsForUser } from "@/src/prisma/organization-data";
 import { selectAccessibleOrganization } from "@/src/auth/tenant-policy";
-import { getNotificationsForOrganization } from "@/src/notifications/notifications";
+import {
+  getCachedNotificationsForOrganization,
+  type AppNotification,
+} from "@/src/notifications/notifications";
 
 export async function GET(request: Request) {
   await connection();
@@ -22,10 +25,20 @@ export async function GET(request: Request) {
     return Response.json({ notifications: [] });
   }
 
-  const notifications = await getNotificationsForOrganization({
+  const notifications = await getCachedNotificationsForOrganization({
     userId: session.user.id,
     organizationId: organization.id,
   });
+
+  if (url.searchParams.get("summary") === "1") {
+    const stubs = (notifications ?? []).map(
+      (notification: AppNotification) => ({
+        id: notification.id,
+        updatedAt: notification.updatedAt,
+      }),
+    );
+    return Response.json({ notifications: stubs });
+  }
 
   return Response.json({ notifications: notifications ?? [] });
 }
