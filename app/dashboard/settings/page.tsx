@@ -15,7 +15,7 @@ import { getOnboardingFactsForUser } from "@/src/prisma/onboarding-data";
 import { getAccountOverviewForUser } from "@/src/prisma/organization-data";
 import { getReliabilityOverviewForUser } from "@/src/prisma/reliability-data";
 import { computeOnboardingState } from "@/src/onboarding/onboarding";
-import { PageHeader } from "../ui";
+import { PageHeader, Notice } from "../ui";
 import SettingsSections from "./settings-sections";
 
 type Props = { searchParams: Promise<OperationsSearchParams> };
@@ -64,6 +64,12 @@ async function SettingsContent({ searchParams }: Props) {
 
   const timeZones = Intl.supportedValuesOf("timeZone");
 
+  const integrationError =
+    typeof params.integrationError === "string"
+      ? params.integrationError
+      : null;
+  const integrationConnected = params.integration === "connected";
+
   return (
     <TruckShell
       organizations={context.organizations}
@@ -75,6 +81,17 @@ async function SettingsContent({ searchParams }: Props) {
           title="Settings"
           description="Manage your TRUXERA workspace, operational preferences, access, and connected-fleet configuration."
         />
+        {integrationError ? (
+          <div className="mb-5">
+            <Notice tone="danger">{integrationError}</Notice>
+          </div>
+        ) : integrationConnected ? (
+          <div className="mb-5">
+            <Notice tone="success">
+              Integration connected. Initial sync will run shortly.
+            </Notice>
+          </div>
+        ) : null}
         <SettingsSections
           organizationId={context.organization.id}
           organizationName={context.organization.name}

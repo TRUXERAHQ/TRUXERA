@@ -7,6 +7,7 @@ import type {
 import type { IntegrationCredentialPayload } from "./auth.ts";
 import type { NormalizedEntity } from "./normalize.ts";
 import type { WebhookEnvelope } from "./webhooks.ts";
+import type { OAuthTokens } from "./oauth.ts";
 import type {
   SignalProvenance,
   SignalSubjectKind,
@@ -89,6 +90,49 @@ export type FetchResult = {
   nextCursor?: string | null;
 };
 
+/**
+ * Provider-neutral OAuth 2.0 handlers. A connector that supports the
+ * authorization-code flow implements this contract; provider-specific
+ * endpoints/credentials come from environment configuration inside the
+ * adapter — never hardcoded.
+ *
+ * `isConfigured` must return false (rather than throw) when the provider's
+ * OAuth app credentials are not present in the environment, so the UI can
+ * show an honest "not configured" state.
+ */
+export type OAuthConnectorContext = {
+  organizationId: string;
+  integrationId: string;
+  providerKey: string;
+  config: Record<string, unknown>;
+};
+
+export type OAuthConnectorHandlers = {
+  isConfigured(): boolean;
+  buildAuthorizationUrl(input: {
+    redirectUri: string;
+    state: string;
+    ctx: OAuthConnectorContext;
+  }): string;
+  exchangeCode(input: {
+    code: string;
+    redirectUri: string;
+    ctx: OAuthConnectorContext;
+    signal?: AbortSignal;
+  }): Promise<OAuthTokens>;
+  refreshToken(input: {
+    refreshToken: string;
+    ctx: OAuthConnectorContext;
+    signal?: AbortSignal;
+  }): Promise<OAuthTokens>;
+  /** Best-effort provider-side revocation. Optional — local revocation always happens. */
+  revokeToken?(input: {
+    token: string;
+    ctx: OAuthConnectorContext;
+    signal?: AbortSignal;
+  }): Promise<void>;
+};
+
 export interface IntegrationConnector {
   readonly descriptor: ConnectorDescriptor;
 
@@ -101,4 +145,6 @@ export interface IntegrationConnector {
     headers: Record<string, string>;
     ctx: ConnectionContext;
   }): WebhookEnvelope | null;
+
+  oauth?: OAuthConnectorHandlers;
 }

@@ -67,6 +67,7 @@ type ConnectorCatalogItem = {
   displayName: string;
   type: string;
   description?: string;
+  oauthAvailable?: boolean;
 };
 
 type AccountOverviewView = {
@@ -980,6 +981,23 @@ export default function SettingsSections({
                       update here once the connection is established.
                     </p>
                   )}
+
+                  {canAdminister &&
+                    connector.oauthAvailable &&
+                    (!integration ||
+                      integration.status === "DISCONNECTED" ||
+                      integration.status === "ERROR") && (
+                      <div className="mt-3 border-t border-slate-100 pt-3">
+                        <Link
+                          href={`/api/integrations/oauth/${connector.key}/start?organizationId=${encodeURIComponent(organizationId)}`}
+                          className={buttonSecondaryClass}
+                        >
+                          {integration
+                            ? "Reconnect"
+                            : `Connect with ${connector.displayName}`}
+                        </Link>
+                      </div>
+                    )}
                 </li>
               );
             })}

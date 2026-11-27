@@ -38,6 +38,11 @@ import { registerFleetEntityExtractor } from "@/src/integrations/signals/entity-
 import { registerSignalPolicy } from "@/src/integrations/signals/policy";
 import { createConnectedDataRepository } from "@/src/integrations/materialize/connected-data";
 import { parseWebhookEnvelope, webhookPayloadHash } from "@/src/integrations/webhooks";
+import {
+  createOAuthState,
+  isOAuthCredentialExpiring,
+  verifyOAuthState,
+} from "@/src/integrations/oauth";
 import { assertIntegrationSlotAvailable } from "./billing-entitlements";
 import { computeIntegrationHealth } from "@/src/integrations/lifecycle";
 import { toSafeIntegrationError } from "@/src/integrations/errors";
@@ -278,7 +283,10 @@ export async function getIntegrationForOrganization(
 }
 
 export async function listConnectorCatalog() {
-  return listConnectors().map((connector) => connector.descriptor);
+  return listConnectors().map((connector) => ({
+    ...connector.descriptor,
+    oauthAvailable: connector.oauth?.isConfigured() ?? false,
+  }));
 }
 
 export async function createIntegrationConnection(
@@ -478,7 +486,31 @@ export async function disconnectIntegration(
 
   await connectDatabase();
 
-  return db.transaction(async (tx) => {
+  // Best-effort provider-side token revocation for OAuth connections.
+  // The plaintext token must be read before the transaction revokes the
+  // stored credential; revocation failure never blocks local disconnect.
+  const preIntegration = await db.orm.public.Integration.where({
+    organizationId,
+    id: integrationId,
+  }).first();
+  const disconnectConnector = preIntegration
+    ? getConnector(preIntegration.providerKey)
+    : null;
+  let oauthAccessToken: string | null = null;
+  if (disconnectConnector?.oauth?.revokeToken && preIntegration) {
+    try {
+      const stored = await credentialVault.retrieveCredential({
+        organizationId,
+        integrationId,
+      });
+      if (stored.kind === "OAUTH2") oauthAccessToken = stored.accessToken;
+    } catch {
+      // No readable credential — nothing to revoke provider-side.
+    }
+  }
+
+  const disconnectResult: OperationResult<{ id: string }> =
+    await db.transaction(async (tx) => {
     const integration = await tx.orm.public.Integration.where({
       organizationId,
       id: integrationId,
@@ -524,6 +556,30 @@ export async function disconnectIntegration(
 
     return { ok: true, value: { id: integration.id } };
   });
+
+  if (
+    disconnectResult.ok &&
+    oauthAccessToken &&
+    disconnectConnector?.oauth?.revokeToken &&
+    preIntegration
+  ) {
+    try {
+      await disconnectConnector.oauth.revokeToken({
+        token: oauthAccessToken,
+        ctx: {
+          organizationId,
+          integrationId,
+          providerKey: preIntegration.providerKey,
+          config: parseJsonColumn(preIntegration.config),
+        },
+      });
+    } catch {
+      // Provider-side revocation is best-effort; local state is already
+      // disconnected and the credential revoked.
+    }
+  }
+
+  return disconnectResult;
 }
 
 export async function storeIntegrationCredential(
@@ -584,6 +640,356 @@ export async function storeIntegrationCredential(
     const safe = toSafeIntegrationError(error);
     return { ok: false, error: safe.message };
   }
+}
+
+const OAUTH_PENDING_CONFIG_KEY = "oauthPending";
+
+function oauthPendingFromConfig(
+  config: Record<string, unknown>,
+): { stateHash: string; expiresAt: string } | null {
+  const pending = config[OAUTH_PENDING_CONFIG_KEY];
+  if (typeof pending !== "object" || pending === null) return null;
+  const record = pending as Record<string, unknown>;
+  if (
+    typeof record["stateHash"] !== "string" ||
+    typeof record["expiresAt"] !== "string"
+  ) {
+    return null;
+  }
+  return { stateHash: record["stateHash"], expiresAt: record["expiresAt"] };
+}
+
+/**
+ * Starts an OAuth 2.0 authorization-code flow for a provider connector.
+ * Creates the Integration row (status CONNECTING) when none exists, stores
+ * a single-use signed state hash in the integration config, and returns
+ * the provider authorization URL to redirect the user to.
+ */
+export async function startIntegrationOAuth(
+  userId: string,
+  organizationId: string,
+  providerKey: string,
+  redirectUri: string,
+): Promise<
+  OperationResult<{ authorizationUrl: string; integrationId: string }>
+> {
+  const membership = await authorizeOrgAdmin(userId, organizationId);
+  if (!membership) {
+    return {
+      ok: false,
+      error: "Only organization owners and admins can manage integrations.",
+    };
+  }
+
+  const connector = getConnector(providerKey);
+  const oauth = connector?.oauth;
+  if (!connector || !oauth) {
+    return {
+      ok: false,
+      error: `Provider "${providerKey}" does not support OAuth connections.`,
+    };
+  }
+  const descriptor = connector.descriptor;
+  if (!oauth.isConfigured()) {
+    return {
+      ok: false,
+      error: `OAuth is not configured for ${descriptor.displayName}. Provider app credentials are required.`,
+    };
+  }
+
+  await connectDatabase();
+
+  const existing = await db.orm.public.Integration.where({
+    organizationId,
+    providerKey,
+  }).first();
+
+  let integrationId: string;
+  let baseConfig: Record<string, unknown> = {};
+
+  if (existing) {
+    if (
+      existing.status === "CONNECTED" ||
+      existing.status === "SYNCING" ||
+      existing.status === "DEGRADED"
+    ) {
+      return {
+        ok: false,
+        error: `${descriptor.displayName} is already connected. Disconnect it before reconnecting.`,
+      };
+    }
+    integrationId = existing.id;
+    baseConfig = parseJsonColumn(existing.config);
+  } else {
+    const created = await db.transaction(async (tx) => {
+      const organization = await tx.orm.public.Organization.where({
+        id: organizationId,
+      })
+        .forNoKeyUpdate()
+        .first();
+      if (!organization) {
+        return {
+          ok: false as const,
+          error: "The selected organization was not found.",
+        };
+      }
+      const integrationGate = await assertIntegrationSlotAvailable(
+        tx,
+        organizationId,
+      );
+      if (!integrationGate.ok) {
+        return { ok: false as const, error: integrationGate.error };
+      }
+      const row = await tx.orm.public.Integration.create({
+        organizationId,
+        providerKey: descriptor.key,
+        displayName: descriptor.displayName,
+        type: descriptor.type as never,
+        status: "CONNECTING",
+        authKind: "OAUTH2" as never,
+        capabilities: serializeJsonColumn({
+          entities: descriptor.capabilities.entities,
+          initialSync: descriptor.capabilities.initialSync,
+          incrementalSync: descriptor.capabilities.incrementalSync,
+          polling: descriptor.capabilities.polling,
+          webhooks: descriptor.capabilities.webhooks,
+        }),
+        webhookTokenHash: descriptor.capabilities.webhooks
+          ? createHash("sha256").update(randomBytes(32)).digest("hex")
+          : null,
+        createdByUserId: userId,
+      });
+      await recordIntegrationEvent(tx, {
+        organizationId,
+        integrationId: row.id,
+        actorUserId: userId,
+        kind: "CONFIG_UPDATED",
+        message: `OAuth connection to "${descriptor.displayName}" initiated.`,
+        metadata: { providerKey: descriptor.key, flow: "oauth" },
+      });
+      return { ok: true as const, value: row };
+    });
+    if (!created.ok) return created;
+    integrationId = created.value.id;
+  }
+
+  const state = createOAuthState({
+    integrationId,
+    organizationId,
+    providerKey,
+  });
+  const mergedConfig = {
+    ...baseConfig,
+    [OAUTH_PENDING_CONFIG_KEY]: {
+      stateHash: state.stateHash,
+      expiresAt: state.expiresAt.toISOString(),
+    },
+  };
+
+  await db.orm.public.Integration.where({
+    organizationId,
+    id: integrationId,
+  }).update({
+    status: "CONNECTING",
+    authKind: "OAUTH2" as never,
+    config: serializeJsonColumn(mergedConfig),
+    lastSyncError: null,
+  });
+
+  if (existing) {
+    await recordIntegrationEvent(db, {
+      organizationId,
+      integrationId,
+      actorUserId: userId,
+      kind: "CONFIG_UPDATED",
+      message: `OAuth reconnection to "${descriptor.displayName}" initiated.`,
+      metadata: { providerKey: descriptor.key, flow: "oauth" },
+    });
+  }
+
+  const ctx = {
+    organizationId,
+    integrationId,
+    providerKey,
+    config: mergedConfig,
+  };
+  const authorizationUrl = oauth.buildAuthorizationUrl({
+    redirectUri,
+    state: state.state,
+    ctx,
+  });
+
+  return { ok: true, value: { authorizationUrl, integrationId } };
+}
+
+export type CompleteOAuthResult =
+  | { ok: true; value: { organizationId: string; integrationId: string } }
+  | { ok: false; error: string; organizationId?: string };
+
+/**
+ * Completes an OAuth flow: verifies the signed state (single-use via the
+ * stored hash), exchanges the code for tokens, stores the credential
+ * encrypted, verifies the connection, and marks the integration CONNECTED.
+ */
+export async function completeIntegrationOAuth(input: {
+  userId: string;
+  providerKey: string;
+  state: string;
+  code: string;
+  redirectUri: string;
+}): Promise<CompleteOAuthResult> {
+  const payload = verifyOAuthState(input.state);
+  if (!payload || payload.providerKey !== input.providerKey) {
+    return { ok: false, error: "The OAuth state is invalid or has expired." };
+  }
+  const { organizationId, integrationId } = payload;
+
+  const connector = getConnector(input.providerKey);
+  const oauth = connector?.oauth;
+  if (!connector || !oauth) {
+    return {
+      ok: false,
+      error: "This provider no longer supports OAuth connections.",
+      organizationId,
+    };
+  }
+
+  await connectDatabase();
+  const integration = await db.orm.public.Integration.where({
+    organizationId,
+    id: integrationId,
+  }).first();
+  if (!integration || integration.status === "DISCONNECTED") {
+    return {
+      ok: false,
+      error: "The integration for this OAuth flow was not found.",
+      organizationId,
+    };
+  }
+
+  const config = parseJsonColumn(integration.config);
+  const pending = oauthPendingFromConfig(config);
+  const stateHash = createHash("sha256").update(input.state).digest("hex");
+  if (
+    !pending ||
+    pending.stateHash !== stateHash ||
+    Date.parse(pending.expiresAt) <= Date.now()
+  ) {
+    return {
+      ok: false,
+      error: "The OAuth state is invalid, expired, or already used.",
+      organizationId,
+    };
+  }
+
+  const membership = await getMembershipForUserInOrganization(
+    input.userId,
+    organizationId,
+  );
+  if (!membership || !canAdministerIntegrations(membership.role)) {
+    return {
+      ok: false,
+      error: "Only organization owners and admins can complete connections.",
+      organizationId,
+    };
+  }
+
+  const ctx = {
+    organizationId,
+    integrationId,
+    providerKey: input.providerKey,
+    config,
+  };
+
+  let tokens;
+  try {
+    tokens = await oauth.exchangeCode({
+      code: input.code,
+      redirectUri: input.redirectUri,
+      ctx,
+    });
+  } catch (error) {
+    const safe = toSafeIntegrationError(error);
+    return {
+      ok: false,
+      error: `OAuth authorization failed: ${safe.message}`,
+      organizationId,
+    };
+  }
+
+  const credential: IntegrationCredentialPayload = {
+    kind: "OAUTH2",
+    accessToken: tokens.accessToken,
+    ...(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
+    ...(tokens.expiresAt ? { expiresAt: tokens.expiresAt } : {}),
+  };
+
+  try {
+    await credentialVault.storeCredential({
+      organizationId,
+      integrationId,
+      credential,
+    });
+  } catch (error) {
+    const safe = toSafeIntegrationError(error);
+    return { ok: false, error: safe.message, organizationId };
+  }
+
+  // Consume the pending state so it cannot be replayed.
+  const { [OAUTH_PENDING_CONFIG_KEY]: _consumed, ...restConfig } = config;
+  await db.orm.public.Integration.where({
+    organizationId,
+    id: integrationId,
+  }).update({ config: serializeJsonColumn(restConfig) });
+
+  const descriptor = connector.descriptor;
+  let connected = true;
+  let detail: string | null = null;
+  if (connector.verifyConnection) {
+    try {
+      const check = await connector.verifyConnection({
+        organizationId,
+        integrationId,
+        providerKey: input.providerKey,
+        config,
+        credential,
+      });
+      connected = check.ok;
+      detail = check.ok ? null : (check.detail ?? "Connection check failed.");
+    } catch (error) {
+      connected = false;
+      detail = toSafeIntegrationError(error).message;
+    }
+  }
+
+  await db.orm.public.Integration.where({
+    organizationId,
+    id: integrationId,
+  }).update({
+    status: connected ? "CONNECTED" : "ERROR",
+    lastSyncError: detail,
+  });
+
+  await recordIntegrationEvent(db, {
+    organizationId,
+    integrationId,
+    actorUserId: input.userId,
+    kind: "CREDENTIAL_STORED",
+    message: "OAuth credential stored.",
+    metadata: { authKind: "OAUTH2", providerKey: input.providerKey },
+  });
+  await recordIntegrationEvent(db, {
+    organizationId,
+    integrationId,
+    actorUserId: input.userId,
+    kind: connected ? "CONNECTED" : "CONFIG_UPDATED",
+    message: connected
+      ? `"${descriptor.displayName}" connected via OAuth.`
+      : `"${descriptor.displayName}" OAuth completed but verification failed.`,
+    metadata: { providerKey: input.providerKey, detail },
+  });
+
+  return { ok: true, value: { organizationId, integrationId } };
 }
 
 const syncBackend: SyncBackend = {
@@ -723,6 +1129,58 @@ export async function runSyncForIntegration(
     } catch (error) {
       const safe = toSafeIntegrationError(error);
       return { ok: false, error: safe.message };
+    }
+  }
+
+  // OAuth token refresh: when the stored OAUTH2 credential is expired or
+  // near expiry and the connector supports refresh, exchange the refresh
+  // token before syncing and persist the rotated credential.
+  if (
+    credential?.kind === "OAUTH2" &&
+    connector.oauth?.refreshToken &&
+    isOAuthCredentialExpiring(credential.expiresAt)
+  ) {
+    if (!credential.refreshToken) {
+      return {
+        ok: false,
+        error:
+          "The OAuth credential is expired and no refresh token is stored. Reconnect the integration.",
+      };
+    }
+    try {
+      const refreshed = await connector.oauth.refreshToken({
+        refreshToken: credential.refreshToken,
+        ctx: {
+          organizationId,
+          integrationId: integration.id,
+          providerKey: integration.providerKey,
+          config: parseJsonColumn(integration.config),
+        },
+      });
+      credential = {
+        kind: "OAUTH2",
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken ?? credential.refreshToken,
+        expiresAt: refreshed.expiresAt ?? credential.expiresAt,
+      };
+      await credentialVault.storeCredential({
+        organizationId,
+        integrationId: integration.id,
+        credential,
+      });
+      await recordIntegrationEvent(db, {
+        organizationId,
+        integrationId: integration.id,
+        kind: "CREDENTIAL_ROTATED",
+        message: "OAuth access token refreshed.",
+        metadata: { providerKey: integration.providerKey },
+      });
+    } catch (error) {
+      const safe = toSafeIntegrationError(error);
+      return {
+        ok: false,
+        error: `OAuth token refresh failed: ${safe.message}`,
+      };
     }
   }
 

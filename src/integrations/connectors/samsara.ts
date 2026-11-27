@@ -19,6 +19,9 @@ import {
   type SamsaraPage,
 } from "./samsara-normalize.ts";
 import type { NormalizedEntity } from "../normalize.ts";
+import { parseWebhookEnvelope } from "../webhooks.ts";
+import { createSamsaraOAuthHandlers } from "./samsara-oauth.ts";
+import type { OAuthFetch } from "../oauth.ts";
 
 export const SAMSARA_PROVIDER_KEY = "samsara";
 export const SAMSARA_DEFAULT_BASE_URL = "https://api.samsara.com";
@@ -173,10 +176,15 @@ function parseCursor(raw: string | null): SamsaraCursorState {
 function requireApiToken(
   credential: IntegrationCredentialPayload | null,
 ): string {
-  if (!credential || credential.kind !== "API_KEY_BEARER") {
+  // Both supported credential kinds carry a bearer access token:
+  // API_KEY_BEARER (static token) and OAUTH2 (authorization-code flow).
+  if (
+    !credential ||
+    (credential.kind !== "API_KEY_BEARER" && credential.kind !== "OAUTH2")
+  ) {
     throw new IntegrationError(
       "CREDENTIAL_UNAVAILABLE",
-      "Samsara requires an API key + bearer token credential.",
+      "Samsara requires an API key + bearer token or OAuth2 credential.",
     );
   }
   return credential.accessToken;
@@ -304,6 +312,7 @@ async function drainFeed(input: {
 
 export function createSamsaraConnector(options?: {
   fetchImpl?: SamsaraFetch;
+  oauthFetchImpl?: OAuthFetch;
 }): IntegrationConnector {
   const descriptor: ConnectorDescriptor = {
     key: SAMSARA_PROVIDER_KEY,
@@ -314,7 +323,7 @@ export function createSamsaraConnector(options?: {
       "linked fleet entities and vehicle stats / HOS clocks as operational " +
       "signals (location, motion state, driver duty status).",
     auth: {
-      kinds: ["API_KEY_BEARER"],
+      kinds: ["API_KEY_BEARER", "OAUTH2"],
       requiresCredential: true,
     },
     capabilities: {
@@ -322,7 +331,10 @@ export function createSamsaraConnector(options?: {
       initialSync: true,
       incrementalSync: true,
       polling: true,
-      webhooks: false,
+      // Webhooks are accepted only in TRUXERA's provider-neutral signal
+      // contract (a `signals` array). Samsara's native webhook payload
+      // format is not yet documented for TRUXERA — see docs/samsara-readiness.md.
+      webhooks: true,
     },
   };
 
@@ -447,6 +459,34 @@ export function createSamsaraConnector(options?: {
         nextCursor,
       };
     },
+
+    parseWebhook({ rawBody }) {
+      // Recognizes only TRUXERA's provider-neutral webhook contract: a
+      // well-formed envelope (id + type) carrying a `signals` array, either
+      // top-level or under `payload`. Samsara's native webhook payload
+      // format is not yet documented — anything else returns null and is
+      // recorded as IGNORED rather than guessed at.
+      const record =
+        typeof rawBody === "object" && rawBody !== null && !Array.isArray(rawBody)
+          ? (rawBody as Record<string, unknown>)
+          : null;
+      if (!record) return null;
+      const nested =
+        typeof record["payload"] === "object" && record["payload"] !== null
+          ? (record["payload"] as Record<string, unknown>)
+          : null;
+      const hasSignals =
+        Array.isArray(record["signals"]) ||
+        (nested !== null && Array.isArray(nested["signals"]));
+      if (!hasSignals) return null;
+      const parsed = parseWebhookEnvelope({
+        providerKey: SAMSARA_PROVIDER_KEY,
+        body: rawBody,
+      });
+      return parsed.ok ? parsed.envelope : null;
+    },
+
+    oauth: createSamsaraOAuthHandlers({ fetchImpl: options?.oauthFetchImpl }),
   };
 }
 

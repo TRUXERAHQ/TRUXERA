@@ -117,9 +117,11 @@ test("descriptor: GPS_TELEMATICS, API_KEY_BEARER, polling entities", () => {
   const { connector } = connectorWith(baseHandler());
   assert.equal(connector.descriptor.key, "samsara");
   assert.equal(connector.descriptor.type, "GPS_TELEMATICS");
-  assert.deepEqual(connector.descriptor.auth.kinds, ["API_KEY_BEARER"]);
+  assert.deepEqual(connector.descriptor.auth.kinds, ["API_KEY_BEARER", "OAUTH2"]);
   assert.deepEqual([...connector.descriptor.capabilities.entities], ["TRUCK", "DRIVER"]);
-  assert.equal(connector.descriptor.capabilities.webhooks, false);
+  assert.equal(connector.descriptor.capabilities.webhooks, true);
+  assert.ok(connector.oauth, "connector exposes OAuth handlers");
+  assert.equal(connector.oauth.isConfigured(), false);
 });
 
 test("client sends bearer auth and never leaks token in errors", async () => {
@@ -430,6 +432,66 @@ test("stats feed failure remains fatal (no partial cursor advance)", async () =>
     connector.fetchChanges(syncCtx('{"stats":"old"}')),
     (e) => e.code === "PROVIDER_UNAVAILABLE",
   );
+});
+
+test("OAUTH2 credential is accepted as bearer token", async () => {
+  const { connector, calls } = connectorWith(baseHandler());
+  const ctx = syncCtx(null, {
+    kind: "OAUTH2",
+    accessToken: TOKEN,
+    refreshToken: "refresh-not-real",
+    expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+  });
+  const result = await connector.fetchChanges(ctx);
+  assert.ok(result.entities.length === 2);
+  const auth = calls[0].init.headers["Authorization"];
+  assert.equal(auth, `Bearer ${TOKEN}`);
+});
+
+test("parseWebhook recognizes only the provider-neutral signals contract", async () => {
+  const { connector } = connectorWith(baseHandler());
+  const ctx = {
+    organizationId: "o", integrationId: "i", providerKey: "samsara",
+    config: {}, credential: null,
+  };
+  const signalPayload = {
+    id: "evt-1",
+    type: "vehicle.location",
+    signals: [
+      {
+        subjectKind: "TRUCK",
+        subjectExternalId: "veh-1",
+        signalKind: "VEHICLE_LOCATION",
+        value: { latitude: 1, longitude: 2 },
+        provenance: "SOURCE_FACT",
+        sourceTimestamp: "2026-03-01T10:00:00Z",
+      },
+    ],
+  };
+  const recognized = connector.parseWebhook({
+    rawBody: signalPayload,
+    headers: {},
+    ctx,
+  });
+  assert.ok(recognized);
+  assert.equal(recognized.externalEventId, "evt-1");
+
+  // Payloads without a signals array are not recognized → IGNORED upstream.
+  assert.equal(
+    connector.parseWebhook({
+      rawBody: { id: "evt-2", type: "vehicle.location", data: {} },
+      headers: {},
+      ctx,
+    }),
+    null,
+  );
+  // Nested signals under `payload` are also recognized.
+  const nested = connector.parseWebhook({
+    rawBody: { id: "evt-3", type: "x", payload: { signals: [] } },
+    headers: {},
+    ctx,
+  });
+  assert.ok(nested);
 });
 
 test("verifyConnection reports safe detail", async () => {

@@ -25,6 +25,8 @@ export type OperationsSearchParams = {
   replied?: string | string[];
   resolved?: string | string[];
   billing?: string | string[];
+  integration?: string | string[];
+  integrationError?: string | string[];
 };
 
 function firstValue(value?: string | string[]) {
