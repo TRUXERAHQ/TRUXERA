@@ -348,7 +348,11 @@ html:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
    app-wide without touching every page. */
 
 :is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
-  :is(.bg-white, .bg-slate-50) {
+  .bg-white {
+  background-color: var(--elevated);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  .bg-slate-50 {
   background-color: var(--surface);
 }
 :is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
@@ -600,6 +604,12 @@ html:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
   .from-cyan-50\/60, .from-cyan-50\/80, .from-amber-50,
   .from-amber-50\/60, .from-sky-50, .from-sky-50\/60,
   .from-teal-50, .from-green-50) {
+  --tw-gradient-from: var(--surface-2) var(--tw-gradient-from-position);
+  --tw-gradient-to: var(--surface) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+:is([data-theme="dark"], [data-theme="binance"], [data-theme="terminal"])
+  :is(.from-white, .from-white\/60, .from-white\/80, .from-white\/90) {
   --tw-gradient-from: var(--surface-2) var(--tw-gradient-from-position);
   --tw-gradient-to: var(--surface) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
