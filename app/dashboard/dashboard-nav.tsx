@@ -233,23 +233,30 @@ function DashboardNav({
   const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
+  const [controlsTarget, setControlsTarget] = useState<HTMLElement | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
     setActiveTheme(document.documentElement.dataset.theme || "light");
+    setControlsTarget(document.getElementById("truxera-mobile-controls"));
   }, []);
 
-  // Quick dark/light shortcut for the mobile header. Uses the same
+  // Single theme toggle for the mobile header. Uses the same
   // dataset.theme + localStorage mechanism as the Settings theme selector;
   // all five themes remain available there.
-  const applyTheme = (id: "light" | "dark") => {
+  const applyTheme = (id: string) => {
     document.documentElement.dataset.theme = id;
     try {
       window.localStorage.setItem("truxera-theme", id);
     } catch {}
     setActiveTheme(id);
   };
+  const isDarkTheme =
+    activeTheme === "dark" ||
+    activeTheme === "binance" ||
+    activeTheme === "terminal";
+  const toggleTheme = () => applyTheme(isDarkTheme ? "light" : "dark");
 
   // Lock background scrolling while the mobile drawer is open. The drawer is
   // portaled to document.body so it escapes the header's backdrop-filter
@@ -590,54 +597,51 @@ function DashboardNav({
         })}
       </nav>
 
-      {/* Mobile header bar — theme shortcuts + menu */}
-      <div className="flex items-center justify-end gap-2 px-4 py-2 xl:hidden">
-        <button
-          type="button"
-          aria-label="Switch to dark theme"
-          aria-pressed={activeTheme === "dark"}
-          title="Dark theme"
-          onClick={() => applyTheme("dark")}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
-        >
-          <MoonIcon />
-        </button>
-        <button
-          type="button"
-          aria-label="Switch to light theme"
-          aria-pressed={activeTheme === "light"}
-          title="Light theme"
-          onClick={() => applyTheme("light")}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
-        >
-          <SunIcon />
-        </button>
-        <button
-          type="button"
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-nav-drawer"
-          aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-          onClick={() => setMobileOpen((value) => !value)}
-          className="flex h-9 items-center gap-2 rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] px-3 text-sm font-medium text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            className="h-5 w-5"
-            aria-hidden="true"
-          >
-            {mobileOpen ? (
-              <path d="M6 6l12 12M18 6L6 18" />
-            ) : (
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            )}
-          </svg>
-          {mobileOpen ? "Close" : "Menu"}
-        </button>
-      </div>
+      {/* Mobile header controls — single theme toggle + menu, portaled into
+          the TRUXERA header row so mobile has exactly one header line */}
+      {mounted &&
+        controlsTarget &&
+        createPortal(
+          <div className="flex items-center gap-2 xl:hidden">
+            <button
+              type="button"
+              aria-label={
+                isDarkTheme ? "Switch to light theme" : "Switch to dark theme"
+              }
+              title={isDarkTheme ? "Light theme" : "Dark theme"}
+              onClick={toggleTheme}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+            >
+              {isDarkTheme ? <SunIcon /> : <MoonIcon />}
+            </button>
+            <button
+              type="button"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-drawer"
+              aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+              onClick={() => setMobileOpen((value) => !value)}
+              className="flex h-10 items-center gap-2 rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] px-3 text-sm font-medium text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                {mobileOpen ? (
+                  <path d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                )}
+              </svg>
+              {mobileOpen ? "Close" : "Menu"}
+            </button>
+          </div>,
+          controlsTarget,
+        )}
 
       {/* Mobile drawer backdrop + drawer — portaled to body so the header's
           backdrop-filter stacking context cannot trap them below page content */}

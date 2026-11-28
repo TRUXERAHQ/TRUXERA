@@ -89,6 +89,9 @@ export default function TruckShell({
               <form action={signOutUser} className="hidden xl:block">
                 <button className={buttonSecondaryClass}>Sign out</button>
               </form>
+              {/* Mobile header controls (theme toggle + menu) are portaled
+                  here by DashboardNav so they share the TRUXERA header row */}
+              <div id="truxera-mobile-controls" />
             </div>
           </div>
           {!hero && (
@@ -105,7 +108,7 @@ export default function TruckShell({
           <div className="mx-auto max-w-[1680px] px-4 pt-4 sm:px-6 lg:px-8">
             {hero}
           </div>
-          <div className="sticky top-14 z-20 border-t border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur">
+          <div className="sticky top-14 z-20 hidden border-t border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur xl:block">
             <div className="mx-auto max-w-[1680px] px-4 sm:px-6 lg:px-8">
               <DashboardNav
                 orgQuery={orgQuery}
