@@ -160,6 +160,21 @@ type NavNode =
       children: Leaf[];
     };
 
+// Primary operational destinations shown in the mobile quick-nav strip.
+// Everything else in `nodes` falls through to the mobile Menu drawer, so
+// the two groups are derived from one source of truth and never diverge.
+const PRIMARY_NAV_IDS = new Set([
+  "dashboard",
+  "command-center",
+  "loads",
+  "dispatch",
+  "trucks",
+  "drivers",
+  "operational-history",
+  "daily-summary",
+  "executive-report",
+]);
+
 const linkIdle =
   "flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-medium transition-colors border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]";
 const linkActive =
@@ -478,11 +493,28 @@ function DashboardNav({
         : "border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)]"
     }`;
 
-  // Flattened leaf destinations for the mobile quick-nav strip. Dropdown
-  // nodes contribute their children so every route stays reachable.
-  const stripItems = nodes.flatMap((node) =>
-    node.kind === "link" ? [node] : node.children,
-  );
+  // Primary strip = operational leaf destinations; drawer = everything
+  // else (secondary/account), with dropdowns emptied of primary children.
+  const stripItems = nodes
+    .flatMap((node) => (node.kind === "link" ? [node] : node.children))
+    .filter((item) => PRIMARY_NAV_IDS.has(item.id));
+  const drawerNodes = nodes
+    .map((node) =>
+      node.kind === "link"
+        ? PRIMARY_NAV_IDS.has(node.id)
+          ? null
+          : node
+        : {
+            ...node,
+            children: node.children.filter(
+              (child) => !PRIMARY_NAV_IDS.has(child.id),
+            ),
+          },
+    )
+    .filter(
+      (node): node is NavNode =>
+        node !== null && (node.kind === "link" || node.children.length > 0),
+    );
 
   const unreadBadge =
     unreadCount > 0 ? (
@@ -701,7 +733,7 @@ function DashboardNav({
               className="fixed inset-x-0 bottom-0 top-12 z-50 overflow-y-auto border-t border-[var(--border)] bg-[var(--app-bg)] p-4 xl:hidden"
             >
           <nav aria-label="Mobile navigation" className="mx-auto max-w-md space-y-4">
-            {nodes.map((node) => {
+            {drawerNodes.map((node) => {
               if (node.kind === "link") {
                 return (
                   <div key={node.id}>{renderLeaf(node, true)}</div>
