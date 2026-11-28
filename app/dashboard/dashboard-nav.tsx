@@ -234,12 +234,14 @@ function DashboardNav({
   const [mounted, setMounted] = useState(false);
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
   const [controlsTarget, setControlsTarget] = useState<HTMLElement | null>(null);
+  const [stripTarget, setStripTarget] = useState<HTMLElement | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
     setActiveTheme(document.documentElement.dataset.theme || "light");
     setControlsTarget(document.getElementById("truxera-mobile-controls"));
+    setStripTarget(document.getElementById("truxera-mobile-navstrip"));
   }, []);
 
   // Single theme toggle for the mobile header. Uses the same
@@ -476,6 +478,12 @@ function DashboardNav({
         : "border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)]"
     }`;
 
+  // Flattened leaf destinations for the mobile quick-nav strip. Dropdown
+  // nodes contribute their children so every route stays reachable.
+  const stripItems = nodes.flatMap((node) =>
+    node.kind === "link" ? [node] : node.children,
+  );
+
   const unreadBadge =
     unreadCount > 0 ? (
       <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nav-active-bg)] px-1 text-[10px] font-bold leading-none text-[var(--nav-active-text)]">
@@ -641,6 +649,40 @@ function DashboardNav({
             </button>
           </div>,
           controlsTarget,
+        )}
+
+      {/* Mobile quick-nav strip — portaled into the dashboard content area
+          (target only exists on the dashboard page, so it renders there
+          only). Shares the same `nodes` config as the drawer/desktop nav. */}
+      {mounted &&
+        stripTarget &&
+        createPortal(
+          <nav
+            aria-label="Quick navigation"
+            className="overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden"
+          >
+            <div className="flex gap-2">
+              {stripItems.map((item) => {
+                const active = activeSection === item.id;
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      active
+                        ? "nav-active border-transparent bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
+                        : "border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]"
+                    }`}
+                  >
+                    <NavIcon name={item.icon} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>,
+          stripTarget,
         )}
 
       {/* Mobile drawer backdrop + drawer — portaled to body so the header's
