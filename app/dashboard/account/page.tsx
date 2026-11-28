@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { auth } from "@/auth";
-import { signOutUser } from "../../auth-actions";
 import { getOperationsPageContext } from "../operations-page-data";
 import type { OperationsSearchParams } from "../operations-page-data";
 import TruckShell from "../trucks/truck-shell";
-import { Badge, buttonSecondaryClass, PageHeader, Panel } from "../ui";
+import { Badge, PageHeader, Panel } from "../ui";
 
 type Props = { searchParams: Promise<OperationsSearchParams> };
 
@@ -155,21 +154,6 @@ async function AccountLoader({ searchParams }: Props) {
             </div>
           </Panel>
 
-          <Panel
-            title="Security"
-            description="Manage your session. Appearance and operational preferences live in Settings."
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <form action={signOutUser}>
-                <button type="submit" className={buttonSecondaryClass}>
-                  Sign out
-                </button>
-              </form>
-              <span className="text-sm text-[var(--text-muted)]">
-                Signing out ends your session on this device.
-              </span>
-            </div>
-          </Panel>
         </div>
       </div>
     </TruckShell>
