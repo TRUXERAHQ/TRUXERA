@@ -493,10 +493,10 @@ async function Dashboard({ searchParams }: HomeProps) {
     >
       {/* Portal target for the mobile quick-nav strip rendered by
           DashboardNav — sits between the header and the KPI cards */}
-      <div id="truxera-mobile-navstrip" className="mb-4 xl:hidden" />
+      <div id="truxera-mobile-navstrip" className="mb-2 sm:mb-4 xl:hidden" />
 
       {/* KPI cards */}
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           icon="truck"
           label="Active Trucks"

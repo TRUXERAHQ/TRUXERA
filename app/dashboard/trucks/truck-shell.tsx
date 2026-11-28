@@ -105,7 +105,7 @@ export default function TruckShell({
       </header>
       {hero && (
         <>
-          <div className="mx-auto max-w-[1680px] px-4 pt-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1680px] px-4 pt-0 sm:px-6 lg:px-8 xl:pt-4">
             {hero}
           </div>
           <div className="sticky top-14 z-20 hidden border-t border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur xl:block">
@@ -119,7 +119,7 @@ export default function TruckShell({
           </div>
         </>
       )}
-      <div className="mx-auto max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="mx-auto max-w-[1680px] px-4 pb-6 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-8 lg:pt-8">
         {children}
       </div>
     </main>
