@@ -19,7 +19,12 @@ export default auth((request) => {
       : "next";
   console.log(
     "[diag-proxy]",
-    JSON.stringify({ p: pathname, a: Boolean(userId), d: decision }),
+    JSON.stringify({
+      p: pathname,
+      a: Boolean(userId),
+      d: decision,
+      c: request.cookies.getAll().map((c) => c.name),
+    }),
   );
 
   if (!userId && !publicAuthPaths.includes(pathname)) {
