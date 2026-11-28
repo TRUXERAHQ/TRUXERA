@@ -664,6 +664,28 @@ function DashboardNav({
             >
               {isDarkTheme ? <SunIcon /> : <MoonIcon />}
             </button>
+            {notificationsNode && (
+              <Link
+                href={notificationsNode.href}
+                aria-label={
+                  unreadCount > 0
+                    ? `Notifications, ${unreadCount} unread`
+                    : "Notifications"
+                }
+                title="Notifications"
+                aria-current={
+                  activeSection === "notifications" ? "page" : undefined
+                }
+                className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+              >
+                <NavIcon name="bell" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nav-active-bg)] px-1 text-[10px] font-bold leading-none text-[var(--nav-active-text)]">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <button
               type="button"
               aria-expanded={mobileOpen}
@@ -701,9 +723,9 @@ function DashboardNav({
         createPortal(
           <nav
             aria-label="Quick navigation"
-            className="flex items-center gap-2 xl:hidden"
+            className="overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden"
           >
-            <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2">
               {stripItems.map((item) => {
                 const active = activeSection === item.id;
                 return (
@@ -723,28 +745,6 @@ function DashboardNav({
                 );
               })}
             </div>
-            {notificationsNode && (
-              <Link
-                href={notificationsNode.href}
-                aria-label={
-                  unreadCount > 0
-                    ? `Notifications, ${unreadCount} unread`
-                    : "Notifications"
-                }
-                title="Notifications"
-                aria-current={
-                  activeSection === "notifications" ? "page" : undefined
-                }
-                className="relative mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]"
-              >
-                <NavIcon name="bell" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nav-active-bg)] px-1 text-[10px] font-bold leading-none text-[var(--nav-active-text)]">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-            )}
           </nav>,
           stripTarget,
         )}
