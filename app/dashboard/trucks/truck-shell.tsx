@@ -86,7 +86,7 @@ export default function TruckShell({
               <span className="hidden max-w-40 truncate text-sm text-[var(--text-muted)] xl:block">
                 {organization.name}
               </span>
-              <form action={signOutUser}>
+              <form action={signOutUser} className="hidden xl:block">
                 <button className={buttonSecondaryClass}>Sign out</button>
               </form>
             </div>

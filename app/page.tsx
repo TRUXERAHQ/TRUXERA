@@ -484,7 +484,7 @@ async function Dashboard({ searchParams }: HomeProps) {
       organization={data.organization}
       activeSection="dashboard"
       hero={
-        <div className="overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-cyan-50/50 px-4 py-3 shadow-sm sm:px-6">
+        <div className="hidden overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-cyan-50/50 px-4 py-3 shadow-sm sm:px-6 xl:block">
           <div className="flex justify-center">
             <TruckLineArt className="h-auto w-full max-w-[1180px]" />
           </div>

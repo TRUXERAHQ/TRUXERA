@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { signOutUser } from "@/app/auth-actions";
 import {
   isUnread,
   loadReadMap,
@@ -164,6 +165,41 @@ const linkIdle =
 const linkActive =
   "nav-active flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-semibold transition-colors border-transparent bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] shadow-sm";
 
+function MoonIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  );
+}
+
 function Chevron({ open }: { open: boolean }) {
   return (
     <svg
@@ -196,11 +232,24 @@ function DashboardNav({
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [activeTheme, setActiveTheme] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    setActiveTheme(document.documentElement.dataset.theme || "light");
   }, []);
+
+  // Quick dark/light shortcut for the mobile header. Uses the same
+  // dataset.theme + localStorage mechanism as the Settings theme selector;
+  // all five themes remain available there.
+  const applyTheme = (id: "light" | "dark") => {
+    document.documentElement.dataset.theme = id;
+    try {
+      window.localStorage.setItem("truxera-theme", id);
+    } catch {}
+    setActiveTheme(id);
+  };
 
   // Lock background scrolling while the mobile drawer is open. The drawer is
   // portaled to document.body so it escapes the header's backdrop-filter
@@ -541,8 +590,28 @@ function DashboardNav({
         })}
       </nav>
 
-      {/* Mobile hamburger bar */}
-      <div className="flex items-center justify-end px-4 py-2 xl:hidden">
+      {/* Mobile header bar — theme shortcuts + menu */}
+      <div className="flex items-center justify-end gap-2 px-4 py-2 xl:hidden">
+        <button
+          type="button"
+          aria-label="Switch to dark theme"
+          aria-pressed={activeTheme === "dark"}
+          title="Dark theme"
+          onClick={() => applyTheme("dark")}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+        >
+          <MoonIcon />
+        </button>
+        <button
+          type="button"
+          aria-label="Switch to light theme"
+          aria-pressed={activeTheme === "light"}
+          title="Light theme"
+          onClick={() => applyTheme("light")}
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+        >
+          <SunIcon />
+        </button>
         <button
           type="button"
           aria-expanded={mobileOpen}
@@ -623,6 +692,16 @@ function DashboardNav({
               );
             })}
           </nav>
+          <div className="mx-auto mt-6 max-w-md border-t border-[var(--border)] pt-4">
+            <form action={signOutUser}>
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-[var(--tone-danger-border)] bg-[var(--tone-danger-bg)] px-3.5 py-2.5 text-sm font-medium text-[var(--tone-danger-text)] transition-colors hover:opacity-80"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
             </div>
           </>,
           document.body,
