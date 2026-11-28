@@ -251,11 +251,11 @@ function KpiCard({
 }) {
   return (
     <div
-      className={`flex h-full flex-col rounded-xl border border-slate-200 border-t-2 p-5 shadow-md ${surfaceClass} ${accentClass}`}
+      className={`flex h-full flex-col rounded-xl border border-slate-200 border-t-2 p-3 shadow-md sm:p-5 ${surfaceClass} ${accentClass}`}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/10 ${iconClass}`}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/10 sm:h-10 sm:w-10 ${iconClass}`}
         >
           <KpiIcon name={icon} />
         </span>
@@ -264,7 +264,7 @@ function KpiCard({
         </p>
       </div>
       <div
-        className={`mt-3 text-4xl font-bold tracking-tight tabular-nums ${
+        className={`mt-2 text-2xl font-bold tracking-tight tabular-nums sm:mt-3 sm:text-4xl ${
           danger ? "text-red-600" : valueClass
         }`}
       >
@@ -272,7 +272,7 @@ function KpiCard({
       </div>
       {meter && (
         <div
-          className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+          className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 sm:mt-3"
           role="presentation"
         >
           <div
@@ -284,7 +284,7 @@ function KpiCard({
         </div>
       )}
       {hint && (
-        <div className="mt-auto line-clamp-2 pt-2 text-xs leading-5 text-slate-600">
+        <div className="mt-auto line-clamp-2 pt-1.5 text-[11px] leading-4 text-slate-600 sm:pt-2 sm:text-xs sm:leading-5">
           {hint}
         </div>
       )}
@@ -492,7 +492,7 @@ async function Dashboard({ searchParams }: HomeProps) {
       }
     >
       {/* KPI cards */}
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           icon="truck"
           label="Active Trucks"
