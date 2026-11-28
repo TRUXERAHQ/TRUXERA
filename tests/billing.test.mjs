@@ -295,7 +295,11 @@ test("organizations without a subscription row are never trial-expired", () => {
   assert.equal(state.limits.vehicles, "unlimited");
 });
 
-test("provider-managed TRIAL status still expires at its stored end date", () => {
+test("provider-managed TRIAL is owned by the provider, not the local clock", () => {
+  // Paddle owns trial timing: sync writes Paddle's trialEndAt for display,
+  // but resolveBillingState must not expire a provider-managed trial on
+  // the local clock — the provider's activated/canceled events are
+  // authoritative.
   const state = resolveBillingState(
     {
       plan: "STARTER",
@@ -306,7 +310,57 @@ test("provider-managed TRIAL status still expires at its stored end date", () =>
     },
     new Date("2026-11-09T00:00:00Z"),
   );
-  assert.equal(state.trialExpired, true);
+  assert.equal(state.trialExpired, false);
   assert.equal(state.plan, "STARTER");
+  assert.equal(state.limits.vehicles, 25);
+  assert.ok(state.entitlements.length > 0);
+});
+
+test("canceled subscription loses paid entitlements and capacity", () => {
+  const state = resolveBillingState(
+    {
+      plan: "STARTER",
+      status: "CANCELED",
+      trialStartAt: null,
+      trialEndAt: null,
+      providerKey: "paddle",
+    },
+    new Date("2026-12-01T00:00:00Z"),
+  );
+  assert.equal(state.plan, "STARTER");
+  assert.equal(state.subscriptionStatus, "CANCELED");
+  assert.deepEqual(state.entitlements, []);
   assert.equal(state.limits.vehicles, 0);
+  assert.equal(state.limits.integrations, 0);
+});
+
+test("canceled trial subscription gets no trial entitlements", () => {
+  const state = resolveBillingState(
+    {
+      plan: "PROFESSIONAL",
+      status: "CANCELED",
+      trialStartAt: new Date("2026-11-01T00:00:00Z"),
+      trialEndAt: new Date("2026-11-08T00:00:00Z"),
+      providerKey: "paddle",
+    },
+    new Date("2026-11-05T00:00:00Z"),
+  );
+  assert.equal(state.subscriptionStatus, "CANCELED");
+  assert.deepEqual(state.entitlements, []);
+  assert.equal(state.limits.vehicles, 0);
+});
+
+test("PAUSED subscription keeps existing plan-level behavior", () => {
+  const state = resolveBillingState(
+    {
+      plan: "STARTER",
+      status: "PAUSED",
+      trialStartAt: null,
+      trialEndAt: null,
+      providerKey: "paddle",
+    },
+    new Date("2026-12-01T00:00:00Z"),
+  );
+  assert.equal(state.limits.vehicles, 25);
+  assert.ok(state.entitlements.includes("CORE_RISK_INTELLIGENCE"));
 });

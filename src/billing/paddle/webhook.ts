@@ -175,6 +175,7 @@ async function claimEvent(input: {
 
 function normalizeSubscription(data: Record<string, unknown>) {
   const items = Array.isArray(data["items"]) ? data["items"] : [];
+  const billingPeriod = asRecord(data["current_billing_period"]);
   return {
     id: asString(data["id"]) ?? "",
     customerId: asString(data["customer_id"]),
@@ -185,6 +186,13 @@ function normalizeSubscription(data: Record<string, unknown>) {
       const price = asRecord(record?.["price"]);
       return { price: { id: asString(price?.["id"]) } };
     }),
+    nextBilledAt: asString(data["next_billed_at"]),
+    currentBillingPeriod: billingPeriod
+      ? {
+          startsAt: asString(billingPeriod["starts_at"]),
+          endsAt: asString(billingPeriod["ends_at"]),
+        }
+      : null,
   };
 }
 

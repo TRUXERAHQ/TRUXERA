@@ -40,7 +40,39 @@ export type PaddleSubscriptionSyncInput = {
   status: string;
   customData?: Record<string, unknown> | null;
   items?: Array<{ price?: { id?: string | null } | null } | null> | null;
+  /** ISO timestamp of the next scheduled billing attempt (trial end for trialing subs). */
+  nextBilledAt?: string | null;
+  /** Current billing period — for trialing subscriptions this is the trial period. */
+  currentBillingPeriod?: {
+    startsAt?: string | null;
+    endsAt?: string | null;
+  } | null;
 };
+
+function paddleDateOrNull(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Maps Paddle's authoritative trial timing onto the subscription row.
+ * For a trialing subscription, current_billing_period is the trial
+ * period and next_billed_at is the first charge — trialEndAt is the
+ * earlier authoritative signal (Paddle bills at next_billed_at).
+ */
+export function paddleTrialDates(
+  input: PaddleSubscriptionSyncInput,
+): { trialStartAt: Date | null; trialEndAt: Date | null } {
+  return {
+    trialStartAt: paddleDateOrNull(
+      input.currentBillingPeriod?.startsAt ?? null,
+    ),
+    trialEndAt:
+      paddleDateOrNull(input.nextBilledAt ?? null) ??
+      paddleDateOrNull(input.currentBillingPeriod?.endsAt ?? null),
+  };
+}
 
 export type PaddleSyncResult =
   | { ok: true; organizationId: string | null; created: boolean }
@@ -92,6 +124,7 @@ export async function syncPaddleSubscription(
         error: "Paddle subscription has no resolvable organization or plan.",
       };
     }
+    const trialDates = paddleTrialDates(subscription);
     await db.orm.public.BillingSubscription.create({
       organizationId,
       plan,
@@ -99,6 +132,7 @@ export async function syncPaddleSubscription(
       providerKey: PADDLE_PROVIDER_KEY,
       providerCustomerId: subscription.customerId,
       providerSubscriptionId: subscription.id,
+      ...(mappedStatus === "TRIAL" ? trialDates : {}),
     });
     return { ok: true, organizationId, created: true };
   }
@@ -112,6 +146,14 @@ export async function syncPaddleSubscription(
   }
   if (mappedStatus) update["status"] = mappedStatus;
   if (plan) update["plan"] = plan;
+  // Paddle owns trial timing — persist its authoritative dates while the
+  // subscription is trialing so the UI shows the real trial end / first
+  // charge date rather than any locally-computed clock.
+  if (mappedStatus === "TRIAL") {
+    const trialDates = paddleTrialDates(subscription);
+    if (trialDates.trialStartAt) update["trialStartAt"] = trialDates.trialStartAt;
+    if (trialDates.trialEndAt) update["trialEndAt"] = trialDates.trialEndAt;
+  }
 
   await db.orm.public.BillingSubscription.where({ id: target.id }).update(
     update as never,

@@ -6,21 +6,7 @@ export type OrganizationProvisioner<TOrganization extends { id: string }> = {
     userId: string;
     role: "OWNER";
   }): Promise<void>;
-  /**
-   * Optional: provisions the organization's initial billing state. Only
-   * invoked when a NEW organization is created — never for an existing
-   * membership/org — so legacy organizations are never converted to a
-   * new trial. Runs inside the caller's transaction.
-   */
-  createTrialSubscription?(input: {
-    organizationId: string;
-    trialStartAt: Date;
-    trialEndAt: Date;
-  }): Promise<void>;
 };
-
-/** Internal trial length: exactly 7 days from onboarding completion. */
-export const TRIAL_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 function organizationSlug(name: string, userId: string) {
   const normalizedName = name
@@ -39,7 +25,6 @@ export async function createOrganizationWithOwner<
   userId: string,
   name: string,
   provisioner: OrganizationProvisioner<TOrganization>,
-  now: Date = new Date(),
 ) {
   const existingOrganization =
     await provisioner.findMembershipForUser(userId);
@@ -54,13 +39,6 @@ export async function createOrganizationWithOwner<
     userId,
     role: "OWNER",
   });
-  if (provisioner.createTrialSubscription) {
-    await provisioner.createTrialSubscription({
-      organizationId: organization.id,
-      trialStartAt: now,
-      trialEndAt: new Date(now.getTime() + TRIAL_DURATION_MS),
-    });
-  }
 
   return organization;
 }

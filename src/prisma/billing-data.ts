@@ -10,6 +10,8 @@ import {
 import { resolveBillingProvider } from "../billing/provider";
 import { getStripeClient } from "../billing/stripe/client";
 import { getPaddleClient } from "../billing/paddle/client";
+import { getPaddleSubscriptionManagement } from "../billing/paddle/subscription";
+import type { PaddleSubscriptionManagementUrls } from "../billing/paddle/subscription";
 
 export type BillingUsage = Record<UsageLimitKey, number>;
 
@@ -21,6 +23,8 @@ export type BillingOverview = BillingState & {
   billingProvider: string | null;
   /** Provider subscription ID, when the org has a provider subscription. */
   providerSubscriptionId: string | null;
+  /** Paddle-hosted management URLs (update payment method / cancel). */
+  managementUrls: PaddleSubscriptionManagementUrls | null;
 };
 
 /**
@@ -76,6 +80,24 @@ export async function getBillingOverviewForUser(
         ? getPaddleClient() !== null
         : false);
 
+  // Paddle-hosted management URLs let customers update their payment
+  // method or cancel without TRUXERA ever touching card data. Fetched
+  // live because Paddle excludes management_urls from webhook payloads.
+  let managementUrls: PaddleSubscriptionManagementUrls | null = null;
+  if (
+    providerConnected &&
+    provider?.key === "paddle" &&
+    subscription?.providerSubscriptionId
+  ) {
+    const paddle = getPaddleClient();
+    if (paddle) {
+      managementUrls = await getPaddleSubscriptionManagement(
+        paddle,
+        subscription.providerSubscriptionId,
+      );
+    }
+  }
+
   return {
     ...state,
     usage: {
@@ -89,5 +111,6 @@ export async function getBillingOverviewForUser(
     providerConnected,
     billingProvider: providerConnected ? (provider?.key ?? null) : null,
     providerSubscriptionId: subscription?.providerSubscriptionId ?? null,
+    managementUrls,
   };
 }

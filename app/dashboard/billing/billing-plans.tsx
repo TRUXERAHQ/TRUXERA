@@ -343,6 +343,32 @@ export default function BillingPlansView({
   const trialStart = formatDate(billing.trialStartAt);
   const trialEnd = formatDate(billing.trialEndAt);
 
+  // Provider-managed trial (Paddle owns the clock): show Paddle's real
+  // trial end and first-charge amount, plus hosted manage/cancel links.
+  const isProviderTrial =
+    billing.subscriptionStatus === "TRIAL" &&
+    billing.providerKey === "paddle" &&
+    billing.providerSubscriptionId !== null;
+  const trialDays =
+    billing.trialStartAt && billing.trialEndAt
+      ? Math.max(
+          1,
+          Math.round(
+            (new Date(billing.trialEndAt).getTime() -
+              new Date(billing.trialStartAt).getTime()) /
+              86400000,
+          ),
+        )
+      : null;
+  const firstChargeCents =
+    currentInterval === "ANNUAL"
+      ? billing.prices.annualCents
+      : (billing.prices.monthlyCents ?? billing.prices.annualCents);
+  const firstChargeSuffix =
+    currentInterval === "ANNUAL" ? "/year" : "/month";
+  const managementUrls =
+    canAdminister && accountActive ? billing.managementUrls : null;
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Current subscription summary */}
@@ -407,6 +433,63 @@ export default function BillingPlansView({
           </div>
         </div>
       </section>
+
+      {isProviderTrial && (
+        <section className="rounded-xl border border-blue-200 bg-blue-50/60 px-6 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold tracking-tight text-slate-900">
+                {trialDays ? `${trialDays}-day free trial` : "Free trial"}
+              </h2>
+              <dl className="mt-2 space-y-1 text-sm">
+                <div className="flex gap-2">
+                  <dt className="text-slate-500">Trial ends:</dt>
+                  <dd className="font-medium text-slate-800">
+                    {trialEnd ?? "—"}
+                  </dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt className="text-slate-500">First charge:</dt>
+                  <dd className="font-medium text-slate-800">
+                    {firstChargeCents !== null
+                      ? `${formatPlanPrice(firstChargeCents)}${firstChargeSuffix}`
+                      : "—"}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-2 text-sm text-slate-600">
+                You won&apos;t be charged until the trial ends
+                {trialEnd ? ` on ${trialEnd}` : ""}. Cancel before then to
+                prevent the first charge — no payment is taken today.
+              </p>
+            </div>
+            {managementUrls && (
+              <div className="flex shrink-0 flex-col gap-2">
+                {managementUrls.updatePaymentMethod && (
+                  <a
+                    href={managementUrls.updatePaymentMethod}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`${buttonSecondaryClass} block text-center`}
+                  >
+                    Update payment method
+                  </a>
+                )}
+                {managementUrls.cancel && (
+                  <a
+                    href={managementUrls.cancel}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-center text-sm font-medium text-rose-700 transition-colors hover:bg-rose-50"
+                  >
+                    Cancel trial
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {billing.trialExpired && accountActive && (
         <Notice tone="warning">

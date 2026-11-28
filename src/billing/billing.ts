@@ -333,17 +333,23 @@ export function resolveBillingState(
     ? subscription.status
     : null;
 
-  // An internal trial ends at trialEndAt. Provider-managed trials
-  // (Paddle/Stripe) keep status TRIAL but carry provider trial dates —
-  // expiry still applies because the stored end date is authoritative.
-  // Orgs with no subscription row (legacy) have no trialEndAt and are
-  // never treated as expired.
+  // Only internally-provisioned trials (providerKey null) expire on the
+  // stored trialEndAt. Provider-managed trials (Paddle/Stripe) are owned
+  // by the provider lifecycle — sync writes Paddle's own trial dates for
+  // display, and the provider's status transitions (activated/canceled)
+  // are authoritative, so the local clock must not expire them.
   const trialEndTime = subscription?.trialEndAt?.getTime();
   const trialExpired =
     status === "TRIAL" &&
+    subscription?.providerKey == null &&
     typeof trialEndTime === "number" &&
     !Number.isNaN(trialEndTime) &&
     trialEndTime <= now.getTime();
+
+  // A canceled subscription receives no paid entitlements once the
+  // cancellation takes effect — there is no grace period. PAUSED keeps
+  // its plan-level access (existing dunning behavior).
+  const accessRevoked = trialExpired || status === "CANCELED";
 
   const catalogPrices = definition.prices;
   const overrideMonthly = positiveIntOrNull(subscription?.monthlyPriceCents);
@@ -361,13 +367,14 @@ export function resolveBillingState(
   if (vehicleOverride !== null) limits.vehicles = vehicleOverride;
   if (integrationOverride !== null) limits.integrations = integrationOverride;
 
-  // An expired trial keeps its stored plan/status for display but loses
-  // TRIAL-level entitlements: no feature entitlements and zero enforced
-  // capacity for new vehicles/integrations until a paid plan is active.
-  const entitlements: EntitlementKey[] = trialExpired
+  // An expired trial or canceled subscription keeps its stored
+  // plan/status for display but loses entitlements: no feature
+  // entitlements and zero enforced capacity for new vehicles/integrations
+  // until billing is reactivated.
+  const entitlements: EntitlementKey[] = accessRevoked
     ? []
     : [...definition.entitlements];
-  if (trialExpired) {
+  if (accessRevoked) {
     limits.vehicles = 0;
     limits.integrations = 0;
   }

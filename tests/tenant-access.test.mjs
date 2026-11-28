@@ -4769,9 +4769,11 @@ test("organization settings timezone and admin role checks", () => {
   assert.equal(canAdministerOrganizationSettings(null), false);
 });
 
-test("organization onboarding provisions an exact 7-day trial once", async () => {
+test("organization onboarding does not provision any billing state", async () => {
+  // The trial lifecycle is provider-owned: it starts at Paddle checkout,
+  // not at organization creation. Org creation must produce exactly one
+  // organization + one OWNER membership and nothing else.
   const users = new Map();
-  const trialSubscriptions = [];
   const provisioner = {
     async findMembershipForUser(userId) {
       return users.get(userId) ?? null;
@@ -4785,61 +4787,22 @@ test("organization onboarding provisions an exact 7-day trial once", async () =>
         name: "Trial Logistics",
       });
     },
-    async createTrialSubscription(input) {
-      trialSubscriptions.push(input);
-    },
   };
 
-  const fixedNow = new Date("2026-11-28T10:00:00.000Z");
   const organization = await createOrganizationWithOwner(
     "user-trial",
     "Trial Logistics",
     provisioner,
-    fixedNow,
+    new Date("2026-11-28T10:00:00.000Z"),
   );
-  // Retry path (existing membership) must not create another trial.
-  await createOrganizationWithOwner(
+  // Retry path (existing membership) returns the same org unchanged.
+  const retry = await createOrganizationWithOwner(
     "user-trial",
     "Trial Logistics Renamed",
     provisioner,
     new Date("2026-12-01T00:00:00.000Z"),
   );
 
-  assert.equal(trialSubscriptions.length, 1);
-  const trial = trialSubscriptions[0];
-  assert.equal(trial.organizationId, organization.id);
-  assert.equal(trial.trialStartAt.getTime(), fixedNow.getTime());
-  assert.equal(
-    trial.trialEndAt.getTime() - trial.trialStartAt.getTime(),
-    7 * 24 * 60 * 60 * 1000,
-  );
-  assert.equal(
-    trial.trialEndAt.toISOString(),
-    "2026-12-05T10:00:00.000Z",
-  );
-});
-
-test("trial provisioning failure surfaces instead of returning partial state", async () => {
-  const provisioner = {
-    async findMembershipForUser() {
-      return null;
-    },
-    async createOrganization(name, slug) {
-      return { id: `org-${slug}`, name, slug };
-    },
-    async createOwnerMembership() {},
-    async createTrialSubscription() {
-      throw new Error("billing write failed");
-    },
-  };
-
-  await assert.rejects(
-    createOrganizationWithOwner(
-      "user-fail",
-      "Failing Org",
-      provisioner,
-      new Date("2026-11-28T00:00:00Z"),
-    ),
-    /billing write failed/,
-  );
+  assert.equal(retry.id, organization.id);
+  assert.equal(users.size, 1);
 });

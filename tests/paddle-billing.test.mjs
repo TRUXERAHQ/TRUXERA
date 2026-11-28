@@ -200,3 +200,47 @@ test("paddle signature verification rejects tampering and forgeries", () => {
     false,
   );
 });
+
+test("paddle trial dates map next_billed_at and billing period correctly", async () => {
+  const { paddleTrialDates } = await import("../src/billing/paddle/sync.ts");
+  const dates = paddleTrialDates({
+    id: "sub_01",
+    customerId: "ctm_01",
+    status: "trialing",
+    nextBilledAt: "2026-12-05T10:00:00.000Z",
+    currentBillingPeriod: {
+      startsAt: "2026-11-28T10:00:00.000Z",
+      endsAt: "2026-12-05T10:00:00.000Z",
+    },
+  });
+  assert.equal(dates.trialStartAt?.toISOString(), "2026-11-28T10:00:00.000Z");
+  assert.equal(dates.trialEndAt?.toISOString(), "2026-12-05T10:00:00.000Z");
+});
+
+test("paddle trial end falls back to billing period end", async () => {
+  const { paddleTrialDates } = await import("../src/billing/paddle/sync.ts");
+  const dates = paddleTrialDates({
+    id: "sub_01",
+    customerId: null,
+    status: "trialing",
+    nextBilledAt: null,
+    currentBillingPeriod: {
+      startsAt: "2026-11-28T10:00:00.000Z",
+      endsAt: "2026-12-05T10:00:00.000Z",
+    },
+  });
+  assert.equal(dates.trialEndAt?.toISOString(), "2026-12-05T10:00:00.000Z");
+});
+
+test("paddle trial dates are null when payload lacks timing fields", async () => {
+  const { paddleTrialDates } = await import("../src/billing/paddle/sync.ts");
+  const dates = paddleTrialDates({
+    id: "sub_01",
+    customerId: null,
+    status: "trialing",
+    nextBilledAt: "not-a-date",
+    currentBillingPeriod: null,
+  });
+  assert.equal(dates.trialStartAt, null);
+  assert.equal(dates.trialEndAt, null);
+});
