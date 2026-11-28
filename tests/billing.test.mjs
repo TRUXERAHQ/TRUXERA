@@ -217,3 +217,96 @@ test("no billing provider resolves without credentials", () => {
   // Unknown providers resolve to null rather than fabricating one.
   assert.equal(resolveBillingProvider({ BILLING_PROVIDER: "paypal" }), null);
 });
+
+test("active internal trial is not expired before trialEndAt", () => {
+  const state = resolveBillingState(
+    {
+      plan: "TRIAL",
+      status: "TRIAL",
+      trialStartAt: new Date("2026-11-21T12:00:00Z"),
+      trialEndAt: new Date("2026-11-28T12:00:00Z"),
+      providerKey: null,
+    },
+    new Date("2026-11-27T23:59:59Z"),
+  );
+  assert.equal(state.trialExpired, false);
+  assert.equal(state.limits.vehicles, "unlimited");
+  assert.ok(state.entitlements.length > 0);
+});
+
+test("trial expires exactly at trialEndAt and loses TRIAL entitlements", () => {
+  const trialEnd = new Date("2026-11-28T12:00:00Z");
+  const expired = resolveBillingState(
+    {
+      plan: "TRIAL",
+      status: "TRIAL",
+      trialStartAt: new Date("2026-11-21T12:00:00Z"),
+      trialEndAt: trialEnd,
+      providerKey: null,
+    },
+    trialEnd,
+  );
+  assert.equal(expired.trialExpired, true);
+  assert.equal(expired.plan, "TRIAL");
+  assert.equal(expired.subscriptionStatus, "TRIAL");
+  assert.deepEqual(expired.entitlements, []);
+  assert.equal(expired.limits.vehicles, 0);
+  assert.equal(expired.limits.integrations, 0);
+});
+
+test("trial stays valid one millisecond before trialEndAt", () => {
+  const trialEnd = new Date("2026-11-28T12:00:00.000Z");
+  const state = resolveBillingState(
+    {
+      plan: "TRIAL",
+      status: "TRIAL",
+      trialStartAt: null,
+      trialEndAt: trialEnd,
+      providerKey: null,
+    },
+    new Date(trialEnd.getTime() - 1),
+  );
+  assert.equal(state.trialExpired, false);
+  assert.equal(state.limits.vehicles, "unlimited");
+});
+
+test("paid ACTIVE subscription overrides an elapsed trial window", () => {
+  const state = resolveBillingState(
+    {
+      plan: "PROFESSIONAL",
+      status: "ACTIVE",
+      trialStartAt: new Date("2026-11-01T00:00:00Z"),
+      trialEndAt: new Date("2026-11-08T00:00:00Z"),
+      providerKey: "paddle",
+      providerSubscriptionId: "sub_123",
+    },
+    new Date("2026-12-01T00:00:00Z"),
+  );
+  assert.equal(state.trialExpired, false);
+  assert.equal(state.plan, "PROFESSIONAL");
+  assert.equal(state.limits.vehicles, 75);
+  assert.ok(state.entitlements.includes("EXECUTIVE_REPORTING"));
+});
+
+test("organizations without a subscription row are never trial-expired", () => {
+  const state = resolveBillingState(null, new Date("2030-01-01T00:00:00Z"));
+  assert.equal(state.trialExpired, false);
+  assert.equal(state.configured, false);
+  assert.equal(state.limits.vehicles, "unlimited");
+});
+
+test("provider-managed TRIAL status still expires at its stored end date", () => {
+  const state = resolveBillingState(
+    {
+      plan: "STARTER",
+      status: "TRIAL",
+      trialStartAt: new Date("2026-11-01T00:00:00Z"),
+      trialEndAt: new Date("2026-11-08T00:00:00Z"),
+      providerKey: "paddle",
+    },
+    new Date("2026-11-09T00:00:00Z"),
+  );
+  assert.equal(state.trialExpired, true);
+  assert.equal(state.plan, "STARTER");
+  assert.equal(state.limits.vehicles, 0);
+});

@@ -68,6 +68,19 @@ export async function createOrganizationForUser(userId: string, name: string) {
           role,
         });
       },
+      createTrialSubscription: async ({
+        organizationId,
+        trialStartAt,
+        trialEndAt,
+      }) => {
+        await tx.orm.public.BillingSubscription.create({
+          organizationId,
+          plan: "TRIAL",
+          status: "TRIAL",
+          trialStartAt,
+          trialEndAt,
+        });
+      },
     });
   });
 }

@@ -408,6 +408,13 @@ export default function BillingPlansView({
         </div>
       </section>
 
+      {billing.trialExpired && accountActive && (
+        <Notice tone="warning">
+          Your 7-day free trial has ended. Choose a plan below to continue
+          adding vehicles and integrations.
+        </Notice>
+      )}
+
       {!accountActive && (
         <Notice tone="warning">
           This organization is suspended. Billing changes are unavailable

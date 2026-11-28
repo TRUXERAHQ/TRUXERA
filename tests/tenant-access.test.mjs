@@ -4768,3 +4768,78 @@ test("organization settings timezone and admin role checks", () => {
   assert.equal(canAdministerOrganizationSettings("VIEWER"), false);
   assert.equal(canAdministerOrganizationSettings(null), false);
 });
+
+test("organization onboarding provisions an exact 7-day trial once", async () => {
+  const users = new Map();
+  const trialSubscriptions = [];
+  const provisioner = {
+    async findMembershipForUser(userId) {
+      return users.get(userId) ?? null;
+    },
+    async createOrganization(name, slug) {
+      return { id: `org-${slug}`, name, slug };
+    },
+    async createOwnerMembership(membership) {
+      users.set(membership.userId, {
+        id: membership.organizationId,
+        name: "Trial Logistics",
+      });
+    },
+    async createTrialSubscription(input) {
+      trialSubscriptions.push(input);
+    },
+  };
+
+  const fixedNow = new Date("2026-11-28T10:00:00.000Z");
+  const organization = await createOrganizationWithOwner(
+    "user-trial",
+    "Trial Logistics",
+    provisioner,
+    fixedNow,
+  );
+  // Retry path (existing membership) must not create another trial.
+  await createOrganizationWithOwner(
+    "user-trial",
+    "Trial Logistics Renamed",
+    provisioner,
+    new Date("2026-12-01T00:00:00.000Z"),
+  );
+
+  assert.equal(trialSubscriptions.length, 1);
+  const trial = trialSubscriptions[0];
+  assert.equal(trial.organizationId, organization.id);
+  assert.equal(trial.trialStartAt.getTime(), fixedNow.getTime());
+  assert.equal(
+    trial.trialEndAt.getTime() - trial.trialStartAt.getTime(),
+    7 * 24 * 60 * 60 * 1000,
+  );
+  assert.equal(
+    trial.trialEndAt.toISOString(),
+    "2026-12-05T10:00:00.000Z",
+  );
+});
+
+test("trial provisioning failure surfaces instead of returning partial state", async () => {
+  const provisioner = {
+    async findMembershipForUser() {
+      return null;
+    },
+    async createOrganization(name, slug) {
+      return { id: `org-${slug}`, name, slug };
+    },
+    async createOwnerMembership() {},
+    async createTrialSubscription() {
+      throw new Error("billing write failed");
+    },
+  };
+
+  await assert.rejects(
+    createOrganizationWithOwner(
+      "user-fail",
+      "Failing Org",
+      provisioner,
+      new Date("2026-11-28T00:00:00Z"),
+    ),
+    /billing write failed/,
+  );
+});

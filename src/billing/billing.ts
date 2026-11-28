@@ -280,6 +280,8 @@ export type EffectivePrices = {
 export type BillingState = {
   /** Effective plan — TRIAL when no subscription row exists. */
   plan: BillingPlanKey;
+  /** True when a TRIAL-status subscription's trialEndAt has passed. */
+  trialExpired: boolean;
   planLabel: string;
   /** True when a BillingSubscription row exists for the organization. */
   configured: boolean;
@@ -322,6 +324,7 @@ function positiveIntOrNull(value: number | null | undefined): number | null {
  */
 export function resolveBillingState(
   subscription: BillingSubscriptionRecord | null | undefined,
+  now: Date = new Date(),
 ): BillingState {
   const configured = subscription != null;
   const plan = resolveEffectivePlan(subscription?.plan);
@@ -329,6 +332,18 @@ export function resolveBillingState(
   const status = isSubscriptionStatusKey(subscription?.status)
     ? subscription.status
     : null;
+
+  // An internal trial ends at trialEndAt. Provider-managed trials
+  // (Paddle/Stripe) keep status TRIAL but carry provider trial dates —
+  // expiry still applies because the stored end date is authoritative.
+  // Orgs with no subscription row (legacy) have no trialEndAt and are
+  // never treated as expired.
+  const trialEndTime = subscription?.trialEndAt?.getTime();
+  const trialExpired =
+    status === "TRIAL" &&
+    typeof trialEndTime === "number" &&
+    !Number.isNaN(trialEndTime) &&
+    trialEndTime <= now.getTime();
 
   const catalogPrices = definition.prices;
   const overrideMonthly = positiveIntOrNull(subscription?.monthlyPriceCents);
@@ -346,9 +361,21 @@ export function resolveBillingState(
   if (vehicleOverride !== null) limits.vehicles = vehicleOverride;
   if (integrationOverride !== null) limits.integrations = integrationOverride;
 
+  // An expired trial keeps its stored plan/status for display but loses
+  // TRIAL-level entitlements: no feature entitlements and zero enforced
+  // capacity for new vehicles/integrations until a paid plan is active.
+  const entitlements: EntitlementKey[] = trialExpired
+    ? []
+    : [...definition.entitlements];
+  if (trialExpired) {
+    limits.vehicles = 0;
+    limits.integrations = 0;
+  }
+
   return {
     plan,
     planLabel: definition.label,
+    trialExpired,
     configured,
     subscriptionStatus: configured ? status : null,
     subscriptionStatusLabel: configured && status
@@ -365,7 +392,7 @@ export function resolveBillingState(
     grandfatheredPricing:
       configured &&
       (overrideMonthly !== null || overrideAnnual !== null),
-    entitlements: [...definition.entitlements],
+    entitlements,
     limits,
   };
 }
