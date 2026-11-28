@@ -42,14 +42,8 @@ async function OnboardingContent() {
           You will be added as its owner.
         </p>
         <p className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/60 px-3 py-2 text-sm font-medium text-indigo-800">
-          Includes a 7-day free trial — full access through{" "}
-          {new Intl.DateTimeFormat("en-US", {
-            timeZone: "UTC",
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }).format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))}
-          .
+          After setup you&apos;ll choose a plan — every monthly plan starts
+          with a 7-day free trial. Card required, no charge today.
         </p>
         <OnboardingForm />
       </section>

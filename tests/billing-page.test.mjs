@@ -100,3 +100,45 @@ test("plan cards expose only catalog plans with professional recommended", () =>
   assert.equal(view.includes("Online checkout is currently unavailable"), true);
   assert.equal(view.includes("Save 20% with annual billing") || view.includes("Save {savings}%"), true);
 });
+
+test("unconfigured organizations see an honest no-subscription state", () => {
+  const view = readFileSync(
+    new URL("../app/dashboard/billing/billing-plans.tsx", import.meta.url),
+    "utf8",
+  );
+  // No artificial trial claims when no subscription row exists.
+  assert.equal(view.includes("No active subscription"), true);
+  assert.equal(view.includes("No subscription"), true);
+  assert.equal(view.includes("Choose a plan below to start your"), true);
+});
+
+test("trial CTA is gated to Paddle monthly checkout only", () => {
+  const view = readFileSync(
+    new URL("../app/dashboard/billing/billing-plans.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.equal(view.includes('billing.billingProvider === "paddle"'), true);
+  assert.equal(view.includes('interval === "MONTHLY"'), true);
+  assert.equal(view.includes("Start 7-day free trial"), true);
+  // Annual must never claim the trial.
+  assert.equal(view.includes("trialCta\n"), false);
+});
+
+test("onboarding no longer promises an internal trial clock", () => {
+  const page = readFileSync(
+    new URL("../app/onboarding/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.equal(page.includes("full access through"), false);
+  assert.equal(page.includes("Date.now() + 7"), false);
+  assert.equal(page.includes("7-day free trial"), true);
+});
+
+test("organization creation lands on plan selection, not the dashboard", () => {
+  const actions = readFileSync(
+    new URL("../app/organization-actions.ts", import.meta.url),
+    "utf8",
+  );
+  assert.equal(actions.includes("/dashboard/billing?organizationId="), true);
+  assert.equal(actions.includes("/?organizationId="), false);
+});

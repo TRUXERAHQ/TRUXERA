@@ -23,5 +23,9 @@ export async function createOrganizationAction(
   }
 
   const organization = await createOrganizationForUser(session.user.id, name);
-  redirect(`/?organizationId=${encodeURIComponent(organization.id)}`);
+  // Land on plan selection so the trial checkout is the next obvious
+  // step rather than something the user has to discover in Billing.
+  redirect(
+    `/dashboard/billing?organizationId=${encodeURIComponent(organization.id)}`,
+  );
 }

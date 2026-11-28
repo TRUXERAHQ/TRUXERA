@@ -92,6 +92,7 @@ function PlanCard({
   currentInterval,
   organizationId,
   checkoutEnabled,
+  trialOffered,
   effectiveMonthlyCents,
   effectiveAnnualCents,
 }: {
@@ -102,6 +103,8 @@ function PlanCard({
   currentInterval: BillingInterval | null;
   organizationId: string;
   checkoutEnabled: boolean;
+  /** True when the configured provider offers the 7-day card trial. */
+  trialOffered: boolean;
   effectiveMonthlyCents: number | null;
   effectiveAnnualCents: number | null;
 }) {
@@ -115,6 +118,9 @@ function PlanCard({
   const isRecommended = planKey === "PROFESSIONAL";
   const isEnterprise = planKey === "ENTERPRISE";
   const savings = annualSavingsPercent(planKey);
+  // The 7-day card-required trial is a Paddle price-level feature on the
+  // monthly prices only — never claim it for annual or other providers.
+  const trialCta = trialOffered && interval === "MONTHLY";
 
   // Current plan displays its effective (possibly grandfathered) terms.
   const displayMonthly = isCurrent
@@ -138,7 +144,9 @@ function PlanCard({
     interval === "MONTHLY" ? displayMonthly : displayAnnual;
   const ctaLabel = isCustomPrice
     ? null
-    : `Subscribe — ${formatPlanPrice(ctaPrice)}${interval === "MONTHLY" ? "/mo" : "/yr"}`;
+    : trialCta
+      ? `Start 7-day free trial — ${formatPlanPrice(ctaPrice)}/mo`
+      : `Subscribe — ${formatPlanPrice(ctaPrice)}${interval === "MONTHLY" ? "/mo" : "/yr"}`;
 
   return (
     <div
@@ -320,11 +328,15 @@ export default function BillingPlansView({
   const [interval, setInterval] = useState<BillingInterval>("MONTHLY");
   const checkoutEnabled =
     billing.providerConnected && canAdminister && accountActive;
+  // The card-required 7-day trial is configured on Paddle monthly prices.
+  const trialOffered = billing.billingProvider === "paddle";
 
   const priceSummary = billing.prices.custom
-    ? billing.plan === "TRIAL"
-      ? "Trial — no charge"
-      : "Custom pricing"
+    ? !billing.configured
+      ? "No active subscription"
+      : billing.plan === "TRIAL"
+        ? "Trial — no charge"
+        : "Custom pricing"
     : currentInterval === "ANNUAL" && billing.prices.annualCents !== null
       ? `${formatPlanPrice(billing.prices.annualCents)}/year billed annually`
       : currentInterval === "MONTHLY" && billing.prices.monthlyCents !== null
@@ -382,7 +394,9 @@ export default function BillingPlansView({
               />
               Current plan
             </h2>
-            <Badge tone="info">{billing.planLabel}</Badge>
+            {billing.configured && (
+              <Badge tone="info">{billing.planLabel}</Badge>
+            )}
             {billing.subscriptionStatusLabel && (
               <Badge tone={statusBadgeTone(billing.subscriptionStatus)}>
                 {billing.subscriptionStatusLabel}
@@ -391,7 +405,9 @@ export default function BillingPlansView({
             {billing.grandfatheredPricing && (
               <Badge tone="neutral">Custom pricing</Badge>
             )}
-            {!billing.configured && <Badge tone="neutral">Trial</Badge>}
+            {!billing.configured && (
+              <Badge tone="neutral">No subscription</Badge>
+            )}
           </div>
           {priceSummary && (
             <p className="mt-1.5 text-sm font-medium text-slate-700">
@@ -505,6 +521,13 @@ export default function BillingPlansView({
         </Notice>
       )}
 
+      {!billing.configured && accountActive && (
+        <Notice tone="info">
+          No active subscription yet. Choose a plan below to start your
+          7-day free trial — card required, no charge today.
+        </Notice>
+      )}
+
       {!billing.providerConnected && accountActive && (
         <Notice tone="info">
           Online checkout is currently unavailable. Plan details below reflect
@@ -557,6 +580,12 @@ export default function BillingPlansView({
             Save 20% with annual billing
           </p>
         )}
+        {trialOffered && interval === "MONTHLY" && (
+          <p className="mt-3 text-sm font-medium text-slate-600">
+            7-day free trial included on monthly plans — card required, no
+            charge today. Cancel anytime before the trial ends.
+          </p>
+        )}
 
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {(["STARTER", "PROFESSIONAL", "ENTERPRISE"] as const).map((key) => (
@@ -568,6 +597,7 @@ export default function BillingPlansView({
               currentInterval={currentInterval}
               organizationId={organizationId}
               checkoutEnabled={checkoutEnabled}
+              trialOffered={trialOffered}
               effectiveMonthlyCents={
                 key === billing.plan ? billing.prices.monthlyCents : null
               }
