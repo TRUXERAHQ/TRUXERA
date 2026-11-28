@@ -17,6 +17,7 @@ import {
   inputClass,
   labelClass,
 } from "../dashboard/ui";
+import { TruckLineArt } from "../truck-line-art";
 import { createOrganizationAction } from "../organization-actions";
 import type { OrganizationActionState } from "@/src/auth/action-state";
 import {
@@ -253,19 +254,38 @@ export default function OnboardingWizard() {
   const isTrialCheckout = interval === "MONTHLY";
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10 text-slate-900 sm:px-6 sm:py-14">
-      <div className="mx-auto w-full max-w-3xl">
-        <header className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">
+    <main className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      {/* Dark navy TRUXERA header */}
+      <header className="bg-gradient-to-r from-indigo-950 via-indigo-900 to-slate-950 px-6 py-4 text-white sm:px-10">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
+          <p className="text-sm font-bold uppercase tracking-[0.3em] text-indigo-200">
             TRUXERA
           </p>
-          <div className="mt-4">
-            <ProgressSteps current={step} />
-          </div>
-        </header>
+          <p className="hidden text-[11px] font-medium uppercase tracking-wider text-indigo-200/80 sm:block">
+            Fleet Intelligence
+          </p>
+        </div>
+      </header>
 
-        {step === "setup" ? (
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-12 lg:py-14">
+        {/* Left hero — truck/fleet visual */}
+        <div className="hidden flex-col items-center justify-center text-center lg:flex">
+          <p className="max-w-md text-2xl font-bold leading-tight text-slate-900">
+            AI-Powered Intelligent Fleet Operations &amp; Recovery Platform
+          </p>
+          <p className="mt-3 text-sm leading-6 text-slate-500">
+            Detect Risk. Predict Disruption. Recommend Recovery. Measure Impact.
+          </p>
+          <TruckLineArt tall className="mt-8 h-auto w-full max-w-xl" />
+        </div>
+
+        {/* Right — white onboarding panel */}
+        <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-10">
+          <div className="mt-8">
+          <ProgressSteps current={step} />
+
+          {step === "setup" ? (
+          <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               Set Up Your Fleet
             </h1>
@@ -337,10 +357,10 @@ export default function OnboardingWizard() {
                 {orgPending ? "Creating organization…" : "Continue"}
               </button>
             </form>
-          </section>
+          </div>
         ) : (
           organizationId && (
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+            <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Choose your plan
               </h1>
@@ -433,9 +453,11 @@ export default function OnboardingWizard() {
                   ← Back to organization setup
                 </button>
               </div>
-            </section>
+            </div>
           )
         )}
+          </div>
+        </section>
       </div>
     </main>
   );
