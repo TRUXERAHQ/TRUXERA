@@ -46,14 +46,14 @@ export default function TruckShell({
     <main className="min-h-screen bg-background text-[var(--text)]">
       <header className="sticky top-0 z-20 border-b border-[var(--header-border)] bg-[var(--header-bg)] backdrop-blur">
         <div className="mx-auto max-w-[1680px] px-4 sm:px-6 lg:px-8">
-          <div className="flex h-14 items-center justify-between gap-4">
+          <div className="flex h-12 items-center justify-between gap-3 xl:h-14 xl:gap-4">
             <div className="flex min-w-0 items-center gap-6">
               <Link
                 href={`/?${orgQuery}`}
                 className="flex shrink-0 items-center gap-2"
                 aria-label="TRUXERA dashboard"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--primary-strong)] text-xs font-bold text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--primary-strong)] text-[11px] font-bold text-white xl:h-7 xl:w-7 xl:text-xs">
                   T
                 </span>
                 <span className="text-base font-bold tracking-tight text-[var(--text)]">

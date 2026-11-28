@@ -610,7 +610,7 @@ function DashboardNav({
               }
               title={isDarkTheme ? "Light theme" : "Dark theme"}
               onClick={toggleTheme}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
             >
               {isDarkTheme ? <SunIcon /> : <MoonIcon />}
             </button>
@@ -620,7 +620,7 @@ function DashboardNav({
               aria-controls="mobile-nav-drawer"
               aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
               onClick={() => setMobileOpen((value) => !value)}
-              className="flex h-10 items-center gap-2 rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] px-3 text-sm font-medium text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
+              className="flex h-9 items-center gap-2 rounded-lg border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] px-3 text-sm font-medium text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)]"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -650,13 +650,13 @@ function DashboardNav({
         createPortal(
           <>
             <div
-              className="fixed inset-0 top-14 z-40 bg-black/40 xl:hidden"
+              className="fixed inset-0 top-12 z-40 bg-black/40 xl:hidden"
               onClick={() => setMobileOpen(false)}
               aria-hidden="true"
             />
             <div
               id="mobile-nav-drawer"
-              className="fixed inset-x-0 bottom-0 top-14 z-50 overflow-y-auto border-t border-[var(--border)] bg-[var(--app-bg)] p-4 xl:hidden"
+              className="fixed inset-x-0 bottom-0 top-12 z-50 overflow-y-auto border-t border-[var(--border)] bg-[var(--app-bg)] p-4 xl:hidden"
             >
           <nav aria-label="Mobile navigation" className="mx-auto max-w-md space-y-4">
             {nodes.map((node) => {
