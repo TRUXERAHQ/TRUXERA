@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { persistAuthenticatedUser } from "@/src/prisma/auth-data";
 import { connectDatabase, db } from "@/src/prisma/db";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
+  await connection();
   const out: Record<string, unknown> = {};
 
   out.authUrl = process.env.AUTH_URL ?? null;
