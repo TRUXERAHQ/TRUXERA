@@ -131,14 +131,64 @@ test("onboarding no longer promises an internal trial clock", () => {
   );
   assert.equal(page.includes("full access through"), false);
   assert.equal(page.includes("Date.now() + 7"), false);
-  assert.equal(page.includes("7-day free trial"), true);
+  // Trial messaging lives in the wizard, not a fabricated end date.
+  const wizard = readFileSync(
+    new URL("../app/onboarding/onboarding-wizard.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.equal(wizard.includes("7-day free trial"), true);
 });
 
-test("organization creation lands on plan selection, not the dashboard", () => {
+test("organization creation returns an id for the in-page plan step", () => {
   const actions = readFileSync(
     new URL("../app/organization-actions.ts", import.meta.url),
     "utf8",
   );
-  assert.equal(actions.includes("/dashboard/billing?organizationId="), true);
+  // The wizard continues client-side into plan selection; no billing
+  // state is provisioned and no dashboard redirect bypasses checkout.
+  assert.equal(actions.includes("organizationId: organization.id"), true);
+  assert.equal(actions.includes("dashboard/billing"), false);
   assert.equal(actions.includes("/?organizationId="), false);
+});
+
+test("onboarding wizard presents the canonical plan-selection flow", () => {
+  const wizard = readFileSync(
+    new URL("../app/onboarding/onboarding-wizard.tsx", import.meta.url),
+    "utf8",
+  );
+  // Required trial messaging — professional SaaS language only.
+  assert.equal(
+    wizard.includes("7-day free trial · Card required · $0 charged today"),
+    true,
+  );
+  assert.equal(wizard.includes("Start 7-Day Free Trial"), true);
+  assert.equal(wizard.includes("Cancel anytime before your trial ends."), true);
+  // Fleet Setup collects org name + optional fleet size.
+  assert.equal(wizard.includes("Set Up Your Fleet"), true);
+  assert.equal(wizard.includes("fleet-size"), true);
+  // Both paid plans are offered; trial badge is monthly-only.
+  assert.equal(wizard.includes('"STARTER", "PROFESSIONAL"'), true);
+  assert.equal(wizard.includes("7-day free trial"), true);
+  // No internal trial provisioning language remains.
+  assert.equal(wizard.includes("full access through"), false);
+});
+
+test("subscription gate is enforced server-side with billing exemptions", () => {
+  const pageData = readFileSync(
+    new URL("../app/dashboard/operations-page-data.ts", import.meta.url),
+    "utf8",
+  );
+  assert.equal(pageData.includes("checkOperationalAccess"), true);
+  assert.equal(pageData.includes("subscriptionExempt"), true);
+  assert.equal(pageData.includes("gate=subscription"), true);
+
+  const home = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.equal(home.includes("checkOperationalAccess"), true);
+
+  // Billing must stay reachable so gated users can subscribe.
+  const billing = readFileSync(
+    new URL("../app/dashboard/billing/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.equal(billing.includes("subscriptionExempt: true"), true);
 });

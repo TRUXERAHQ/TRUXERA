@@ -44,7 +44,7 @@ async function FeedbackDetailContent({ params, searchParams }: Props) {
   const [{ feedbackId }, query] = await Promise.all([params, searchParams]);
   if (!isUuid(feedbackId)) notFound();
 
-  const context = await getOperationsPageContext(query);
+  const context = await getOperationsPageContext(query, { subscriptionExempt: true });
   const feedback = await getFeedbackDetailForUser(
     context.userId,
     context.organization.id,

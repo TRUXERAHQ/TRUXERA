@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { selectAccessibleOrganization } from "@/src/auth/tenant-policy";
 import { canManageFleet } from "@/src/trucks/truck-policy";
+import { checkOperationalAccess } from "@/src/billing/subscription-gate";
 import {
   getMembershipForUserInOrganization,
   getOrganizationsForUser,
@@ -44,6 +45,17 @@ export async function getTruckPageContext(
     organization.id,
   );
   if (!membership) redirect("/onboarding");
+
+  // Mandatory subscription gate — fleet surfaces are operational.
+  const allowed = await checkOperationalAccess({
+    organizationId: organization.id,
+    organizationCreatedAt: organization.createdAt,
+  });
+  if (!allowed) {
+    redirect(
+      `/dashboard/billing?organizationId=${encodeURIComponent(organization.id)}&gate=subscription`,
+    );
+  }
 
   return {
     userId: session.user.id,

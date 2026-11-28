@@ -115,7 +115,7 @@ export default function HelpPage({ searchParams }: Props) {
 }
 
 async function HelpContent({ searchParams }: Props) {
-  const context = await getOperationsPageContext(await searchParams);
+  const context = await getOperationsPageContext(await searchParams, { subscriptionExempt: true });
   const orgQuery = organizationQuery(context.organization.id);
   const startHere = helpChapters.find(
     (chapter) => chapter.slug === "what-is-truxera",

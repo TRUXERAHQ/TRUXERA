@@ -32,7 +32,7 @@ export default function BillingPage({ searchParams }: Props) {
 
 async function BillingContent({ searchParams }: Props) {
   const params = await searchParams;
-  const context = await getOperationsPageContext(params);
+  const context = await getOperationsPageContext(params, { subscriptionExempt: true });
   const billing = await getBillingOverviewForUser(
     context.userId,
     context.organization.id,

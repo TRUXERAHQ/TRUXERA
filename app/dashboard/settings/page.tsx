@@ -36,7 +36,7 @@ export default function SettingsPage({ searchParams }: Props) {
 
 async function SettingsContent({ searchParams }: Props) {
   const params = await searchParams;
-  const context = await getOperationsPageContext(params);
+  const context = await getOperationsPageContext(params, { subscriptionExempt: true });
   const session = await auth();
 
   const [integrations, connectorCatalog, accountOverview, reliability] =

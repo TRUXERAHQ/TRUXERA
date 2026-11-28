@@ -65,7 +65,7 @@ async function SupportRequestDetailContent({ params, searchParams }: Props) {
   const [{ ticketId }, query] = await Promise.all([params, searchParams]);
   if (!isUuid(ticketId)) notFound();
 
-  const context = await getOperationsPageContext(query);
+  const context = await getOperationsPageContext(query, { subscriptionExempt: true });
 
   if (firstValue(query.view) === "inbox") {
     return <StaffTicketView context={context} query={query} ticketId={ticketId} />;

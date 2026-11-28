@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { selectAccessibleOrganization } from "@/src/auth/tenant-policy";
 import { canManageFleet } from "@/src/trucks/truck-policy";
+import { checkOperationalAccess } from "@/src/billing/subscription-gate";
 import {
   getMembershipForUserInOrganization,
   getOrganizationsForUser,
@@ -35,6 +36,7 @@ function firstValue(value?: string | string[]) {
 
 export async function getOperationsPageContext(
   searchParams: OperationsSearchParams,
+  options?: { subscriptionExempt?: boolean },
 ) {
   await connection();
 
@@ -55,6 +57,22 @@ export async function getOperationsPageContext(
     organization.id,
   );
   if (!membership) redirect("/onboarding");
+
+  // Mandatory subscription gate: organizations created after the gate
+  // launched must hold a valid subscription or provider-managed trial to
+  // reach operational surfaces. Account/billing/help surfaces opt out so
+  // users can always reach plan selection and billing management.
+  if (!options?.subscriptionExempt) {
+    const allowed = await checkOperationalAccess({
+      organizationId: organization.id,
+      organizationCreatedAt: organization.createdAt,
+    });
+    if (!allowed) {
+      redirect(
+        `/dashboard/billing?organizationId=${encodeURIComponent(organization.id)}&gate=subscription`,
+      );
+    }
+  }
 
   return {
     userId: session.user.id,

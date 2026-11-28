@@ -44,7 +44,7 @@ export default function FeedbackPage({ searchParams }: Props) {
 
 async function FeedbackContent({ searchParams }: Props) {
   const params = await searchParams;
-  const context = await getOperationsPageContext(params);
+  const context = await getOperationsPageContext(params, { subscriptionExempt: true });
   const organizationId = context.organization.id;
 
   const feedback = await getFeedbackForUser(context.userId, organizationId);

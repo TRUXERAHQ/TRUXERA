@@ -23,7 +23,7 @@ export default function NotificationsPage({ searchParams }: Props) {
 }
 
 async function NotificationsLoader({ searchParams }: Props) {
-  const context = await getOperationsPageContext(await searchParams);
+  const context = await getOperationsPageContext(await searchParams, { subscriptionExempt: true });
   const notifications = await getNotificationsForOrganization({
     userId: context.userId,
     organizationId: context.organization.id,

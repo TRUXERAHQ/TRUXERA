@@ -52,7 +52,7 @@ export default function SupportPage({ searchParams }: Props) {
 
 async function SupportContent({ searchParams }: Props) {
   const params = await searchParams;
-  const context = await getOperationsPageContext(params);
+  const context = await getOperationsPageContext(params, { subscriptionExempt: true });
   const organizationId = context.organization.id;
 
   const [requests, relatedOptions] = await Promise.all([

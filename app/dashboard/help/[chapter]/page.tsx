@@ -188,7 +188,7 @@ async function HelpChapterContent({ params, searchParams }: Props) {
   const chapter = section ? null : getHelpChapter(slug);
   if (!section && !chapter) notFound();
 
-  const context = await getOperationsPageContext(query);
+  const context = await getOperationsPageContext(query, { subscriptionExempt: true });
   const orgQuery = organizationQuery(context.organization.id);
 
   if (section) {

@@ -44,7 +44,7 @@ export default function AccountPage({ searchParams }: Props) {
 }
 
 async function AccountLoader({ searchParams }: Props) {
-  const context = await getOperationsPageContext(await searchParams);
+  const context = await getOperationsPageContext(await searchParams, { subscriptionExempt: true });
   const session = await auth();
 
   const orgQuery = `organizationId=${encodeURIComponent(context.organization.id)}`;

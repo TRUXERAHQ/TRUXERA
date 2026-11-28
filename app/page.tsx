@@ -15,6 +15,7 @@ import {
   getTruckCapacityUtilizationPercent,
 } from "@/src/dashboard/dashboard-metrics";
 import { signOutUser } from "./auth-actions";
+import { checkOperationalAccess } from "@/src/billing/subscription-gate";
 import TruckShell from "./dashboard/trucks/truck-shell";
 import { TruckLineArt } from "./truck-line-art";
 import {
@@ -321,6 +322,19 @@ async function Dashboard({ searchParams }: HomeProps) {
     requestedOrganizationId,
   );
   if (data.organizations.length === 0) redirect("/onboarding");
+  // Mandatory subscription gate — new organizations must complete Paddle
+  // checkout (or hold a valid subscription) before operational access.
+  if (data.organization) {
+    const allowed = await checkOperationalAccess({
+      organizationId: data.organization.id,
+      organizationCreatedAt: data.organization.createdAt,
+    });
+    if (!allowed) {
+      redirect(
+        `/dashboard/billing?organizationId=${encodeURIComponent(data.organization.id)}&gate=subscription`,
+      );
+    }
+  }
   const operationalBoard = data.organization
     ? await getDispatchBoardForOrganization(
         session.user.id,

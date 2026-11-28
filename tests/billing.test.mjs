@@ -8,7 +8,9 @@ import {
   hasEntitlement,
   isBillingPlanKey,
   isSubscriptionStatusKey,
+  organizationHasOperationalAccess,
   resolveBillingState,
+  subscriptionGrantsOperationalAccess,
   resolveEffectivePlan,
   vehicleLimitErrorMessage,
   integrationLimitErrorMessage,
@@ -363,4 +365,86 @@ test("PAUSED subscription keeps existing plan-level behavior", () => {
   );
   assert.equal(state.limits.vehicles, 25);
   assert.ok(state.entitlements.includes("CORE_RISK_INTELLIGENCE"));
+});
+
+test("subscription gate: provider-managed TRIAL grants operational access", () => {
+  const allowed = subscriptionGrantsOperationalAccess({
+    plan: "STARTER",
+    status: "TRIAL",
+    trialStartAt: new Date("2026-11-28T00:00:00Z"),
+    trialEndAt: new Date("2026-12-05T00:00:00Z"),
+    providerKey: "paddle",
+  });
+  assert.equal(allowed, true);
+});
+
+test("subscription gate: ACTIVE grants access, PAUSED and CANCELED do not", () => {
+  const base = {
+    plan: "STARTER",
+    trialStartAt: null,
+    trialEndAt: null,
+    providerKey: "paddle",
+  };
+  assert.equal(
+    subscriptionGrantsOperationalAccess({ ...base, status: "ACTIVE" }),
+    true,
+  );
+  assert.equal(
+    subscriptionGrantsOperationalAccess({ ...base, status: "PAUSED" }),
+    false,
+  );
+  assert.equal(
+    subscriptionGrantsOperationalAccess({ ...base, status: "CANCELED" }),
+    false,
+  );
+  assert.equal(subscriptionGrantsOperationalAccess(null), false);
+});
+
+test("subscription gate: internal trial grants access only while unexpired", () => {
+  const internalTrial = {
+    plan: "TRIAL",
+    status: "TRIAL",
+    trialStartAt: new Date("2026-11-20T00:00:00Z"),
+    trialEndAt: new Date("2026-11-27T00:00:00Z"),
+    providerKey: null,
+  };
+  // Expired internal trial → no access.
+  assert.equal(
+    subscriptionGrantsOperationalAccess(internalTrial),
+    false,
+  );
+  // Unexpired internal trial → access.
+  assert.equal(
+    subscriptionGrantsOperationalAccess({
+      ...internalTrial,
+      trialEndAt: new Date("2026-12-10T00:00:00Z"),
+    }),
+    true,
+  );
+});
+
+test("subscription gate: legacy orgs are grandfathered, new orgs are not", () => {
+  const legacy = organizationHasOperationalAccess({
+    createdAt: new Date("2026-11-01T00:00:00Z"),
+    subscription: null,
+  });
+  assert.equal(legacy, true);
+
+  const fresh = organizationHasOperationalAccess({
+    createdAt: new Date("2026-11-28T12:00:00Z"),
+    subscription: null,
+  });
+  assert.equal(fresh, false);
+
+  const freshWithTrial = organizationHasOperationalAccess({
+    createdAt: new Date("2026-11-28T12:00:00Z"),
+    subscription: {
+      plan: "PROFESSIONAL",
+      status: "TRIAL",
+      trialStartAt: new Date("2026-11-28T12:00:00Z"),
+      trialEndAt: new Date("2026-12-05T12:00:00Z"),
+      providerKey: "paddle",
+    },
+  });
+  assert.equal(freshWithTrial, true);
 });

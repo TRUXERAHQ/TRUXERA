@@ -77,7 +77,7 @@ export default function SupportInboxPage({ searchParams }: Props) {
 
 async function SupportInboxContent({ searchParams }: Props) {
   const params = await searchParams;
-  const context = await getOperationsPageContext(params);
+  const context = await getOperationsPageContext(params, { subscriptionExempt: true });
   if (!isSupportStaffRole(context.membership.role)) notFound();
 
   const organizationId = context.organization.id;

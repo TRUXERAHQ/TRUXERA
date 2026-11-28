@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@/auth";
 import { getOrganizationsForUser } from "@/src/prisma/organization-data";
-import OnboardingForm from "./onboarding-form";
+import OnboardingWizard from "./onboarding-wizard";
 
 export default function OnboardingPage() {
   return (
@@ -28,25 +28,5 @@ async function OnboardingContent() {
   const organizations = await getOrganizationsForUser(session.user.id);
   if (organizations.length > 0) redirect("/");
 
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12 text-slate-900">
-      <section className="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-          TRUXERA
-        </p>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">
-          Set up your organization
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Create an organization to start managing its fleet and deliveries.
-          You will be added as its owner.
-        </p>
-        <p className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/60 px-3 py-2 text-sm font-medium text-indigo-800">
-          After setup you&apos;ll choose a plan — every monthly plan starts
-          with a 7-day free trial. Card required, no charge today.
-        </p>
-        <OnboardingForm />
-      </section>
-    </main>
-  );
+  return <OnboardingWizard />;
 }

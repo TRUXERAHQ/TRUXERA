@@ -23,9 +23,7 @@ export async function createOrganizationAction(
   }
 
   const organization = await createOrganizationForUser(session.user.id, name);
-  // Land on plan selection so the trial checkout is the next obvious
-  // step rather than something the user has to discover in Billing.
-  redirect(
-    `/dashboard/billing?organizationId=${encodeURIComponent(organization.id)}`,
-  );
+  // The onboarding wizard continues client-side into plan selection —
+  // no billing state is provisioned here; Paddle owns the trial.
+  return { organizationId: organization.id };
 }

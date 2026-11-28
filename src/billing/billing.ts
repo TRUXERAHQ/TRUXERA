@@ -404,6 +404,54 @@ export function resolveBillingState(
   };
 }
 
+/**
+ * Organizations created before the mandatory-subscription gate launched
+ * are grandfathered — they keep their existing access model (including
+ * legacy no-subscription TRIAL defaults and in-window internal trials).
+ * Everything created after this instant must hold a valid subscription
+ * or provider-managed trial to reach operational surfaces.
+ */
+export const SUBSCRIPTION_GATE_CUTOFF = new Date("2026-11-28T00:00:00.000Z");
+
+/**
+ * Decides whether a subscription row grants operational TRUXERA access.
+ * Provider-managed trials (Paddle/Stripe) are authoritative — status
+ * TRIAL with a providerKey grants access until the provider activates
+ * or cancels. Internal trial rows grant access only while unexpired.
+ * ACTIVE grants access. PAUSED and CANCELED do not.
+ */
+export function subscriptionGrantsOperationalAccess(
+  subscription: BillingSubscriptionRecord | null | undefined,
+): boolean {
+  if (!subscription) return false;
+  if (subscription.status === "ACTIVE") return true;
+  if (subscription.status === "TRIAL") {
+    if (subscription.providerKey != null) return true;
+    return !resolveBillingState(subscription).trialExpired;
+  }
+  return false;
+}
+
+/**
+ * Full gate predicate: grandfathered legacy orgs always pass; newer orgs
+ * need a subscription row that grants operational access.
+ */
+export function organizationHasOperationalAccess(input: {
+  createdAt: Date | string | null | undefined;
+  subscription: BillingSubscriptionRecord | null | undefined;
+}): boolean {
+  const createdAt =
+    input.createdAt == null ? null : new Date(input.createdAt);
+  if (
+    createdAt &&
+    !Number.isNaN(createdAt.getTime()) &&
+    createdAt < SUBSCRIPTION_GATE_CUTOFF
+  ) {
+    return true;
+  }
+  return subscriptionGrantsOperationalAccess(input.subscription);
+}
+
 /** User-safe plan-limit error messages (no internals, no provider detail). */
 export function vehicleLimitErrorMessage(
   planLabel: string,
