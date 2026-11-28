@@ -175,6 +175,11 @@ const PRIMARY_NAV_IDS = new Set([
   "executive-report",
 ]);
 
+// Menu drawer contains only secondary/account destinations. Notifications
+// is excluded too — it lives as a dedicated bell control at the right end
+// of the mobile quick-nav strip instead.
+const MOBILE_MENU_EXCLUDE_IDS = new Set([...PRIMARY_NAV_IDS, "notifications"]);
+
 const linkIdle =
   "flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 py-2 text-sm font-medium transition-colors border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]";
 const linkActive =
@@ -501,13 +506,13 @@ function DashboardNav({
   const drawerNodes = nodes
     .map((node) =>
       node.kind === "link"
-        ? PRIMARY_NAV_IDS.has(node.id)
+        ? MOBILE_MENU_EXCLUDE_IDS.has(node.id)
           ? null
           : node
         : {
             ...node,
             children: node.children.filter(
-              (child) => !PRIMARY_NAV_IDS.has(child.id),
+              (child) => !MOBILE_MENU_EXCLUDE_IDS.has(child.id),
             ),
           },
     )
@@ -515,6 +520,11 @@ function DashboardNav({
       (node): node is NavNode =>
         node !== null && (node.kind === "link" || node.children.length > 0),
     );
+
+  const notificationsNode = nodes.find(
+    (node): node is Extract<NavNode, { kind: "link" }> =>
+      node.kind === "link" && node.id === "notifications",
+  );
 
   const unreadBadge =
     unreadCount > 0 ? (
@@ -691,9 +701,9 @@ function DashboardNav({
         createPortal(
           <nav
             aria-label="Quick navigation"
-            className="overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:hidden"
+            className="flex items-center gap-2 xl:hidden"
           >
-            <div className="flex gap-2">
+            <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {stripItems.map((item) => {
                 const active = activeSection === item.id;
                 return (
@@ -713,6 +723,28 @@ function DashboardNav({
                 );
               })}
             </div>
+            {notificationsNode && (
+              <Link
+                href={notificationsNode.href}
+                aria-label={
+                  unreadCount > 0
+                    ? `Notifications, ${unreadCount} unread`
+                    : "Notifications"
+                }
+                title="Notifications"
+                aria-current={
+                  activeSection === "notifications" ? "page" : undefined
+                }
+                className="relative mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--nav-item-border)] bg-[var(--nav-item-bg)] text-[var(--nav-item-text)] transition-colors hover:bg-[var(--nav-hover-bg)] hover:text-[var(--nav-hover-text)]"
+              >
+                <NavIcon name="bell" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--nav-active-bg)] px-1 text-[10px] font-bold leading-none text-[var(--nav-active-text)]">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
           </nav>,
           stripTarget,
         )}
