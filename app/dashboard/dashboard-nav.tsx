@@ -503,23 +503,17 @@ function DashboardNav({
   const stripItems = nodes
     .flatMap((node) => (node.kind === "link" ? [node] : node.children))
     .filter((item) => PRIMARY_NAV_IDS.has(item.id));
-  const drawerNodes = nodes
-    .map((node) =>
-      node.kind === "link"
-        ? MOBILE_MENU_EXCLUDE_IDS.has(node.id)
-          ? null
-          : node
-        : {
-            ...node,
-            children: node.children.filter(
-              (child) => !MOBILE_MENU_EXCLUDE_IDS.has(child.id),
-            ),
-          },
-    )
-    .filter(
-      (node): node is NavNode =>
-        node !== null && (node.kind === "link" || node.children.length > 0),
-    );
+  // Drawer items are flat top-level links: dropdown nodes contribute their
+  // non-excluded children directly (e.g. Help/Support/Feedback sit beside
+  // Settings and Billing rather than nested under a Help accordion).
+  const drawerNodes: NavNode[] = nodes.flatMap((node) => {
+    if (node.kind === "link") {
+      return MOBILE_MENU_EXCLUDE_IDS.has(node.id) ? [] : [node];
+    }
+    return node.children
+      .filter((child) => !MOBILE_MENU_EXCLUDE_IDS.has(child.id))
+      .map((child) => ({ kind: "link" as const, ...child }));
+  });
 
   const notificationsNode = nodes.find(
     (node): node is Extract<NavNode, { kind: "link" }> =>
