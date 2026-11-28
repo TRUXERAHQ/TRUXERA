@@ -311,6 +311,11 @@ async function Dashboard({ searchParams }: HomeProps) {
   await connection();
 
   const session = await auth();
+  // TEMP DIAG — remove before final deploy
+  console.log(
+    "[diag-page] /",
+    JSON.stringify({ a: Boolean(session?.user?.id) }),
+  );
   if (!session?.user?.id) redirect("/login");
 
   const { organizationId } = await searchParams;
@@ -320,6 +325,11 @@ async function Dashboard({ searchParams }: HomeProps) {
   const data = await getDashboardData(
     session.user.id,
     requestedOrganizationId,
+  );
+  // TEMP DIAG — remove before final deploy
+  console.log(
+    "[diag-page] / orgs",
+    JSON.stringify({ n: data.organizations.length, org: Boolean(data.organization) }),
   );
   if (data.organizations.length === 0) redirect("/onboarding");
   // Mandatory subscription gate — new organizations must complete Paddle

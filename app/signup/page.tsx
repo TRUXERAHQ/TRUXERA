@@ -29,6 +29,11 @@ async function SignupContent({ searchParams }: SignupPageProps) {
   await connection();
 
   const session = await auth();
+  // TEMP DIAG — remove before final deploy
+  console.log(
+    "[diag-page] /signup",
+    JSON.stringify({ a: Boolean(session?.user?.id) }),
+  );
   if (session?.user?.id) redirect("/");
 
   const { error } = await searchParams;

@@ -23,9 +23,19 @@ async function OnboardingContent() {
   await connection();
 
   const session = await auth();
+  // TEMP DIAG — remove before final deploy
+  console.log(
+    "[diag-page] /onboarding",
+    JSON.stringify({ a: Boolean(session?.user?.id) }),
+  );
   if (!session?.user?.id) redirect("/login");
 
   const organizations = await getOrganizationsForUser(session.user.id);
+  // TEMP DIAG — remove before final deploy
+  console.log(
+    "[diag-page] /onboarding orgs",
+    JSON.stringify({ n: organizations.length }),
+  );
   if (organizations.length > 0) redirect("/");
 
   return <OnboardingWizard />;

@@ -11,6 +11,17 @@ export default auth((request) => {
   // back to "/login", and the proxy sends it to "/" again.
   const userId = request.auth?.user?.id;
 
+  // TEMP DIAG — remove before final deploy
+  const decision = !userId && !publicAuthPaths.includes(pathname)
+    ? "redirect:/login"
+    : userId && publicAuthPaths.includes(pathname)
+      ? "redirect:/"
+      : "next";
+  console.log(
+    "[diag-proxy]",
+    JSON.stringify({ p: pathname, a: Boolean(userId), d: decision }),
+  );
+
   if (!userId && !publicAuthPaths.includes(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

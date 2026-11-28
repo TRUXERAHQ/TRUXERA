@@ -29,6 +29,11 @@ async function LoginContent({ searchParams }: LoginPageProps) {
   await connection();
 
   const session = await auth();
+  // TEMP DIAG — remove before final deploy
+  console.log(
+    "[diag-page] /login",
+    JSON.stringify({ a: Boolean(session?.user?.id) }),
+  );
   if (session?.user?.id) redirect("/");
 
   const { error } = await searchParams;
